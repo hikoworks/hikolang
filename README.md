@@ -89,3 +89,6 @@ Functions may be called in two different ways:
  * `foo(a, b)`
  * `a.foo(b)`
 
+## Extending syntax
+There is macro system that allows you to match with tokens and replace it with a different expression.
+
