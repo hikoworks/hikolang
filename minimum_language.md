@@ -85,6 +85,7 @@ statement :=
     | return-statement
     | break-statement
     | continue-statement
+    | syntax-statement
     | expression
 ```
 
@@ -218,9 +219,120 @@ function-return-type := type-expression
 #### Extending Syntax
 
 ```bnf
-syntax-declaration := 'syntax' syntax-match '{' syntax-tokens '}'
+compound-syntax-statement := 'syntax' compound-syntax-name '(' syntax-match ')'
+compound-syntax-name := identifier
+
+syntax-definition-statement := 'syntax' '(' syntax-match ')' block
+
+syntax-match := syntax-match-element ( ','+ syntax-match-element )* ','*
+syntax-match-element := ( syntax-match-element-name ':' )? syntax-match-element-token [*+?]?
+syntax-match-element-name := identifier
+syntax-match-element-token :=
+    | '(' syntax-match ')'
+    | '"' syntax-match-element-token-text '"'
+    | compound-syntax-name
+    | "int"
+    | "float"
+    | "char"
+    | "string"
+    | "id"
+    | "op"
+syntax-match-element-token-text := [^"]
+```
 
 ```
+
+
+```
+
+#### Declaring operators
+
+```bnf
+operator-declaration := 'operator' operator-type operator-name operator-precedence operator-function
+operator-type := 'suffix' | 'prefix' | 'binary' | 'inplace'
+operator-precedence := 'precedence' integer-literal ( 'left' | 'right' )
+operator-function := 'function' function-name
+operator-name := uax31-identifier | uax31-pattern-syntax+
+```
+
+These are the default operator definitions:
+
+```
+operator suffix ++ precedence 10 right function __post_increment__;
+operator suffix -- precedence 10 right function __post_decrement__;
+
+operator prefix - precedence 20 left function __neg__; 
+operator prefix + precedence 20 left function __pos__; 
+operator prefix ~ precedence 20 left function __bitwise_not__; 
+operator prefix not precedence 20 left function __not__; 
+operator prefix ++ precedence 20 left function __increment__; 
+operator prefix -- precedence 20 left function __decrement__; 
+
+operator binary * precedence 100 left function __mul__; 
+operator binary &* precedence 100 left function __wrapping_mul__; 
+operator binary ?* precedence 100 left function __checked_mul__; 
+operator binary / precedence 100 left function __div__; 
+operator binary % precedence 100 left function __mod__;
+operator binary ** precedence 100 left function __pow__; 
+operator binary &** precedence 100 left function __wrapping_pow__; 
+operator binary ?** precedence 100 left function __checked_pow__; 
+
+operator binary + precedence 110 left function __add__; 
+operator binary &+ precedence 110 left function __wrapping_add__; 
+operator binary ?+ precedence 110 left function __checked_add__; 
+operator binary - precedence 110 left function __sub__;
+operator binary &- precedence 110 left function __wrapping_sub__;
+operator binary ?- precedence 110 left function __checked_sub__;
+
+operator binary << precedence 120 left function __shift_left__; 
+operator binary |<< precedence 120 left function __rotate_left__; 
+operator binary >> precedence 120 left function __shift_right__; 
+operator binary |>> precedence 120 left function __rotate_right__;
+
+operator binary ..< precedence 130 left function __range__;
+operator binary ... precedence 130 left function __closed_range__;
+
+operator binary <=> precedence 200 left function __cmp__;
+
+operator binary < precedence 210 left function __lt__; 
+operator binary > precedence 210 left function __gt__; 
+operator binary <= precedence 210 left function __le__; 
+operator binary >= precedence 210 left function __ge__;
+operator binary == precedence 220 left function __eq__; 
+operator binary != precedence 220 left function __ne__; 
+
+operator binary & precedence 310 left function __bitwise_and__; 
+operator binary ^ precedence 320 left function __bitwise_xor__; 
+operator binary | precedence 330 left function __bitwise_or__; 
+
+operator binary && precedence 410 left function __and__; 
+operator binary ^^ precedence 420 left function __xor__; 
+operator binary || precedence 430 left function __or__;
+operator binary and precedence 410 left function __and__; 
+operator binary xor precedence 420 left function __xor__; 
+operator binary or precedence 430 left function __or__;
+
+operator inplace = precedence 1000 right function __assign__; 
+operator inplace += precedence 1000 right function __inplace_add__; 
+operator inplace &+= precedence 1000 right function __inplace_wrapping_add__; 
+operator inplace -= precedence 1000 right function __inplace_sub__; 
+operator inplace &-= precedence 1000 right function __inplace_wrapping_sub__; 
+operator inplace *= precedence 1000 right function __inplace_mul__; 
+operator inplace &*= precedence 1000 right function __inplace_wrapping_mul__; 
+operator inplace /= precedence 1000 right function __inplace_div__; 
+operator inplace %= precedence 1000 right function __inplace_mod__; 
+operator inplace <<= precedence 1000 right function __inplace_shift_left__; 
+operator inplace |<<= precedence 1000 right function __inplace_rotate_left__; 
+operator inplace >>= precedence 1000 right function __inplace_shift_right__; 
+operator inplace |>>= precedence 1000 right function __inplace_rotate_right__; 
+operator inplace &= precedence 1000 right function __inplace_bitwise_and__; 
+operator inplace ^= precedence 1000 right function __inplace_bitwise_xor__; 
+operator inplace |= precedence 1000 right function __inplace_bitwise_or__; 
+operator inplace &&= precedence 1000 right function __inplace_and__; 
+operator inplace ^^= precedence 1000 right function __inplace_xor__; 
+operator inplace ||= precedence 1000 right function __inplace_or__; 
+```
+
 
 ### Expression
 
@@ -418,94 +530,7 @@ call-operator-argument := ( '$'? identifier '=' )? expression
 ```
 
 
-#### Declaring operators
 
-```bnf
-operator-declaration := operator-type 'operator' operator-name operator-precedence operator-function ';'
-operator-type := 'suffix' | 'prefix' | 'binary' | 'inplace'
-operator-precedence := 'precedence' integer-literal ( 'left' | 'right' )
-operator-function := 'function' function-name
-operator-name := uax31-identifier | uax31-pattern-syntax+
-```
-
-These are the default operator definitions:
-
-```
-suffix operator ++ precedence 10 right function __post_increment__;
-suffix operator -- precedence 10 right function __post_decrement__;
-
-prefix operator - precedence 20 left function __neg__; 
-prefix operator + precedence 20 left function __pos__; 
-prefix operator ~ precedence 20 left function __bitwise_not__; 
-prefix operator not precedence 20 left function __not__; 
-prefix operator ++ precedence 20 left function __increment__; 
-prefix operator -- precedence 20 left function __decrement__; 
-
-binary operator * precedence 100 left function __mul__; 
-binary operator &* precedence 100 left function __wrapping_mul__; 
-binary operator ?* precedence 100 left function __checked_mul__; 
-binary operator / precedence 100 left function __div__; 
-binary operator % precedence 100 left function __mod__;
-binary operator ** precedence 100 left function __pow__; 
-binary operator &** precedence 100 left function __wrapping_pow__; 
-binary operator ?** precedence 100 left function __checked_pow__; 
-
-binary operator + precedence 110 left function __add__; 
-binary operator &+ precedence 110 left function __wrapping_add__; 
-binary operator ?+ precedence 110 left function __checked_add__; 
-binary operator - precedence 110 left function __sub__;
-binary operator &- precedence 110 left function __wrapping_sub__;
-binary operator ?- precedence 110 left function __checked_sub__;
-
-binary operator << precedence 120 left function __shift_left__; 
-binary operator |<< precedence 120 left function __rotate_left__; 
-binary operator >> precedence 120 left function __shift_right__; 
-binary operator |>> precedence 120 left function __rotate_right__; 
-
-binary operator ..< precedence 130 left function __range__;
-binary operator ... precedence 130 left function __closed_range__;
-
-binary operator <=> precedence 200 left function __cmp__;
-
-binary operator < precedence 210 left function __lt__; 
-binary operator > precedence 210 left function __gt__; 
-binary operator <= precedence 210 left function __le__; 
-binary operator >= precedence 210 left function __ge__;
-
-binary operator == precedence 220 left function __eq__; 
-binary operator != precedence 220 left function __ne__; 
-
-binary operator & precedence 310 left function __bitwise_and__; 
-binary operator ^ precedence 320 left function __bitwise_xor__; 
-binary operator | precedence 330 left function __bitwise_or__; 
-
-binary operator && precedence 410 left function __and__; 
-binary operator ^^ precedence 420 left function __xor__; 
-binary operator || precedence 430 left function __or__;
-binary operator and precedence 410 left function __and__; 
-binary operator xor precedence 420 left function __xor__; 
-binary operator or precedence 430 left function __or__;
-
-inplace operator = precedence 1000 right function __assign__; 
-inplace operator += precedence 1000 right function __inplace_add__; 
-inplace operator &+= precedence 1000 right function __inplace_wrapping_add__; 
-inplace operator -= precedence 1000 right function __inplace_sub__; 
-inplace operator &-= precedence 1000 right function __inplace_wrapping_sub__; 
-inplace operator *= precedence 1000 right function __inplace_mul__; 
-inplace operator &*= precedence 1000 right function __inplace_wrapping_mul__; 
-inplace operator /= precedence 1000 right function __inplace_div__; 
-inplace operator %= precedence 1000 right function __inplace_mod__; 
-inplace operator <<= precedence 1000 right function __inplace_shift_left__; 
-inplace operator |<<= precedence 1000 right function __inplace_rotate_left__; 
-inplace operator >>= precedence 1000 right function __inplace_shift_right__; 
-inplace operator |>>= precedence 1000 right function __inplace_rotate_right__; 
-inplace operator &= precedence 1000 right function __inplace_bitwise_and__; 
-inplace operator ^= precedence 1000 right function __inplace_bitwise_xor__; 
-inplace operator |= precedence 1000 right function __inplace_bitwise_or__; 
-inplace operator &&= precedence 1000 right function __inplace_and__; 
-inplace operator ^^= precedence 1000 right function __inplace_xor__; 
-inplace operator ||= precedence 1000 right function __inplace_or__; 
-```
 
 ## Types and values
 

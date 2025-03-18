@@ -1,0 +1,107 @@
+
+/** An identifier following Unicode UAX#31.
+ */
+syntax id ( __identifier__ );
+
+/** A sequence of characters following Unicode UAX#31 Pattern_Syntax.
+ *
+ * Depending on the specific characters sometimes either the longest
+ * or shortest sequence will be use.
+ *
+ * The following sequences will be break before and after the sequence:
+ *  + Brackets: "[" "]" "(" ")" "{" "}"
+ */
+syntax op ( __operator__ );
+
+/** A integer literal.
+ *
+ *  + Simple Decimal: [+-]?[0-9_']+
+ *  + Binary: [+-]?0[bB][01_']+
+ *  + Octal: [+-]?0[oO][0-7_']+
+ *  + Decimal: [+-]?0[dD][0-9_']+
+ *  + Hexadecimal: [+-]?0[xX][0-9a-fA-F_']+
+ */
+syntax int ( __integer_literal__ );
+
+/** A floating point literal 
+ *
+ *  + [+-]?[0-9]*.[0-9]+([eE][+-]?[0-9]+)?
+ *  + [+-]?[0-9]+.([eE][+-]?[0-9]+)?
+ */
+syntax float ( __floating_point_literal__ );
+syntax char ( __char_literal__ );
+syntax string ( __string_literal__ );
+syntax bool ( "true" | "false" );
+syntax void ( "void" );
+syntax null ( "null" );
+
+syntax literal_suffix ( id ( "@" id )? );
+
+syntax literal (
+      null
+    | bool
+    | int literal_suffix?
+    | float literal_suffix?
+    | char
+    | string literal_suffix?
+);
+
+syntax variable_access ( "var" | "let" | "ref" | "shared" | "thread" );
+
+syntax expression;
+
+syntax assign_and_convert_type ( ":" );
+syntax assign_exact_type ( ":=" );
+syntax assign_base_type ( ":<" );
+syntax type_assignment_operator ( assign_and_convert_type | assign_exact_type | assign_base_type );
+syntax type_assignment ( type_assignment_operator expression );
+
+syntax init_expression ( variable_access id type_assignment? ( "=" expression )? );
+
+syntax arguments ( expression ( "," expression )* ","? );
+syntax argument_declarations ( init_expression ( "," init_expression )* ","? );
+
+syntax list_arguments ( expression ( "," expression )* ","? );
+syntax dictionary_arguments ( expression ":" expression ( "," expression ":" expression )* ","? );
+
+syntax list_comprehension ( expression "for" "(" init_expression "in" expression ")" ( "if" "(" expression ")" )? );
+syntax dictionary_comprehension ( expression ":" expression "for" "(" init_expression "in" expression ")" ( "if" "( expression ")" )? );
+
+syntax lambda_expression (
+      "{" ( arguments "in" )? statements "}"
+);
+
+syntax expression (
+      "(" expression ")"
+    | void
+    | literal
+    | id
+    | "$" int
+    | "$" id
+    | "$"
+    | init_expression
+    | expression "." id
+    | expression op
+    | expression op expression
+    | op expression
+    | expression "[" arguments "]"
+    | expression "(" arguments ")"
+    | expression "?" expression ":" expression
+    | lambda_expression
+    | "[" list_arguments "]"
+    | "[" dictionary_arguments "]"
+    | "[" list_comprehension "]"
+    | "[" dictionary_comprehension "]"
+);
+
+syntax ("operator", type:id, operator:op, "precedence", order:int, associativity:id, "function", function:id, ";") {
+    "__builtin_operator__" "(" type "," operator "," order "," associativity "," function ")" ";"
+}
+
+syntax (object:expression "." function_name:id "(" args:arguments ")") {
+    function_name "(" object "," args ")"
+}
+
+syntax (function_name:id "(" args:arguments ")" lambda:lambda_expression) {
+    function_name "(" args "," lambda ")"
+}
