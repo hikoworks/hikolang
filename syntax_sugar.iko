@@ -1,0 +1,3 @@
+
+module lang : syntax_sugar;
+import lang : syntax_base;

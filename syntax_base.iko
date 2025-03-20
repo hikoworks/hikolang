@@ -1,4 +1,6 @@
 
+module lang : syntax;
+
 /** An identifier following Unicode UAX#31.
  */
 syntax id ( __identifier__ );
@@ -71,6 +73,9 @@ syntax lambda_expression (
       "{" ( arguments "in" )? statements "}"
 );
 
+syntax index_expression ( expression "[" arguments "]" )
+syntax call_expression ( expression "(" arguments ")" )
+
 syntax expression (
       "(" expression ")"
     | void
@@ -81,11 +86,12 @@ syntax expression (
     | "$"
     | init_expression
     | expression "." id
+    | expression "." call_expression
     | expression op
     | expression op expression
     | op expression
-    | expression "[" arguments "]"
-    | expression "(" arguments ")"
+    | index_expression
+    | call_expression
     | expression "?" expression ":" expression
     | lambda_expression
     | "[" list_arguments "]"
@@ -94,14 +100,37 @@ syntax expression (
     | "[" dictionary_comprehension "]"
 );
 
-syntax ("operator", type:id, operator:op, "precedence", order:int, associativity:id, "function", function:id, ";") {
-    "__builtin_operator__" "(" type "," operator "," order "," associativity "," function ")" ";"
+
+syntax method_call_expression ( expression "." call_expression );
+syntax expression or ( method_call_expression );
+
+/** Implements method-calls.
+ *
+ * Rewrite: `a.foo(b, c)`
+ * Into: `foo(a, b, c)`
+ */
+ast_rewrite method_call_expression {
+    var r = $call_expression;
+    insert(r.arguments, 0, $expression);
+    return r;
 }
 
-syntax (object:expression "." function_name:id "(" args:arguments ")") {
-    function_name "(" object "," args ")"
+syntax call_lambda_expression ( call_expression lambda_expression );
+syntax expression or ( call_lambda_expression );
+
+/** Implements call with trailing lambda.
+ *
+ * Rewrite: `foo(a, b) { ... }`
+ * Into: `foo(a, b, { ... })`
+ */
+ast_rewrite call_lambda_expression {
+    var r = $call_expression;
+    append(r.arguments, $lambda_expression);
+    return r;
 }
 
-syntax (function_name:id "(" args:arguments ")" lambda:lambda_expression) {
-    function_name "(" args "," lambda ")"
-}
+
+syntax operator_statement ( "operator" op_type:id op "precedence" order:int ass:id "function" function:id );
+syntax statement or ( operator_statement );
+
+
