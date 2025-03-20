@@ -3,7 +3,7 @@ module lang : syntax;
 
 /** An identifier following Unicode UAX#31.
  */
-syntax id ( __identifier__ );
+syntax alias id ( __identifier__ );
 
 /** A sequence of characters following Unicode UAX#31 Pattern_Syntax.
  *
@@ -13,7 +13,7 @@ syntax id ( __identifier__ );
  * The following sequences will be break before and after the sequence:
  *  + Brackets: "[" "]" "(" ")" "{" "}"
  */
-syntax op ( __operator__ );
+syntax alias op ( __operator__ );
 
 /** A integer literal.
  *
@@ -23,19 +23,19 @@ syntax op ( __operator__ );
  *  + Decimal: [+-]?0[dD][0-9_']+
  *  + Hexadecimal: [+-]?0[xX][0-9a-fA-F_']+
  */
-syntax int ( __integer_literal__ );
+syntax alias int ( __integer_literal__ );
 
 /** A floating point literal 
  *
  *  + [+-]?[0-9]*.[0-9]+([eE][+-]?[0-9]+)?
  *  + [+-]?[0-9]+.([eE][+-]?[0-9]+)?
  */
-syntax float ( __floating_point_literal__ );
-syntax char ( __char_literal__ );
-syntax string ( __string_literal__ );
-syntax bool ( "true" | "false" );
-syntax void ( "void" );
-syntax null ( "null" );
+syntax alias float ( __floating_point_literal__ );
+syntax alias char ( __char_literal__ );
+syntax alias string ( __string_literal__ );
+syntax alias bool ( "true" | "false" );
+syntax alias void ( "void" );
+syntax alias null ( "null" );
 
 syntax literal_suffix ( id ( "@" id )? );
 
@@ -48,33 +48,38 @@ syntax literal (
     | string literal_suffix?
 );
 
-syntax variable_access ( "var" | "let" | "ref" | "shared" | "thread" );
+syntax alias variable_access ( "var" | "let" | "ref" | "shared" | "thread" );
 
-syntax expression;
+syntax alias assign_and_convert_type ( ":" );
+syntax alias assign_exact_type ( ":=" );
+syntax alias assign_base_type ( ":<" );
+syntax alias type_assignment_operator ( assign_and_convert_type | assign_exact_type | assign_base_type );
+syntax alias type_assignment ( type_assignment_operator expression );
 
-syntax assign_and_convert_type ( ":" );
-syntax assign_exact_type ( ":=" );
-syntax assign_base_type ( ":<" );
-syntax type_assignment_operator ( assign_and_convert_type | assign_exact_type | assign_base_type );
-syntax type_assignment ( type_assignment_operator expression );
+syntax node init_expression ( variable_access id type_assignment? ( "=" expression )? );
 
-syntax init_expression ( variable_access id type_assignment? ( "=" expression )? );
+syntax list arguments ( expression ( "," expression )* ","? );
+syntax list argument_declarations ( init_expression ( "," init_expression )* ","? );
 
-syntax arguments ( expression ( "," expression )* ","? );
-syntax argument_declarations ( init_expression ( "," init_expression )* ","? );
+syntax list list_arguments ( expression ( "," expression )* ","? );
+syntax node list_literal ( "[" list_arguments "]" )
 
-syntax list_arguments ( expression ( "," expression )* ","? );
-syntax dictionary_arguments ( expression ":" expression ( "," expression ":" expression )* ","? );
+syntax list dictionary_arguments ( expression ":" expression ( "," expression ":" expression )* ","? );
+syntax node dictionary_literal ( "[" dictionary_arguments "]" )
 
-syntax list_comprehension ( expression "for" "(" init_expression "in" expression ")" ( "if" "(" expression ")" )? );
-syntax dictionary_comprehension ( expression ":" expression "for" "(" init_expression "in" expression ")" ( "if" "( expression ")" )? );
+syntax alias list_comprehension ( expression "for" "(" init_expression "in" expression ")" ( "if" "(" expression ")" )? );
+syntax node list_comprehension_literal ( "[" list_comprehension "]" )
+syntax alias dictionary_comprehension ( expression ":" expression "for" "(" init_expression "in" expression ")" ( "if" "( expression ")" )? );
+syntax node dictionary_comprehension_literal ( "[" dictionary_comprehension "]" )
 
-syntax lambda_expression (
+syntax node lambda_expression (
       "{" ( arguments "in" )? statements "}"
 );
 
-syntax index_expression ( expression "[" arguments "]" )
-syntax call_expression ( expression "(" arguments ")" )
+syntax index_expression ( expression "[" arguments "]" );
+syntax call_expression ( expression "(" arguments ")" );
+
+syntax member_access_expression ( expression "." id );
 
 syntax expression (
       "(" expression ")"
@@ -85,8 +90,7 @@ syntax expression (
     | "$" id
     | "$"
     | init_expression
-    | expression "." id
-    | expression "." call_expression
+    | member_access_expression
     | expression op
     | expression op expression
     | op expression
@@ -101,33 +105,7 @@ syntax expression (
 );
 
 
-syntax method_call_expression ( expression "." call_expression );
-syntax expression or ( method_call_expression );
 
-/** Implements method-calls.
- *
- * Rewrite: `a.foo(b, c)`
- * Into: `foo(a, b, c)`
- */
-ast_rewrite method_call_expression {
-    var r = $call_expression;
-    insert(r.arguments, 0, $expression);
-    return r;
-}
-
-syntax call_lambda_expression ( call_expression lambda_expression );
-syntax expression or ( call_lambda_expression );
-
-/** Implements call with trailing lambda.
- *
- * Rewrite: `foo(a, b) { ... }`
- * Into: `foo(a, b, { ... })`
- */
-ast_rewrite call_lambda_expression {
-    var r = $call_expression;
-    append(r.arguments, $lambda_expression);
-    return r;
-}
 
 
 syntax operator_statement ( "operator" op_type:id op "precedence" order:int ass:id "function" function:id );
