@@ -1,0 +1,31 @@
+
+module lang : syntax_sugar;
+import : syntax_base;
+
+syntax method_call_expression (  );
+syntax expression or ( method_call_expression );
+
+/** Implements method-calls.
+ *
+ * Rewrite: `a.foo(b, c)`
+ * Into: `foo(a, b, c)`
+ */
+ast_rewrite ( expression "." id "(" arguments ")" ) {
+    var r = $call_expression;
+    insert(r.arguments, 0, $expression);
+    return r;
+}
+
+syntax call_lambda_expression ( call_expression lambda_expression );
+syntax expression or ( call_lambda_expression );
+
+/** Implements call with trailing lambda.
+ *
+ * Rewrite: `foo(a, b) { ... }`
+ * Into: `foo(a, b, { ... })`
+ */
+ast_rewrite call_lambda_expression {
+    var r = $call_expression;
+    append(r.arguments, $lambda_expression);
+    return r;
+}

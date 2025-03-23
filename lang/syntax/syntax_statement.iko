@@ -1,0 +1,111 @@
+
+module lang.syntax.syntax_statement : lang;
+
+/** Matches a token by text.
+ *
+ * A text-string that matches a single token literally. For example:
+ *  + matches open and close brances: "{", "}"
+ *  + matches a keyword: "for", "if"
+ *  + matches an operator: "+", "-"
+ */
+syntax alias token_literal ( __string_literal__ );
+
+/** Matches a token by type.
+ *
+ *  + "__identifier__": A UAX#31 Identifier.
+ *  + "__operator__": The longest sequence of UAX#31 Pattern_Syntax characters.
+ *  + "__string_literal__": A string literal.
+ *  + "__char_literal__": A char literal.
+ *  + "__integer_literal__": A integer literal.
+ *  + "__floating_point_literal__": A floating point literal.
+ *
+ * The following characters are not part of __operator__ and must be explicitly
+ * matched by text:
+ *  + `(`, `)`, `[`, `]`, `{`, `}`
+ */
+syntax alias token_name (
+      "__identifier__"
+    | "__operator__"
+    | "__string_literal__"
+    | "__char_literal__"
+    | "__integer_literal__"
+    | "__floating_point_literal__"
+);
+
+/** Matches a named-syntax.
+ *
+ * An identifier that was introduced using the `syntax` operator.
+ */
+syntax alias syntax_name ( "."? __identifier__ ( "." __identifier__ )* );
+
+/** Give a name to a token-expression.
+ *
+ * The name can be used in a `rewrite` statement to refer to
+ * a token-expression.
+ *
+ * If the syntax_assignment is not used with a token-expression then by default
+ * the syntax_name is used as the name of the token-expression. If there is
+ * also no syntax_name available the token-expression is anonymous.
+ */
+syntax alias token_expression_name ( __identifier__ ":" )
+
+/** Repeat a token-expression.
+ *
+ *  + Zero or once: `?`
+ *  + Zero or more: `*`
+ *  + Once or more: `+`
+ */
+syntax alias token_expression_repeat ( "?" | "*" | "+" )
+
+/** Match with a token.
+ *
+ * - "(" token-expression ")" Match with a nested token-expression.
+ * - syntax_name: Match with a named token-expression declared with the
+ *                `syntax` statement.
+ * - syntax_literal: Match a token with the exact text.
+ */
+syntax node token_expression (
+      name:token_expression_name? "(" tokens:token_or_list ")" repeat:token_expression_repeat?
+    | name:token_expression_name? tokens:token_name repeat:token_expression_repeat?
+    | name:token_expression_name? tokens:syntax_name repeat:token_expression_repeat?
+    | tokens:token_literal repeat:token_expression_repeat?
+);
+
+/** A sequence of tokens.
+ */
+syntax list_node token_seq_list ( token_expression+ )
+
+/** A choice for a sequences of tokens.
+ *
+ * The token-expression language has simple expressions as it will not implement
+ * the shunting yard algorithm. The top level chooses between different token
+ * sequences.
+ */
+syntax list_node token_or_list ( token_seq_list ( "|" token_seq_list )* );
+
+/** The type of the syntax statement.
+ *
+ * - "alias": A name for the token-expression. It does not introduce a node.
+ * - "node": A new node is created which contains the token-expression.
+ * - "list": The token-expression forms a list of nodes. The nodes are added
+ *           to the list of the parent node.
+ * - "list_node": A new node is created and the token-expression introduces
+ *                a list inside this new node.
+ * - "or": append token-expressions to an existing syntax using the `|`
+ *         token-expression operator.
+ */
+syntax alias syntax_type ( "alias" | "node" | "list" | "list_node" | "or" );
+
+/** Add syntax to the current compiler.
+ *
+ * When the syntax is complete the syntax is added to the current compiler
+ * immediatly. The syntax is incomplete if one of the syntax expressions uses a
+ * name that is not completed yet.
+ *
+ * Note: It is a reportable error if there is a incomplete syntax at the end of
+ *       a module.
+ * Note: If a `syntax` operator is used on an already existing syntax then both
+ *       definitions must by identical. This allows checking if the compiler
+ *       and the standard library agree on the syntax definitions.
+ */
+pub syntax node syntax_statement ( "pub"? "syntax" type:syntax_type name:syntax_name "(" tokens:token_or_list ")" ";" );

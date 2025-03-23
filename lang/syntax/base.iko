@@ -1,0 +1,173 @@
+
+module lang.syntax.base : lang;
+import lang.syntax.syntax_statement : lang;
+
+/** A module name.
+ *
+ * A module name is a dot `.` separated hierarchy of UAX#31 identifiers.
+ * The left most identifier is more global, and the right most is more specific.
+ * It will often match the same hierarchy of the file system; very similar to
+ * Java.
+ *
+ * A prefix dot `.` references the root module.
+ */
+syntax list_node module_name ( "."? __identifier__ ( "." __identifier__ )*);
+
+/** Declare a module.
+ *
+ * If a file has a `module` statement as the first statement.
+ *
+ * The first name is the module-name, the second name after the colon `:` is
+ * the public-module-name. If the name is a string-literal then instead
+ * of a module an executable is created instead, the string-literal forms
+ * the filename of the executable, excluding the executable-extension of
+ * the operating system.
+ *
+ * Identifiers declared in a module are added to the module-name namespace.
+ * Public identifiers declared in a module are also added to the
+ * public-module-name namespace.
+ *
+ * A search for identifiers starts in the module-name namespace, followed by
+ * a search in the public-module-name namespace.
+ */
+syntax node module_statement ( "module" ( name:module_name ( ":" public:module_name )? | executable:__string_literal ) ";" );
+
+/** Import modules.
+ *
+ * Import a module into the current module. `import` statements must appear
+ * directly after a `module` statement.
+ *
+ * The first name is the module to be imported, the second name
+ * after the colon `:` is the module-alias.
+ *
+ * A identifier must be prefixed with either the actual module-name or the
+ * module-alias. If the imported module declares to be part of a
+ * public-module-name that is equal to the current public-module-name, then
+ * unprefixed identifiers can be found in the public-module-name namespace.
+ */
+syntax node import_statement ( "import" name:module_name ( ":" alias:module_name )? ";" );
+
+syntax list_node import_statements ( import_statment* );
+
+syntax alias file_statement (
+      ';'
+    | syntax_statement
+    | operator_statement
+    | rewrite_statement
+);
+
+syntax list_node file_statement ( file_statement* );
+
+syntax alias file (
+    module:module_statement
+    imports:import_statements
+    statements:file_statements
+);
+
+/** An identifier following Unicode UAX#31.
+ */
+syntax alias id ( __identifier__ );
+
+/** A sequence of characters following Unicode UAX#31 Pattern_syntax.
+ *
+ * Depending on the specific characters sometimes either the longest
+ * or shortest sequence will be use.
+ *
+ * The following sequences will be break before and after the sequence:
+ *  + Brackets: "[" "]" "(" ")" "{" "}"
+ */
+syntax alias op ( __operator__ );
+
+/** A integer literal.
+ *
+ *  + Simple Decimal: [+-]?[0-9_']+
+ *  + Binary: [+-]?0[bB][01_']+
+ *  + Octal: [+-]?0[oO][0-7_']+
+ *  + Decimal: [+-]?0[dD][0-9_']+
+ *  + Hexadecimal: [+-]?0[xX][0-9a-fA-F_']+
+ */
+syntax alias int ( __integer_literal__ );
+
+/** A floating point literal 
+ *
+ *  + [+-]?[0-9]*.[0-9]+([eE][+-]?[0-9]+)?
+ *  + [+-]?[0-9]+.([eE][+-]?[0-9]+)?
+ */
+syntax alias float ( __floating_point_literal__ );
+syntax alias char ( __char_literal__ );
+syntax alias string ( __string_literal__ );
+syntax alias bool ( "true" | "false" );
+syntax alias void ( "void" );
+syntax alias null ( "null" );
+
+syntax literal_suffix ( id ( "@" id )? );
+
+syntax literal (
+      null
+    | bool
+    | int literal_suffix?
+    | float literal_suffix?
+    | char
+    | string literal_suffix?
+);
+
+syntax alias variable_access ( "var" | "let" | "ref" | "shared" | "thread" );
+
+syntax alias assign_and_convert_type ( ":" );
+syntax alias assign_exact_type ( ":=" );
+syntax alias assign_base_type ( ":<" );
+syntax alias type_assignment_operator ( assign_and_convert_type | assign_exact_type | assign_base_type );
+syntax alias type_assignment ( type_assignment_operator expression );
+
+syntax node init_expression ( variable_access id type_assignment? ( "=" expression )? );
+
+syntax list arguments ( expression ( "," expression )* ","? );
+syntax list argument_declarations ( init_expression ( "," init_expression )* ","? );
+
+syntax list list_arguments ( expression ( "," expression )* ","? );
+syntax node list_literal ( "[" list_arguments "]" )
+
+syntax list dictionary_arguments ( expression ":" expression ( "," expression ":" expression )* ","? );
+syntax node dictionary_literal ( "[" dictionary_arguments "]" )
+
+syntax alias list_comprehension ( expression "for" "(" init_expression "in" expression ")" ( "if" "(" expression ")" )? );
+syntax node list_comprehension_literal ( "[" list_comprehension "]" )
+syntax alias dictionary_comprehension ( expression ":" expression "for" "(" init_expression "in" expression ")" ( "if" "( expression ")" )? );
+syntax node dictionary_comprehension_literal ( "[" dictionary_comprehension "]" )
+
+syntax node lambda_expression (
+      "{" ( arguments "in" )? statements "}"
+);
+
+syntax index_expression ( expression "[" arguments "]" );
+syntax call_expression ( expression "(" arguments ")" );
+
+syntax member_access_expression ( expression "." id );
+
+syntax expression (
+      "(" expression ")"
+    | void
+    | literal
+    | id
+    | "$" int
+    | "$" id
+    | "$"
+    | init_expression
+    | member_access_expression
+    | expression op
+    | expression op expression
+    | op expression
+    | index_expression
+    | call_expression
+    | expression "?" expression ":" expression
+    | lambda_expression
+    | "[" list_arguments "]"
+    | "[" dictionary_arguments "]"
+    | "[" list_comprehension "]"
+    | "[" dictionary_comprehension "]"
+);
+
+
+
+syntax operator_statement ( "operator" op_type:id op "precedence" order:int ass:id "function" function:id );
+syntax statement or ( operator_statement );
