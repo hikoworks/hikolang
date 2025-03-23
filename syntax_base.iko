@@ -1,11 +1,55 @@
 
 module lang : syntax;
 
+/** The type of the syntax statement.
+ *
+ * - "alias": A name for the syntax expression.
+ * - "node": A new node is created which contains the syntax expression.
+ * - "list": The syntax expression forms a list, it does not introduce a new node,
+ *           If multiple lists are expanded into a node they will be appended.
+ * - "or": `or` expressions to an existing syntax.
+ */
+syntax alias syntax_type ( "alias" | "node" | "list" | "or" );
+
+/** Match with a token.
+ *
+ * - ( expression ): A nested list of tokens.
+ * - __string_literal__: Match with the text representation of a token.
+ * - __identifier__: Match using the name of another syntax element, this
+ *                   includes names of building token types.
+ */
+syntax alias syntax_expression ( "(" syntax_list ")" | __string_literal__ | __identifier__ );
+
+/** A fully qualified token expression.
+ *
+ * - You may specify a name that can be used in `rewrite` statement.
+ *   If not specified the the default name will be the identifier if the systax_expression
+ *   is an identifier. Otherwise it becomes anonymous and can not be used in a `rewrite` statement.
+ */
+syntax node syntax_node (
+      
+      
+       ( __identifier__ ":" )? syntax_expression ( "*" | "+" | "?" )? );
+
+syntax list syntax_seq_list ( syntax_node+ )
+
+syntax node syntax_or_list ( syntax_seq_list ( "|" syntax_seq_list )* );
+
+/** Add syntax to the current compiler.
+ *
+ * When the syntax is complete the syntax is added to the current compiler immediatly.
+ * The syntax is incomplate if one of the syntax expressions uses a name that is not
+ * available yet.
+ *
+ * Note: It is a reportable error if there is a incomplete syntax at the end of a module.
+ */
+syntax node syntax ( "syntax" syntax_type __identifier__ "(" syntax_list ")" ";" );
+
 /** An identifier following Unicode UAX#31.
  */
 syntax alias id ( __identifier__ );
 
-/** A sequence of characters following Unicode UAX#31 Pattern_Syntax.
+/** A sequence of characters following Unicode UAX#31 Pattern_syntax.
  *
  * Depending on the specific characters sometimes either the longest
  * or shortest sequence will be use.
