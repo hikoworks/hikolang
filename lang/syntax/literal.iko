@@ -1,0 +1,22 @@
+
+/** A integer literal.
+ *
+ *  + Simple Decimal: [+-]?[0-9_']+
+ *  + Binary: [+-]?0[bB][01_']+
+ *  + Octal: [+-]?0[oO][0-7_']+
+ *  + Decimal: [+-]?0[dD][0-9_']+
+ *  + Hexadecimal: [+-]?0[xX][0-9a-fA-F_']+
+ */
+
+syntax literal_suffix ( id ( "@" id )? );
+
+syntax literal (
+      "void"
+    | "null"
+    | "true"
+    | "false"
+    | __integer_literal literal_suffix?
+    | __floating_point_literal literal_suffix?
+    | __char_literal__
+    | __string_literal__ literal_suffix?
+);

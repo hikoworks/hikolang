@@ -64,52 +64,6 @@ syntax alias file (
     statements:file_statements
 );
 
-/** An identifier following Unicode UAX#31.
- */
-syntax alias id ( __identifier__ );
-
-/** A sequence of characters following Unicode UAX#31 Pattern_syntax.
- *
- * Depending on the specific characters sometimes either the longest
- * or shortest sequence will be use.
- *
- * The following sequences will be break before and after the sequence:
- *  + Brackets: "[" "]" "(" ")" "{" "}"
- */
-syntax alias op ( __operator__ );
-
-/** A integer literal.
- *
- *  + Simple Decimal: [+-]?[0-9_']+
- *  + Binary: [+-]?0[bB][01_']+
- *  + Octal: [+-]?0[oO][0-7_']+
- *  + Decimal: [+-]?0[dD][0-9_']+
- *  + Hexadecimal: [+-]?0[xX][0-9a-fA-F_']+
- */
-syntax alias int ( __integer_literal__ );
-
-/** A floating point literal 
- *
- *  + [+-]?[0-9]*.[0-9]+([eE][+-]?[0-9]+)?
- *  + [+-]?[0-9]+.([eE][+-]?[0-9]+)?
- */
-syntax alias float ( __floating_point_literal__ );
-syntax alias char ( __char_literal__ );
-syntax alias string ( __string_literal__ );
-syntax alias bool ( "true" | "false" );
-syntax alias void ( "void" );
-syntax alias null ( "null" );
-
-syntax literal_suffix ( id ( "@" id )? );
-
-syntax literal (
-      null
-    | bool
-    | int literal_suffix?
-    | float literal_suffix?
-    | char
-    | string literal_suffix?
-);
 
 syntax alias variable_access ( "var" | "let" | "ref" | "shared" | "thread" );
 
@@ -144,23 +98,28 @@ syntax call_expression ( expression "(" arguments ")" );
 
 syntax member_access_expression ( expression "." id );
 
-syntax expression (
-      "(" expression ")"
-    | void
-    | literal
-    | id
-    | "$" int
-    | "$" id
-    | "$"
+syntax block_expression ( "(" any_expression ")" );
+
+syntax expression ( assignment_expression | non_assignment_expression );
+
+syntax assignment_expression ( expression __assignment_operator__ expression );
+
+syntax non_assignment_expression (
+      block_expression
     | init_expression
-    | member_access_expression
-    | expression op
-    | expression op expression
-    | op expression
-    | index_expression
-    | call_expression
-    | expression "?" expression ":" expression
     | lambda_expression
+    | value:literal
+    | name:__identifier__
+    | op:"$" rhs:__integer_literal__
+    | op:"$" rhs:__identifier__
+    | op:"$"
+    | lhs:expression op:"." rhs:__identifier
+    | lhs:expression op:__suffix_operator__
+    | lhs:expression op:__binary_operator__ rhs:expression
+    | op:__prefix_operator__ rhs:expression
+    | lhs:expression op:"[" args:arguments "]"
+    | lhs:expression op:"(" args:arguments ")"
+    | lhs:expression op:"?" rhs_true:expression ":" rhs_false:expression
     | "[" list_arguments "]"
     | "[" dictionary_arguments "]"
     | "[" list_comprehension "]"
