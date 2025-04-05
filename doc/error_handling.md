@@ -6,9 +6,6 @@ to extend types like enums by adding new values to them. This is useful for erro
 the application or library can add new error codes to the enum type. This is done by
 using the `enum:add()` function on the enum type.
 
-No more than 4294967295 (2^32-1) error codes can be added to an enum type. It is a reportable
-error if the limit is reached.
-
 ```
 var error_code = enum {
     ok = 0,
@@ -55,6 +52,9 @@ The line where the error occured will be the line that called the member functio
 
 ## Error handling
 
+### Access to error codes
+
+
 ### if-statement init-expression / boolean-expression
 The error can be directly handled by an `if` statement. In the examples below
 the function `foo()` returns a value and must be used with an init-expression.
@@ -63,88 +63,89 @@ In both cases the error code is stored in a special variable `$error`.
 
 ```
 if (var x = foo()) {
-    // x is a value
+    // x is a truthy value
 } else {
+    // x is a falsy value
+} catch (bound_error) {
+    std::print("This was a bound error");
+} catch {
     std::print("error: ", $error);
+    throw;
 }
 
 if (bar()) {
     // bar was successful, but did not return a value.
-} else {
-    std::print("error: ", $error);
-}
-
-if (bar()) {
-    // Bar was successful, but did not return a value.
-} // No else branch, but the error was handled.
-```
-
-### try-catch statement
-The `try-catch` statement is used to handle errors possibly thrown by multiple functions.
-The `try` block will execute the code and if an error is thrown, the `catch` block will
-catch the error.
-
-```
-try {
-    var x = foo();
-    bar();
-} catch (bound_error) {
-    std::print("This was a bound error");
-    // Rethrow the error
-    throw;
-} catch {
-    std::print("This was an unknown error:", $error);
-    // The error was handled.
-}
-
-try {
-    var x = foo();
-    bar();
 } catch (bound_error) {
     std::print("This was a bound error");
     // Rethrow the error
     throw;
 } // No default catch block, the error was unhandled and will trap.
+
+if (bar()) {
+    // bar was successful, but did not return a value.
+} catch {
+    std::print("error: ", $error);
+}
+
+if (baz()) {
+    // baz was truthy.
+} // No default catch block, it is a reportable error if baz can throws.
 ```
 
-### `;`, `?` and `!` end-of-statement symbols
-The ';', '?' and '!' symbols are used to indicate the end of a statement.
+### try-catch / trap-catch statement
+The `try-catch` statement is used to handle errors possibly thrown by multiple functions.
+The `try` block will execute the code and if an error is thrown, the `catch` block will
+catch the error. Any error not catched will be rethrown.
 
-The `;` symbol is used to indicate that the statement will not throw an error. It
-is a reportable error if the statement throws an error.
+```
+try {
+    var x = foo();
+    bar();
+} catch (bound_error) {
+    std::print("This was a bound error");
+} // No default catch block, other errors will be rethrown.
 
-The `!` symbol is used to indicate that the statement may throw an error. Any error thrown
-by the statement is unhandled. It is not possible for a `!` to appear inside and expression
-if the `!` symbol is the last visible character of a line.
+trap {
+    var x = foo();
+    bar();
+} catch (bound_error) {
+    std::print("This was a bound error");
+    // Rethrow the error
+    throw;
+} // No default catch block, other errors will be unhandled and will trap.
+```
 
-The `?` symbol is used to indicate that the statement may throw an error. Any error thrown
-by the statement is rethrown. The caller may then handle the error. It is not possible for
-a `?` to appear inside and expression if the `?` symbol is the last visible character of a line.
 
-A block of code can not be terminated with `?` or `!`. A `;` symbol after a block of code
-is treated as an empty statement.
+### try expression
+
+```
+var x = foo(); // Reportable error if foo() may throw.
+var y = trap foo(); // foo() may throw, any error is unhandled, and will trap.
+var z = try foo(); // foo() may throw, any error is rethrown.
+
+if (try foo()) { // foo() may throw, any error is rethrown.
+    // bar was successful and truthy.
+}
+```
+
 
 ## ABI
 On function return an error is signaled by setting an appropriate CPU flag. On x86 this is done
 by setting the `CF` flag. The caller can check the flag and if it is set with a conditional jump or
 a conditional move.
 
-On error the lower 32 bits of the RAX register will be set to the error code. The upper 32 bits
-will be set to a unique value that identifies the line of code where the error was thrown from.
+On error the `RAX` register will be set to the error code. The `RDX` register will be set to instruction
+pointer of the `throw` statement, possibly using `LEA RDX, [RIP + 0]` instruction.
 
-When inside an error handler and when a `throw` statement without an argument is executed, the
-line-id will be appended to the thread-local stack-trace. When inside an error handler and when
-a `throw` statement with an argument is executed, the thread-local stack-trace will be cleared.
+When a `throw` statement is executed while inside the error-handling-block RAX:RDX are appended to the
+error-chain stack. At the end of the error-handling-block the error-chain stack is cleared when the
+error is not rethrown. The error-chain is stored in a thread-local variable.
 
-A line-identification-table will be generated by the compiler which maps the line-id to the
-function name, file name and line number. This table will be used to print the stack-trace
-when an error is unhandled. The table may be built into the binary or written to a separate file.
+The error-chain stack is a stack of error codes and and addresses. This error chain is used to produce
+a more complete stack trace, up to the point where the error was thrown.
 
-There are buildin functions to interigate the stack-trace and line-identification-table. These
-functions will be able to either use the built-in table or the external file if available.
-
-An unhandled error will first add the error-code/line-id into a thread-local variable, and then
+An unhandled error will first add the error-code/address to the error-chain stack, and then
 execute an appropiate cpu-trap to call the error handler. The trap setup will be done by the
 run-time services library. An error handler can determine if it was caused by an unhandled error
-by checking the thread-local variable for non-zero.
+by checking the error-chain stack.
 
