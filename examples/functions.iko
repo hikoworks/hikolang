@@ -1,0 +1,33 @@
+
+
+/** This function is a template.
+ */
+let foo(a, b)
+    pre(a > 0)
+    pre(a < b)
+    post(r : r > 0)
+{
+    return a + b;
+}
+
+/** This is an actual function as it has all types specified.
+ */
+let bar(a : i64, b : i64) -> i64
+{
+    return a + b;
+}
+
+/** Function declaration.
+ */
+var baz(a : i64, b : i64) -> 64;
+
+/** Assign a function definition to the declaration.
+ */
+baz(a : i64, b : i64) -> 64
+{
+    return a + b
+}
+
+/** Overwrite baz with another function.
+ */
+baz(a : i64, b : i64) -> 64 = bar(a : i64, b : i64) -> i64;

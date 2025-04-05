@@ -1,0 +1,150 @@
+# Error handling
+
+## Extendable error codes
+Because types in this language are values, applications and libraries will be able
+to extend types like enums by adding new values to them. This is useful for error codes, where
+the application or library can add new error codes to the enum type. This is done by
+using the `enum:add()` function on the enum type.
+
+No more than 4294967295 (2^32-1) error codes can be added to an enum type. It is a reportable
+error if the limit is reached.
+
+```
+var error_code = enum {
+    ok = 0,
+    assertion_failure = 1,
+    precondition_failure = 2,
+    postcondition_failure = 3,
+    invariant_invalid = 4,
+};
+
+// Add a new error code to the enum type, if it already exists, it will be ignored.
+error_code.try_add("my_error");
+```
+
+## Throwing an error.
+The `throw` statement is used to throw an error; its argument is an expression which
+results in an error code value.
+
+Example:
+
+```
+func foo(a: int) -> int {
+    if a < 0 {
+        throw bound_error;
+    }
+    return a;
+}
+```
+
+If you are handling an error, you can use the `throw` statement without an argument to
+rethrow the error. When rethrowing an error the program will maintain a stack trace.
+
+## Assertions
+The `assert` statement is used to check if an expression is true. If the expression is false,
+then the function will throw an `assertion_failure` error.
+
+Preconditions and postcoditions are checked in the caller function, so when a condition fails,
+the caller function will throw a `precondition_failure` or `postcondition_failure` error. The
+line where the error occured will be the line that called the function.
+
+An invariant check is done just before the post condition check for a member function that mutates
+the object. If the invariant check fails, the member function will throw an `invariant_invalid` error.
+The line where the error occured will be the line that called the member function.
+
+
+## Error handling
+
+### if-statement init-expression / boolean-expression
+The error can be directly handled by an `if` statement. In the examples below
+the function `foo()` returns a value and must be used with an init-expression.
+The function `bar()` does not return a value and must be used with a boolean-expression.
+In both cases the error code is stored in a special variable `$error`.
+
+```
+if (var x = foo()) {
+    // x is a value
+} else {
+    std::print("error: ", $error);
+}
+
+if (bar()) {
+    // bar was successful, but did not return a value.
+} else {
+    std::print("error: ", $error);
+}
+
+if (bar()) {
+    // Bar was successful, but did not return a value.
+} // No else branch, but the error was handled.
+```
+
+### try-catch statement
+The `try-catch` statement is used to handle errors possibly thrown by multiple functions.
+The `try` block will execute the code and if an error is thrown, the `catch` block will
+catch the error.
+
+```
+try {
+    var x = foo();
+    bar();
+} catch (bound_error) {
+    std::print("This was a bound error");
+    // Rethrow the error
+    throw;
+} catch {
+    std::print("This was an unknown error:", $error);
+    // The error was handled.
+}
+
+try {
+    var x = foo();
+    bar();
+} catch (bound_error) {
+    std::print("This was a bound error");
+    // Rethrow the error
+    throw;
+} // No default catch block, the error was unhandled and will trap.
+```
+
+### `;`, `?` and `!` end-of-statement symbols
+The ';', '?' and '!' symbols are used to indicate the end of a statement.
+
+The `;` symbol is used to indicate that the statement will not throw an error. It
+is a reportable error if the statement throws an error.
+
+The `!` symbol is used to indicate that the statement may throw an error. Any error thrown
+by the statement is unhandled. It is not possible for a `!` to appear inside and expression
+if the `!` symbol is the last visible character of a line.
+
+The `?` symbol is used to indicate that the statement may throw an error. Any error thrown
+by the statement is rethrown. The caller may then handle the error. It is not possible for
+a `?` to appear inside and expression if the `?` symbol is the last visible character of a line.
+
+A block of code can not be terminated with `?` or `!`. A `;` symbol after a block of code
+is treated as an empty statement.
+
+## ABI
+On function return an error is signaled by setting an appropriate CPU flag. On x86 this is done
+by setting the `CF` flag. The caller can check the flag and if it is set with a conditional jump or
+a conditional move.
+
+On error the lower 32 bits of the RAX register will be set to the error code. The upper 32 bits
+will be set to a unique value that identifies the line of code where the error was thrown from.
+
+When inside an error handler and when a `throw` statement without an argument is executed, the
+line-id will be appended to the thread-local stack-trace. When inside an error handler and when
+a `throw` statement with an argument is executed, the thread-local stack-trace will be cleared.
+
+A line-identification-table will be generated by the compiler which maps the line-id to the
+function name, file name and line number. This table will be used to print the stack-trace
+when an error is unhandled. The table may be built into the binary or written to a separate file.
+
+There are buildin functions to interigate the stack-trace and line-identification-table. These
+functions will be able to either use the built-in table or the external file if available.
+
+An unhandled error will first add the error-code/line-id into a thread-local variable, and then
+execute an appropiate cpu-trap to call the error handler. The trap setup will be done by the
+run-time services library. An error handler can determine if it was caused by an unhandled error
+by checking the thread-local variable for non-zero.
+
