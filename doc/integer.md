@@ -80,3 +80,40 @@ fully represent the result of the operation, so that it is impossible to overflo
    The comparison is done correctly, as if both operands are converted to signed integers large
    enough to hold the operands without overflow.
 
+
+## Large integers
+There are two types of large integers:
+ - `signed(nr_bits: __u16__)` - signed integer with `nr_bits` bits.
+ - `unsigned(nr_bits: __u16__)` - unsigned integer with `nr_bits` bits.
+
+The literal syntax are:
+ - `__integer_literal__ "U"` - unsigned integer that is converted to `unsigned(nr_bits)`, with the correct
+   number of bits.
+ - `__integer_literal__ "S"` - signed integer that is converted to `signed(nr_bits)`, with the correct
+   number of bits.
+
+## Integer interval
+
+ - `integer_interval(lo: signed, hi: signed)` - integer interval with a low and high value.
+
+Literal syntax for an integer interval is `<lo>...<hi>` where `<lo>` and `<hi>` are
+`__integer_literal__`, it is automatically converted to `integer_interval` type.
+
+## Ranged integers
+The ranged integer are the default integer type in the language.
+
+The ranged integer has the following features:
+ - An integer with with a range, values outside the range are not allowed.
+ - The possible range of values is not limited by the size of the cpu registers.
+   Up to 65536 bits of range is supported.
+ - Compile time range checking.
+ - Runtime range checking only if the range can't be checked at compile time.
+ - The size of the integer is based on the range:
+    - If the range is between 0 and 1, the size is 1 bit.
+    - If the range is between -128 and 127, the size is 8 bits.
+    - If the range is between -32768 and 32767, the size is 16 bits.
+    - If the range is between -2147483648 and 2147483647, the size is 32 bits.
+    - If the range is between -9223372036854775808 and 9223372036854775807, the size is 64 bits.
+    - Ranges beyond this use multiple 64-bit integers.
+
+ - `integer(range: integer_interval)` - integer with a range.

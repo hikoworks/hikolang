@@ -8,11 +8,10 @@ enum type. This is done by using the `enum:add()` function on the enum type.
 
 ```
 var error_code = enum {
-    ok = 0,
-    assertion_failure = 1,
-    precondition_failure = 2,
-    postcondition_failure = 3,
-    invariant_invalid = 4,
+    assertion_failure,
+    precondition_failure,
+    postcondition_failure,
+    invariant_invalid,
 };
 
 // Add a new error code to the enum type, if it already exists, it will be ignored.
@@ -97,21 +96,21 @@ if (var x = foo()) {
 }
 
 while (bar()) {
-    // bar was successful, the void-type is truthy
+    // bar() result is true.
 } catch (bound_error) {
     std::print("This was a bound error");
     throw;
 } // No default catch block, the error will trap.
 
 if (bar()) {
-    // bar was successful, the void-type is truthy
+    // bar() result is true
 } catch {
     std::print("error: ", $error);
 }
 
-if (baz()) {
-    // baz was truthy.
-} // No catch block, it is a reportable error if baz may throw.
+if (bar()) {
+    // bar() result is true
+} // No catch block, it is a reportable error if bar() may throw.
 ```
 
 ### try-catch / trap-catch statement
@@ -136,8 +135,7 @@ trap {
     bar();
 } catch (bound_error) {
     std::print("This was a bound error");
-    // Rethrow the error
-    throw;
+    throw; // Rethrow the error
 } // No default catch block, other errors will be unhandled and will trap.
 ```
 
