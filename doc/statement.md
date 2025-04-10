@@ -1,6 +1,87 @@
 # Statement
 
-# If statement
+## Flow control
+Flow control statements are used to control the flow of execution in a program. They allow you to make decisions, repeat actions, and handle errors.
+Flow control statements include:
+    - if-statement
+    - do-while-statement
+    - switch-statement
+    - try-catch-statement
+    - trap-catch-statement
+    - break / continue / goto statements
+    - return statement
+    - throw statement
+    - yield statement
+    - async statement
+    - await statement
+
+
+### Else-clause
+You may add a single else-clause to a if-statement, do-while-statement or for-statemtnet.
+The code-block in the else-clause will be executed if the expression of the preceding
+if-statement / elif-clause, do-while-statement or for-statement is false.
+
+The else-clause is not executed in a do-while-statement or for-statement if one of their
+code-blocks executes a break-statement.
+
+### Catch-clause
+The catch-clause is used to handle errors that are thrown in the expression of a
+preceding if-clause / elif-clause, while-clause, for-clause or switch-expression.
+
+In a elif-clause chain the catch-clause must be added before the next elif-clause.
+
+Errors thrown from inside the code-block of the if-statement, do-while-statement or
+for-statement are not caught by the catch-clause. 
+
+### Break / Continue / Goto statement
+The `break` statement is used to exit a loop or switch statement early. The `break` statement
+may include a label to specify which loop or switch statement to exit.
+
+```
+bar: while (true) {
+    while (true) {
+        break bar
+    }
+}
+```
+
+The `continue` statement is used to skip the current iteration of a loop and
+continue to the next iteration. The `continue` statement may include a label to specify which loop
+or switch statement to continue.
+
+```
+bar: while (true) {
+    while (true) {
+        continue bar
+    }
+}
+```
+
+The `continue` statement may also be used in a `do` `while` statement in this case continue
+will skip both the while-part-2 and the do-part and continue with the next iteration
+by executing the while expression.
+```
+bar: do {
+    // do part
+} while (true) {
+    // while part 1
+    continue bar
+    // while part 2
+}
+```
+
+The goto-statement is used to jump to a specific label in the code. The following label
+types are supported:
+ - `goto foo` - jump to label `foo`
+ - `goto bar` - jump to the label `bar` of a loop.
+ - `goto case 2` - jump to the label `case 2` of a switch statement.
+ - `goto default` - jump to the label `default` of a switch statement.
+
+When a goto case/default label is used the label must be unambiguous. Either the
+goto is inside the switch statement or the label is unique in the code block.
+It is a reportable error if the label is ambiguous.
+
+## If statement
 
 ```
 if (expression) {
@@ -45,7 +126,7 @@ in subsequent expressions will shadow the variable created in previous expressio
 
 
 
-# Do-while statement
+## Do-while statement
 
 ```
 do {
@@ -61,15 +142,11 @@ do {
 }
 ```
 
-## optional: do-clause
+### optional: do-clause
 
-## optional: while-clause
+### optional: while-clause
 
-## optional: else-clause
-
-## optional: catch-clause
-
-# Switch statement
+## Switch statement
 
 ```
 switch (if-expression) {
