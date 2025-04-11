@@ -1,16 +1,17 @@
 # Error handling
 
-## Extendable error codes
+## Extendable errors
 Errors are internally represented as a 31 bit unsigned integer, so that it
 may be returned in a 32 bit CPU register.
 
-Errors are global identifiers, so that the same name may be used in multiple
-modules and libraries. Therefor errors may be redefined in a module or library.
+Errors are identifiers which are only valid in the scope of a `throw`, `trap`
+or `catch` statement. Error identifiers are global in the program and may
+be redefined by multiple modules and libraries.
 
 You can define a new error code using the `error` statement. This statement
 has two optional arguments:
- - A comma `,` separated list of error names between parentheses `(...)`, that
-   this error is a sub-error of. This is used to create a hierarchy of errors.
+ - A comma `,` separated list of super-errors between parentheses `(...)`.
+   This is used to create a hierarchy of errors.
  - A string that is used as the error message.
 
 ```
@@ -31,6 +32,8 @@ handled as follows:
    definitions.
  - The error message is the first error message that was defined for an error.
 
+It is a static error if there is a loop in the super error hierarchy.
+
 It is a static error if adding a new error code causes this internal error code
 value to be larger than `0x7fffffff`.
 
@@ -38,34 +41,53 @@ value to be larger than `0x7fffffff`.
 The `throw` statement is used to throw an error; its argument is the name of
 an error. The error name must be an error that was defined before.
 
-Example:
 ```
 func foo(a: int) -> int {
     if a < 0 {
-        throw bound_error;
+        throw bound_error
     }
-    return a;
+    return a
 }
 ```
 
 If you are handling an error in a `catch` clause, you can use the `throw`
 statement without an argument to rethrow the error.
 
+```
+try {
+    var x = foo()
+    bar()
+} catch {
+    trap // This will trap the current error and terminate the program.
+}
+```
+
+
 The compiler will track which errors can be thrown (or rethrown) by a function.
 It is a static error if a function may throw an error that can not be caught by
 the caller.
 
 ## Trap an error
-The `trap` statement is used to trap an error. It works like the `throw`, but it
-causes the program to terminate and call the error handler.
+The `trap` statement is used to trap an error. A trapped error will cause
+the CPU to be trapped, and the program to terminate displaying a messsage, stack
+trace and error-chain.
 
-Like the `throw` statement, the `trap` statement can be used without an
-argument when used inside a `catch` block, to trap the current error.
+```
+func foo(a: int) -> int {
+    if a < 0 {
+        trap bound_error
+    }
+    return a;
+}
+```
+
+The `trap` statement can be used without an argument when used inside
+a `catch` block, to trap the current error.
 
 ```
 try {
-    var x = foo();
-    bar();
+    var x = foo()
+    bar()
 } catch {
     trap; // This will trap the current error and terminate the program.
 }
@@ -160,14 +182,14 @@ Any error not catched will be rethrown.
 
 ```
 try {
-    var x = foo();
-    bar();
+    var x = foo()
+    bar()
 } catch (bound_error) {
-    std::print("This was a bound error");
+    std.print("This was a bound error")
 } // No default catch block, other errors will be rethrown.
 ```
 
-A `try { return foo(); }` statement is compatible with tail-call optimization.
+A `try { return foo() }` statement is compatible with tail-call optimization.
 
 
 ### try / trap / catch expression
@@ -184,25 +206,21 @@ and `trap` operators will be applied directly to the result of the function
 call.
 
 ```
-var x = foo(); // static error if foo() can throw.
-var y = trap foo(); // Any error is unhandled, and will trap.
-var z = try foo(); // Any error is rethrown.
-var w = foo() catch 5; // Any error causes the results to be 5.
-
-if (try foo()) { // foo() may throw, any error is rethrown.
-    // foo() was successful and its result converted the boolean was true.
-}
+var x = foo() // static error if foo() can throw.
+var y = trap foo() // Any error is unhandled, and will trap.
+var z = try foo() // Any error is rethrown.
+var w = foo() catch 5 // Any error causes the results to be 5.
 ```
 
-A `return try foo();` statement is compatible with tail-call optimization.
+A `return try foo()` statement is compatible with tail-call optimization.
 
 ## ABI
 On function return an error is signaled by setting an appropriate CPU flag. On
 x86 this is done by setting the `CF` flag. The caller can check the flag and if
 it is set with a conditional jump or a conditional move.
 
-On error the lower 32 bits of the `RAX` register will be set to the error code.
-Bit 32 of the `RAX` register will be set to 1 if the error is rethrown, this is
+On error the lower 31 bits of the `RAX` register will be set to the error code.
+Bit 31 of the `RAX` register will be set to 1 if the error is rethrown, this is
 used as a performance optimization to avoid resetting the error-chain.
 
 The `RDX` register will be set to instruction pointer of the `throw` statement,
@@ -259,8 +277,9 @@ failure:
             je .assert_error
 
             ; Ignore any other error. Clear the error chain.
+            xor rdx, rdx
             bt rax, 31
-            cmovc byte gs:[error_chain_head], 0
+            cmovc gs:[error_chain_head], rdx
             jmp .success
 
 bound_error:
