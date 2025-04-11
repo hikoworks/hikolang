@@ -1,45 +1,31 @@
 # Error handling
+For ease of use, errors are thrown and caught, but they are not exceptions,
+within this language we call them errors. 
 
-## Extendable errors
-Errors are internally represented as a 31 bit unsigned integer, so that it
-may be returned in a 32 bit CPU register.
+A caller is responsible for catching all errors that can be thrown by an
+expression. The compiler will check if all errors that can be thrown are caught.
 
-Errors are identifiers which are only valid in the scope of a `throw`, `trap`
-or `catch` statement. Error identifiers are global in the program and may
-be redefined by multiple modules and libraries.
+Therefor all control flow is local, making it easier to reason about the code.
 
-You can define a new error code using the `error` statement. This statement
-has two optional arguments:
- - A comma `,` separated list of super-errors between parentheses `(...)`.
-   This is used to create a hierarchy of errors.
- - A string that is used as the error message.
+Features:
+ - Although errors are thrown, they are not exceptions. 
+ - No non-local control flow.
+ - Compiler checks if all errors that can be thrown are caught.
+ - Creating a new error is easy.
+ - Fast
+   - No setup on call.
+   - No setup on return.
+   - Fast to throw an error.
+   - Fast to catch an error.
+ - A chain of errors is recorded, so that the error can be traced back to the
+   point where it was originally thrown.
 
-```
-// Define the `foo` error.
-error foo
 
-// Define the `bar` error, and set the error message.
-error bar "This is the 'bar' error message"
-
-// Define `baz` as a sub-error of both `overflow` and `foo`.
-error baz (overflow, foo)
-```
-
-The list of super errors and the error message may be different in redefinitions
-of an error in separate libraries. Inconsistencies in error definitions are
-handled as follows:
- - The list of super errors is the union of all super errors in each of the
-   definitions.
- - The error message is the first error message that was defined for an error.
-
-It is a static error if there is a loop in the super error hierarchy.
-
-It is a static error if adding a new error code causes this internal error code
-value to be larger than `0x7fffffff`.
 
 ## Throwing an error.
 The `throw` statement is used to throw an error; its argument is the name of
-an error. The error name must be an error that was defined before.
+an error. The act of throwing an error also declares the name of the error,
+internally the name will be assigned a unique `__u32__` value.
 
 ```
 func foo(a: int) -> int {
@@ -58,14 +44,22 @@ try {
     var x = foo()
     bar()
 } catch {
-    trap // This will trap the current error and terminate the program.
+    throw // This will throw the current error and terminate the program.
 }
 ```
-
 
 The compiler will track which errors can be thrown (or rethrown) by a function.
 It is a static error if a function may throw an error that can not be caught by
 the caller.
+
+A function protype can be declared with a list of errors it can throw. The
+compiler will make sure that the function will not try to throw an error that is
+not in this list. Function prototypes like this are used for being able to pass
+function pointers to other functions which needs to catch these errors.
+
+```
+var my_func_type = func (a: int) throws(bound_error, underflow_error) -> int
+```
 
 ## Trap an error
 The `trap` statement is used to trap an error. A trapped error will cause
@@ -94,18 +88,16 @@ try {
 ```
 
 ## Assertions
-The `assert` statement is used to check if an expression is true. If the
-expression is false, then the function will throw an `assertion_failure` error.
-
-Preconditions and postcoditions are checked in the caller function, so when a
-condition fails, the caller function will throw a `precondition_failure` or
-`postcondition_failure` error. The line where the error occured will be the line
-that called the function.
-
-An invariant check is done just before the post condition check for a member
-function that mutates the object. If the invariant check fails, the member
-function will throw an `invariant_does_not_hold` error. The line where the error
-occured will be the line that called the member function.
+The following assert and constract statements throw the following error on
+a false result:
+ - `assert()` - `assertion_failure`
+ - `debug_assert()` - `assertion_failure`
+ - `pre()` - `precondition_failure`
+ - `debug_pre()` - `precondition_failure`
+ - `post()` - `postcondition_failure`
+ - `debug_post()` - `postcondition_failure`
+ - `invariant()` - `invariant_does_not_hold`
+ - `debug_invariant()` - `invariant_does_not_hold`
 
 ## Catch clause
 Control flow statements can have a `catch` clause. The `catch` clause is used to
@@ -132,9 +124,8 @@ if (foo()) {
 ```
 
 The expression of the `catch` clause is a comma `,` separated list of errors. A
-thrown error matches if the error or sub-error is listed in the `catch`
-expression. The `catch` clause can also be empty, in which case it will catch
-any error.
+thrown error matches if the error is listed in the `catch` expression. The
+`catch` clause can also be empty, in which case it will catch any error.
 
 You can exit the `catch` block:
  - using a `throw` statement to rethrow the error possibly with a different
@@ -146,10 +137,7 @@ You can exit the `catch` block:
  - executing to the end of the `catch` block. This will exit the current flow
    control statement and continue execution the current function.
 
-The following variables are available inside the `catch` code block:
- - `$error_code: __u32__` - The error code that was thrown.
- - `$error_address: __ptr__` - The address of the throw statement that caused
-   the error.
+
 
 The following functions can be used to display the error chain:
  - `std.error_chain(index: __u8__) -> (code: __u32__, address: __ptr__)` -
