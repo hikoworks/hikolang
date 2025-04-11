@@ -36,26 +36,27 @@ func foo(a: int) -> int {
 }
 ```
 
-If you are handling an error in a `catch` clause, you can use the `throw`
-statement without an argument to rethrow the error.
+You may throw an error from within an `catch` block. Unlike `trap` the error
+argument is required, this so that it easy to determine which errors a
+function can throw.
 
 ```
 try {
     var x = foo()
     bar()
 } catch {
-    throw // This will throw the current error and terminate the program.
+    throw my_error
 }
 ```
 
 The compiler will track which errors can be thrown (or rethrown) by a function.
-It is a static error if a function may throw an error that can not be caught by
+It is a static error if a function may throw an error that is not be caught by
 the caller.
 
 A function protype can be declared with a list of errors it can throw. The
 compiler will make sure that the function will not try to throw an error that is
-not in this list. Function prototypes like this are used for being able to pass
-function pointers to other functions which needs to catch these errors.
+not in this list. This should be used when passing a function-pointer to a
+function.
 
 ```
 var my_func_type = func (a: int) throws(bound_error, underflow_error) -> int
@@ -71,11 +72,11 @@ func foo(a: int) -> int {
     if a < 0 {
         trap bound_error
     }
-    return a;
+    return a
 }
 ```
 
-The `trap` statement can be used without an argument when used inside
+The `trap` statement may be used without an argument when used inside
 a `catch` block, to trap the current error.
 
 ```
@@ -83,7 +84,7 @@ try {
     var x = foo()
     bar()
 } catch {
-    trap; // This will trap the current error and terminate the program.
+    trap // This will trap the current error and terminate the program.
 }
 ```
 
