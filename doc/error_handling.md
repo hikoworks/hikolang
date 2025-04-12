@@ -67,14 +67,18 @@ func foo(a: int) -> int {
 ```
 
 You may `throw` or `trap` within a `catch` block, to continue processing an
-error up the stack. This is useful when you want to rethrow an error.
+error up the stack.
+
+When rethrowing or retrapping an error the error argument is optional. This is
+may be used in a catch-all to rethrow the error without having to know the error
+name. It is also required to handle tail-call optimization, with error handling.
 
 ```
 try {
     let x = foo(5)
     bar()
 } catch {
-    throw my_error
+    throw
 }
 ```
 
@@ -91,18 +95,15 @@ function.
 var my_func_type = func (a: int) throws(bound_error, underflow_error) -> int
 ```
 
+A destructor is not allowed to throw an error, it is allowed to trap an error.
+This trap can't be caught. This rule makes sure that the stack is unwound
+properly in case of an error.
+
 
 ## Assertions
-The following assert and contract statements trap the following error on
-a false result:
- - `assert()` - `assertion_failure`
- - `debug_assert()` - `assertion_failure`
- - `pre()` - `assertion_failure`
- - `debug_pre()` - `assertion_failure`
- - `post()` - `assertion_failure`
- - `debug_post()` - `assertion_failure`
- - `invariant()` - `assertion_failure`
- - `debug_invariant()` - `assertion_failure`
+The following assert and contract statements trap with `assertion_failure`:
+`assert()`, `debug_assert()`, `pre()`, `debug_pre()`, `post()`, `debug_post()`,
+`invariant()`, `debug_invariant()`.
 
 ## Catch clause
 Control flow statements can have a `catch` clause. The `catch` clause is used to
@@ -152,7 +153,6 @@ You can exit the `catch` block:
 The `try` statement is used to handle errors possibly thrown by multiple
 statements or expressions. The `try` block will execute the code and when an
 error is thrown, an optional `catch` block may catch the error.
-Any error not catched will be rethrown.
 
 ```
 try {
@@ -160,10 +160,10 @@ try {
     bar()
 } catch (bound_error) {
     std.print("This was a bound error")
-} // No default catch block, other errors will be rethrown.
+}
 ```
 
-A `try { return foo() }` statement is compatible with tail-call optimization.
+A `try { return foo() } catch { throw }` statement is compatible with tail-call optimization.
 
 
 ### try / trap / catch expression
@@ -193,28 +193,102 @@ On function return an error is signaled by setting an appropriate CPU flag. On
 x86 this is done by setting the `CF` flag. The caller can check the flag and if
 it is set with a conditional jump or a conditional move.
 
-On error the lower 31 bits of the `RAX` register will be set to the error code.
-Bit 31 of the `RAX` register will be set to 1 if the error is rethrown, this is
-used as a performance optimization to avoid resetting the error-chain.
+On the x86-64 architecture the return registers are used as follows:
+ - RAX[31:0] = error code, or < 64 trap code.
+ - RAX[63:32] = on retrap the original error code.
+ - RDX = instruction pointer of the original `throw` / `trap` statement.
 
-The `RDX` register will be set to instruction pointer of the `throw` statement,
-possibly using `LEA RDX, [RIP + 0]` instruction.
+Throwing an error:
+```
+            lea rdx, [rip + 0]                       ; Address of the throw statement.
+            mov rax, __error_code__bounds_error      ; Error code.
+            stc                                      ; Flag as error.
+            ret
+```
 
-When a `throw` statement is executed while inside the error-handling-block
-RAX:RDX are appended to the error-chain stack. At the end of the
-error-handling-block the error-chain stack is cleared, this only needs to
-be done for rethrown errors as otherwise the error-chain would already by empty.
+Trapping an error:
+```
+            lea rdx, [rip + 0]                       ; Address of the throw statement.
+            mov rax, __error_code__assertion_failure ; Error code, < 64.
+            mov rcx, gs:[__trap_mask__]              ; Get the trap mask.
+            bt rcx, rax                              ; Check if the error is in the trap mask.
+            jc .trap_retrap                          ; If the error is in the trap mask, retrap.
+            int 3                                    ; Trap the error.
+.trap_retrap:
+            ret                                      ; CF is already set.
+```
 
-The error-chain stack is a stack of error codes and and addresses. This error
-chain is used to produce a more complete stack trace, up to the point where the
-error was thrown. The error chain stack is 256 entries deep, on overflow the
-chain will wrap around and the oldest entries will be overwritten.
+Catching a thrown error:
+```
+            ; try {
+            ;     a = foo()
+            ; } catch (bounds_error) {
+            ;     a = 42
+            ; }
+            call foo()
+            jc .handle_error                         ; If the CF flag is set, ignore the error.
+            mov [a], rax                             ; Store the result in a.
+            ret
+.handle_error:
+            cmp eax, __error_code__bounds_error      ; Check if the error is a bounds error.
+            je .handle_bounds_error                  ; If it is, handle it.
+            stc                                      ; At this point it must be trap.
+            ret
+.handle_bounds_error:
+            xor rax, rax                             ; Clear the CF flag.
+            mov [a], 42                              ; Store the result in a.
+            ret
+```
 
-An trapped error will first add the error-code/address to the error-chain stack,
-and then execute an appropiate trap-instruction to call the error handler. The
-run-time services library should setup the trap system to call an trap handler.
-The trap handler can determine if it was caused by an error by checking the
-error-chain stack.
+Rethrow an error:
+```
+            ; try {
+            ;     a = foo()
+            ; } catch {
+            ;     throw
+            ; }
+            call foo()
+            jc .handle_error                         ; If the CF flag is set, ignore the error.
+            mov [a], rax                             ; Store the result in a.
+.handle_error:
+            ret
+```
+
+Rethrow an tail call optimization:
+```
+            ; try {
+            ;     return foo()
+            ; } catch {
+            ;     throw
+            ; }
+            jmp foo()
+```
+
+Retrap an error:
+```
+            ; try {
+            ;     a = foo()
+            ; } catch {
+            ;     trap
+            ; }
+            call foo()
+            jc .handle_error                         ; If the CF flag is set, ignore the error.
+            mov [a], rax                             ; Store the result in a.
+            ret
+.handle_error:
+            cmp eax, 64                              ; Check if the error is a trap.
+            jb .handle_trap
+            shl rax, 32                              ; Shift the error code to the upper 32 bits. Trap zero.
+            mov rcx, gs:[__trap_mask__]              ; Get the trap mask.
+            bt rcx, al
+            jc .handle_trap
+            int 3                                    ; Trap the error.
+.handle_trap:
+            stc
+            ret
+```
+
+
 
 ```
 foo:        ; throw unbound_error
