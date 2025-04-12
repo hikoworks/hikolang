@@ -10,22 +10,52 @@ Therefor all control flow is local, making it easier to reason about the code.
 Features:
  - Although errors are thrown, they are not exceptions. 
  - No non-local control flow.
- - Compiler checks if all errors that can be thrown are caught.
- - Creating a new error is easy.
- - Fast
-   - No setup on call.
-   - No setup on return.
-   - Fast to throw an error.
-   - Fast to catch an error.
- - A chain of errors is recorded, so that the error can be traced back to the
-   point where it was originally thrown.
-
+ - Compiler checks if all errors that can be thrown are caught directly by
+   the caller.
+ - Declaring a new error is easy; by simply throwing, trapping or catching it.
+ - Very fast throw and catch.
+   - No setup or teardown on catch or call.
+   - Throwing is done by setting the return registers to an error code, and
+     instruction pointer and setting the carry flag.
+   - Initial check for an error is by checking the carry flag.
+   - Catching specific errors is done by comparing the error code returned
+     in a register by known constant values.
+   - Rethrowing is the same as throwing, but keeping the register with the
+     instruction pointer intact.
+ - Fast trapping.
+   - Trapping is done by checking the trap mask and either returning the error
+     like throw, or calling the trap CPU instruction.
+   - If a catch is explicitly catching a trap, the trap mask is cleared for that
+     error code, and the previous mask is restored after the catch block.
+     Expicitly catching traps should be extremely rare.
+   - Retrapping is the same as trapping, but keeping the register with the
+     instruction pointer intact.
 
 
 ## Throwing an error.
-The `throw` statement is used to throw an error; its argument is the name of
-an error. The act of throwing an error also declares the name of the error,
-internally the name will be assigned a unique `__u32__` value.
+Both the `throw` and `trap` statements are used to throw an error. The argument
+of the `throw` and `trap` statement is the name of the error.
+
+By throwing, trapping or catching an error the name of the error declared.
+The error name is an identifier that exists in the global namespace and is
+only available in `throw`, `trap` and `catch` statements. The number of
+unique error names is limited to 2^32. Unique errors that may be used by a
+`trap` statement is limited to 64.
+
+The `throw` is for normal error handling and must be directly caught by the
+caller, explicitly by name or using a catch-all. By requiring directly catching
+errors, the language reduces non-local control flow.
+
+A `trap` is used to indicate a programming error, and normally it would cause a
+program to terminate with an error message and a stack trace. Traps may be
+caught by any caller on the stack, explicitly by name, or `catch trap`,
+but it ignores catch-all.
+
+A `trap` allows the caller to ignore errors that are clearly programming errors,
+and not recoverable. But also allow recovering from these errors in a controlled
+manner, for example in a test environment or by dropping the connection to a
+client.
+
 
 ```
 func foo(a: int) -> int {
@@ -36,21 +66,20 @@ func foo(a: int) -> int {
 }
 ```
 
-You may throw an error from within an `catch` block. Unlike `trap` the error
-argument is required, this so that it easy to determine which errors a
-function can throw.
+You may `throw` or `trap` within a `catch` block, to continue processing an
+error up the stack. This is useful when you want to rethrow an error.
 
 ```
 try {
-    var x = foo()
+    let x = foo(5)
     bar()
 } catch {
     throw my_error
 }
 ```
 
-The compiler will track which errors can be thrown (or rethrown) by a function.
-It is a static error if a function may throw an error that is not be caught by
+The compiler will track which errors can be thrown or trapped by a function.
+It is a static error if a function may throw an error that is not caught by
 the caller.
 
 A function protype can be declared with a list of errors it can throw. The
@@ -62,43 +91,18 @@ function.
 var my_func_type = func (a: int) throws(bound_error, underflow_error) -> int
 ```
 
-## Trap an error
-The `trap` statement is used to trap an error. A trapped error will cause
-the CPU to be trapped, and the program to terminate displaying a messsage, stack
-trace and error-chain.
-
-```
-func foo(a: int) -> int {
-    if a < 0 {
-        trap bound_error
-    }
-    return a
-}
-```
-
-The `trap` statement may be used without an argument when used inside
-a `catch` block, to trap the current error.
-
-```
-try {
-    var x = foo()
-    bar()
-} catch {
-    trap // This will trap the current error and terminate the program.
-}
-```
 
 ## Assertions
-The following assert and constract statements throw the following error on
+The following assert and contract statements trap the following error on
 a false result:
  - `assert()` - `assertion_failure`
  - `debug_assert()` - `assertion_failure`
- - `pre()` - `precondition_failure`
- - `debug_pre()` - `precondition_failure`
- - `post()` - `postcondition_failure`
- - `debug_post()` - `postcondition_failure`
- - `invariant()` - `invariant_does_not_hold`
- - `debug_invariant()` - `invariant_does_not_hold`
+ - `pre()` - `assertion_failure`
+ - `debug_pre()` - `assertion_failure`
+ - `post()` - `assertion_failure`
+ - `debug_post()` - `assertion_failure`
+ - `invariant()` - `assertion_failure`
+ - `debug_invariant()` - `assertion_failure`
 
 ## Catch clause
 Control flow statements can have a `catch` clause. The `catch` clause is used to
@@ -126,7 +130,9 @@ if (foo()) {
 
 The expression of the `catch` clause is a comma `,` separated list of errors. A
 thrown error matches if the error is listed in the `catch` expression. The
-`catch` clause can also be empty, in which case it will catch any error.
+`catch` clause can also be empty, in which case it will catch any thrown error.
+A `catch trap` clause will catch any error that was trapped by the `trap`
+statement.
 
 You can exit the `catch` block:
  - using a `throw` statement to rethrow the error possibly with a different
@@ -140,27 +146,6 @@ You can exit the `catch` block:
 
 
 
-The following functions can be used to display the error chain:
- - `std.error_chain(index: __u8__) -> (code: __u32__, address: __ptr__)` -
-   returns the error code and address at the given index. Returns `(0, 0)` when
-   the index is out of range.
- - `std.error_chain_to_string(code: __u32__, address: __ptr__) -> string` -
-   returns a string which shows the error codes and addresses in a human
-   readable format.
- - `std.print_error(code: __u32__, address: __ptr__)` - prints the the chain
-   of error codes and addresses in a human readable format to stderr.
-
-The following helper function are used to get information about an error-code
-these are technically also valid outside of a `catch` statement:
- - `std.get_error_message(code: __u32__) -> string` - returns the error
-   message of the error code. The error code must be a valid error code.
- - `std.get_error_name(code: __u32__) -> string` - returns the error name
-   of the error code. The error code must be a valid error code.
- - `std.get_error_code(name: string) -> __u32__` - returns the error code of
-   the error with the given name. The error name must be a valid error name.
- - `std.is_sub_error(code: __u32__, super_code: __u32__) -> bool` - returns true
-   if the error code is a sub-error of the super error code. The error code and
-   super error code must be valid error codes.
 
 
 ## try statement
@@ -232,57 +217,81 @@ The trap handler can determine if it was caused by an error by checking the
 error-chain stack.
 
 ```
-
-push_error_chain:
-            mov rcx, 1
-            xadd gs:[error_chain_head], rcx
-            and rcx, 0xFF ; Limit the size of the error chain to 256 entries.
-            sll rcx, 4
-            lea rcx, [error_chain_data + rcx]
-            mov gs:[rcx], rax
-            mov gs:[rcx + 8], rdx
-            ret
-            
-foo:
+foo:        ; throw unbound_error
             lea rdx, [rip + 0]
-            mov rax, unbound_error_value
+            mov rax, __error_code__bound_error
             stc
             ret
 
-foo_caller:
-            call foo()
-            jc .failure
 
-success:
-            ...
+bar:        ; assert(false)
+            mov rax, __error_code__assert
+            mov rdx, gs:[__trap_mask__]
+            bt rdx, al
+            jc .bar_retrap
+            int 3
+bar_retrap:
+            lea rdx, [rip + 0]
+            ret ; CF is already set.
+
+
+foo_caller: ; if (foo() and bar()) {
+            ; } catch (bounds_error) {
+            ; } catch (assert_failure) {
+            ; } catch {
+            ;    throw overflow_error
+            ; }
+
+            ; Because assert_failure, a trap, is caught by the catch blocks.
+            mov rcx, gs:[__trap_mask__]
+            push rcx ; Save the trap mask.
+            btr rcx, __error_code__assert ; Clear the trap mask for assert.
+            mov gs:[__trap_mask__], rcx ; Set the trap mask. 
+
+            call foo()
+            jc .catch
+            call bar()
+            jc .catch
+
+            ; Because assert_failure, a trap, is caught by the catch blocks.
+            pop rcx ; Restore the trap mask.
+            mov gs:[__trap_mask__], rcx ; Set the trap mask.
+
+            ; success
             xor eax, eax ; Clears the CF flag.
             ret
 
-failure:
-            cmp eax, unbound_error_value ; Only check the bottom 32 bits of the error code.
-            je .bound_error
+catch:
+            ; Because assert_failure, a trap, is caught by the catch blocks.
+            pop rcx ; Restore the trap mask.
+            mov gs:[__trap_mask__], rcx ; Set the trap mask.
 
-            cmp eax, assertion_failure_value ; Only check the bottom 32 bits of the error code.
-            je .assert_error
+            cmp eax, __error_code__bounds_error ; Only check the bottom 32 bits of the error code.
+            je .catch_bounds_error
 
-            ; Ignore any other error. Clear the error chain.
-            xor rdx, rdx
-            bt rax, 31
-            cmovc gs:[error_chain_head], rdx
-            jmp .success
+            cmp eax, __error_code__assertion_failure ; Only check the bottom 32 bits of the error code.
+            je .catch_assert_failure
 
-bound_error:
-            ; rethrow
-            call push_error_chain
+            cmp eax, 64
+            jea .catch_default
+            mov rdx, gs:[__trap_mask__]
+            bt rdx, al
+            jc .catch_retrap
+            int 3
+catch_retrap: ; CF is already set
+            ret
 
-            lea rdx, [rip + 0]
-            ; Optionally set rax to a new error code.
-            bts rax, 31 ; Indicate that the error is rethrown
+catch_default:
+            ; rethrow overflow_error, rdx still contains the address of the original error.
+            mov rax, __error_code__overflow_error
             stc
             ret
 
-assert_error:
-            ; trap
-            call push_error_chain
-            int 3
+catch_bound_error:
+            xor rax, rax ; Clears the CF flag.
+            ret
+
+catch_assert_failure:
+            xor rax, rax ; Clears the CF flag.
+            ret
 ```
