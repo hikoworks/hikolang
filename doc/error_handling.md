@@ -33,6 +33,45 @@ Features:
 
 
 ## Throwing an error.
+The `throw` statements is used to throw an error. The argument
+of the `throw` statement is the error-name, and optionally a
+string literal with a message.
+
+By throwing, trapping or catching an error-name is implicently declared.
+The error name is an identifier that exists in the global namespace and is
+only available as arguments of `throw`, `trap` and `catch` statements.
+The number of unique error-names is limited to 2^31.
+
+Errors thrown by the `throw` statement must be directly caught by the
+caller, explicitly by error-name or `catch` statement without an argument.
+By requiring directly catching errors, the language reduces non-local control flow.
+
+Example of a `throw` statement:
+```
+func foo(a: int) -> int {
+    if a < 0 {
+        throw out_of_bounds_error
+    }
+    return a
+}
+```
+
+The compiler will track which errors can be thrown by a function.
+It is a static error if a function may throw an error that is not caught by
+the caller.
+
+A function protype can be declared with a list of errors it can throw. The
+compiler will make sure that the function will not try to throw an error that is
+not in this list. This should be used when passing a function-pointer to a
+function.
+
+```
+var my_func_type = func (a: int) throws(bound_error, underflow_error) -> int
+```
+
+A destructor is not allowed to throw an error.
+
+## Trapping an error
 Both the `throw` and `trap` statements are used to throw an error. The argument
 of the `throw` and `trap` statement is the name of the error.
 
@@ -55,45 +94,6 @@ A `trap` allows the caller to ignore errors that are clearly programming errors,
 and not recoverable. But also allow recovering from these errors in a controlled
 manner, for example in a test environment or by dropping the connection to a
 client.
-
-
-```
-func foo(a: int) -> int {
-    if a < 0 {
-        throw bound_error
-    }
-    return a
-}
-```
-
-You may `throw` or `trap` within a `catch` block, to continue processing an
-error up the stack.
-
-When rethrowing or retrapping an error the error argument is optional. This is
-may be used in a catch-all to rethrow the error without having to know the error
-name. It is also required to handle tail-call optimization, with error handling.
-
-```
-try {
-    let x = foo(5)
-    bar()
-} catch {
-    throw
-}
-```
-
-The compiler will track which errors can be thrown or trapped by a function.
-It is a static error if a function may throw an error that is not caught by
-the caller.
-
-A function protype can be declared with a list of errors it can throw. The
-compiler will make sure that the function will not try to throw an error that is
-not in this list. This should be used when passing a function-pointer to a
-function.
-
-```
-var my_func_type = func (a: int) throws(bound_error, underflow_error) -> int
-```
 
 A destructor is not allowed to throw an error, it is allowed to trap an error.
 This trap can't be caught. This rule makes sure that the stack is unwound
@@ -188,23 +188,55 @@ var w = foo() catch 5 // Any error causes the results to be 5.
 
 A `return try foo()` statement is compatible with tail-call optimization.
 
-## ABI
+## ABI x86-64
 On function return an error is signaled by setting an appropriate CPU flag. On
 x86 this is done by setting the `CF` flag. The caller can check the flag and if
 it is set with a conditional jump or a conditional move.
 
 On the x86-64 architecture the return registers are used as follows:
- - RAX[31:0] = error code, or < 64 trap code.
- - RAX[63:32] = on retrap the original error code.
- - RDX = instruction pointer of the original `throw` / `trap` statement.
+ - RAX[30:0] = error code.
+ - RDX[31:1] = throw location id.
+ - RDX[0] = `1` if the error is a trap, `0` if it is a throw.
 
-Throwing an error:
+A table `__error_throw_location__` is used to map the throw location id with:
+ - `__ptr__`: A pointer to the string with the error message.
+ - `__ptr__`: A pointer to the string with the filename.
+ - `__i32__`: The line number in the file (1-based).
+ - `__i32__`: zero
+
+When trapping an error the `__trap_mask_ptr__` pointer is checked   
+
+
+### Throwing an error
+Throwing an error outside of a catch block.
+Because this is supposed to be fast, the error code and location id is passed
+in registers.
+
 ```
-            lea rdx, [rip + 0]                       ; Address of the throw statement.
+            mov rdx, __error_line__this_location_0   ; This is the throw location id / throw.
             mov rax, __error_code__bounds_error      ; Error code.
             stc                                      ; Flag as error.
             ret
 ```
+
+### Trapping an error
+Trapping an error outside of a catch block.
+Since a trap is supposed to terminate the application, the application should take
+its time to create a detailed error message and copy it into the `__error_message__` string.
+
+```
+            ; Set __trap_message__ to the error message.
+            ; Check __trap_mask__ to see if the error is in the trap mask if it is not, then execute int 3.
+            mov rdx, __error_line__this_location_1   ; This is the throw location id / trap.
+            mov rax, __error_code__assertion_failure ; Error code.
+            stc                                      ; Flag as error.
+            ret
+```
+
+
+
+
+
 
 Trapping an error:
 ```
