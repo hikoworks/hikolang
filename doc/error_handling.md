@@ -118,6 +118,12 @@ The following control-flow statements can have a `catch` clause:
  - `switch` statement
  - `try` statement
 
+The `catch` clause comes in four different forms:
+ - `catch (<error_names>)`: Catch a thrown error by name
+ - `catch`: Catch any thrown error
+ - `catch trap (<error_names>)`: Catch a trapped error by name
+ - `catch trap`: Catch any trapped error
+
 An example of a `catch` clause in an `if` statement:
 ```
 if (foo()) {
@@ -128,12 +134,6 @@ if (foo()) {
     // code
 }
 ```
-
-The expression of the `catch` clause is a comma `,` separated list of errors. A
-thrown error matches if the error is listed in the `catch` expression. The
-`catch` clause can also be empty, in which case it will catch any thrown error.
-A `catch trap` clause will catch any error that was trapped by the `trap`
-statement.
 
 You can exit the `catch` block:
  - using a `throw` statement to rethrow the error possibly with a different
@@ -193,18 +193,28 @@ On function return an error is signaled by setting an appropriate CPU flag. On
 x86 this is done by setting the `CF` flag. The caller can check the flag and if
 it is set with a conditional jump or a conditional move.
 
-On the x86-64 architecture the return registers are used as follows:
- - RAX[30:0] = error code.
- - RDX[31:1] = throw location id.
- - RDX[0] = `1` if the error is a trap, `0` if it is a throw.
+The return registers are used as follows:
+ - RAX[31:0] = error code.
+ - RDX[30:0] = throw location id.
+ - RDX[31] = `1` if the error is a trap, `0` if it is a throw.
 
-A table `__error_throw_location__` is used to map the throw location id with:
+The error code is a 31 bit unsigned integer, the value zero is not used for
+an error.
+
+A global static table `__error_throw_location__` is used to associative map the
+throw location id with, item struct:
  - `__ptr__`: A pointer to the string with the error message.
  - `__ptr__`: A pointer to the string with the filename.
- - `__i32__`: The line number in the file (1-based).
- - `__i32__`: zero
+ - `__u32__`: The line number in the file (1-based).
+ - `__u32__`: zero
 
-When trapping an error the `__trap_mask_ptr__` pointer is checked   
+When trapping an error the thread-local `__trap_mask_ptr__` pointer is checked.
+It points to a struct with the following fields. This struct is allocated on the
+stack frame of the function that tries to catch a trap:
+ - `__ptr__`: A pointer to the next struct in the chain.
+              Bit 0 is set if all traps are caught.
+ - `__u32__[n]`: A specific trap error code that will be caught.
+ - `__u32__`: Terminating zero.
 
 
 ### Throwing an error
@@ -213,6 +223,7 @@ Because this is supposed to be fast, the error code and location id is passed
 in registers.
 
 ```
+            ; End lifetime of local variables.
             mov rdx, __error_line__this_location_0   ; This is the throw location id / throw.
             mov rax, __error_code__bounds_error      ; Error code.
             stc                                      ; Flag as error.
@@ -220,17 +231,58 @@ in registers.
 ```
 
 ### Trapping an error
-Trapping an error outside of a catch block.
-Since a trap is supposed to terminate the application, the application should take
-its time to create a detailed error message and copy it into the `__error_message__` string.
+Trapping an error outside of a catch block. Since a trap is supposed to
+terminate the application, the application should take its time to create a
+detailed error message and copy it into the `__error_message__` string.
 
+
+There is a globaly available __check_trap_mask__ function, it walks the
+trap-mask linked list starting at __trap_mask_ptr__ and checks if the current
+error should be caught. The caller of __check_trap_mask__ uses the CF flag to
+determine if the error should be passed to the caller or cause a CPU trap. 
+```
+            ; This function must be called just before returning, pass the
+            ; trap-error to the caller, or to trap the CPU.
+            ; This function will keep RDX and RAX intact, but it will modify
+            ; RCX, R8 and R9.
+.__check_trap_mask__:
+            mov rcx, gs:[__trap_mask_ptr__]
+.__check_trap_mask__l0:
+            test rcx, rcx
+            jne .__check_trap_mask__f2
+            ret                                     ; No more masks to check. CF = 0
+.__check_trap_mask__f2:
+            mov r8, [rcx]
+            btr r8, 0
+            jc .__check_trap_mask__f3               ; Found wildcard catch.
+            add rcx, 12
+.__check_trap_mask__l1:
+            add rcx, 4
+            mov dword r9, [rcx]
+            cmp r9, eax
+            je .__check_trap_mask__f3               ; Found specific catch.
+            test r9, r9
+            jne .__check_trap_mask__l1              ; Check next specific.
+            mov rcx, r8
+            jmp .__check_trap_mask__l0              ; Check next mask.
+
+.__check_trap_mask__f3:                             ; Trap is caught. CF=1
+            stc
+            ret
+```
+
+When a trap is executed these are the sequence of instructions.
 ```
             ; Set __trap_message__ to the error message.
-            ; Check __trap_mask__ to see if the error is in the trap mask if it is not, then execute int 3.
-            mov rdx, __error_line__this_location_1   ; This is the throw location id / trap.
+            ; End lifetime of local variables.
+            mov rdx, __error_location__0             ; Location id for the trap statement.
             mov rax, __error_code__assertion_failure ; Error code.
-            stc                                      ; Flag as error.
-            ret
+            call check_trap_mask
+            jnc skip_1
+            ret                                      ; CF=1 pass the trap to the caller.
+.skip_1:    mov gs:[__trap_error_code__], rax        ; Set the error code.
+            mov gs:[__trap_location_id__], rdx       ; Set the location id.
+            int 3                                    ; CPU trap.
 ```
 
 
