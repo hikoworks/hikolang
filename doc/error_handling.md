@@ -33,36 +33,31 @@ Features:
 
 
 ## Throwing an error.
-The `throw` statements is used to throw an error. The argument
-of the `throw` statement is the error-name, and optionally a
-string literal with a message.
+The `throw` statements is used to throw an error. The argument of the `throw`
+statement is the error-name, and optionally a string literal with a message.
 
-By throwing, trapping or catching an error-name is implicently declared.
+A `throw` statement is meant to be fast to throw and catch, this is why the
+error message may only be a string literal.
+
+```
+if (a < 0) {
+    throw out_of_bounds_error, "a should be larger or equal to 0"
+}
+```
+
+By throwing, trapping or catching; an error-name is implicitly declared.
 The error name is an identifier that exists in the global namespace and is
 only available as arguments of `throw`, `trap` and `catch` statements.
 The number of unique error-names is limited to 2^31.
 
-Errors thrown by the `throw` statement must be directly caught by the
-caller, explicitly by error-name or `catch` statement without an argument.
-By requiring directly catching errors, the language reduces non-local control flow.
+Errors thrown by the `throw` statement must be directly caught by the caller,
+explicitly by error-name or `catch` statement without an argument. The compiler
+will track which errors can be thrown by a function. It is a static error if a
+function may throw an error that is not caught by the caller.
 
-Example of a `throw` statement:
-```
-func foo(a: int) -> int {
-    if a < 0 {
-        throw out_of_bounds_error
-    }
-    return a
-}
-```
-
-The compiler will track which errors can be thrown by a function.
-It is a static error if a function may throw an error that is not caught by
-the caller.
-
-A function protype can be declared with a list of errors it can throw. The
-compiler will make sure that the function will not try to throw an error that is
-not in this list. This should be used when passing a function-pointer to a
+A function prototype can be declared with a list of errors it can throw. The
+compiler will make sure that the function will only throw errors that is
+on this list. This should be used when passing a function-pointer to a
 function.
 
 ```
@@ -72,107 +67,104 @@ var my_func_type = func (a: int) throws(bound_error, underflow_error) -> int
 A destructor is not allowed to throw an error.
 
 ## Trapping an error
-Both the `throw` and `trap` statements are used to throw an error. The argument
-of the `throw` and `trap` statement is the name of the error.
+The `trap` statement is used to trap an error. The argument of the `trap`
+statement is the error-name, and optionally a string literal, or a dynamically
+generated message.
 
-By throwing, trapping or catching an error the name of the error declared.
+Because the `trap` statement is used to terminate the program, it is not
+designed to be fast. There is some cost to setup and teardown a `catch trap`
+clause, and to `trap` the error itself. Therefor it is recommended to
+dynamically generate a detailed error message and pass it to the `trap`
+statement.
+
+```
+if (a < 0) {
+    trap out_of_bounds_error, std.format("a should be larger or equal to 0, a = {}", a)
+}
+```
+
+By throwing, trapping or catching; an error-name is implicitly declared.
 The error name is an identifier that exists in the global namespace and is
-only available in `throw`, `trap` and `catch` statements. The number of
-unique error names is limited to 2^32. Unique errors that may be used by a
-`trap` statement is limited to 64.
+only available as arguments of `throw`, `trap` and `catch` statements.
+The number of unique error-names is limited to 2^31.
 
-The `throw` is for normal error handling and must be directly caught by the
-caller, explicitly by name or using a catch-all. By requiring directly catching
-errors, the language reduces non-local control flow.
+Errors trapped by the `trap` statement will normally terminate the program with
+and error message. This is done by calling the appropriate CPU trap instruction.
+A debugger attached to the application should point directly to the trap
+statement.
 
-A `trap` is used to indicate a programming error, and normally it would cause a
-program to terminate with an error message and a stack trace. Traps may be
-caught by any caller on the stack, explicitly by name, or `catch trap`,
-but it ignores catch-all.
+It is possible to catch a trap error by using a `catch trap` clause. This is
+used by unit-tests, or by applications that are able to isolate programming bugs
+(by for example terminating the connection to a client).
 
-A `trap` allows the caller to ignore errors that are clearly programming errors,
-and not recoverable. But also allow recovering from these errors in a controlled
-manner, for example in a test environment or by dropping the connection to a
-client.
+A trap may be retrapped, but may not be rethrown. If the `throw` statement is
+used inside the `catch trap` block, a new error will be thrown, it is not a
+continuation of the previous error.
 
-A destructor is not allowed to throw an error, it is allowed to trap an error.
-This trap can't be caught. This rule makes sure that the stack is unwound
-properly in case of an error.
-
+A second trap caused while unwinding the stack to catch the first trap can not
+be caught and will cause the application to terminate with a CPU trap.
 
 ## Assertions
 The following assert and contract statements trap with `assertion_failure`:
 `assert()`, `debug_assert()`, `pre()`, `debug_pre()`, `post()`, `debug_post()`,
 `invariant()`, `debug_invariant()`.
 
-## Catch clause
-Control flow statements can have a `catch` clause. The `catch` clause is used to
-catch errors that are thrown in the expression of a control-flow statement. A
-`catch` clause must directly follow the clause with an expression that can
-throw an error.
+See also the [assertions](assertions.md) document.
 
-The following control-flow statements can have a `catch` clause:
- - `if` statement
- - `while` statement
- - `for` statement
- - `switch` statement
- - `try` statement
+## Catch clause
+Control-expressions can have zero or more `catch` clauses. The `catch` clauses
+are used to catch errors that are thrown or trapped in the condition-expression
+of a control-expression. A `catch` clause must directly follow the clause with
+an condition-expression that can throw an error.
+
+The following control-expressions can have a `catch` clause:
+ - `if` control-expression
+ - `while` control-expressions
+ - `for` control-expressions
+ - `switch` control-expression
+ - `try` control-expression
+
+The `try` control-expression does not have a condition-expression, instead the
+`catch` clauses may be used to catch errors thrown or trapped from the code
+block.
+
+When a `if` control-expression has no `elif` clauses, the `catch` clause may
+appear after the `else` clause. This `catch` clause will still only catch errors
+from the `if` condition-expression.
 
 The `catch` clause comes in four different forms:
- - `catch (<error_names>)`: Catch a thrown error by name
- - `catch`: Catch any thrown error
+ - `catch (<error_names>)`: Catch a thrown or trapped error by name
+ - `catch`: Catch any thrown error (does not catch trapped errors)
  - `catch trap (<error_names>)`: Catch a trapped error by name
  - `catch trap`: Catch any trapped error
 
-An example of a `catch` clause in an `if` statement:
-```
-if (foo()) {
-    // code
-} catch (underflow, overflow) {
-    // code
-} else {
-    // code
-}
-```
+You may exit a `catch` block by:
+ - using `throw <error_name>` to throw a new error. The original error is
+   discarded. The new error is not a continuation of the original error.
+ - using `throw` to rethrow the error. This is a continuation of the original
+   error, it has the original error-code, message and location. You can't
+   rethrow a trapped error.
+ - using `trap <error_name>` to trap a new the error. The original error is
+   discarded. The new error is not a continuation of the original error.
+ - using `trap` to retrap an error. This is a continuation of the
+   original error, it has the original error-code, message and location.
+   You may retrap either a thrown or a trapped error.
+ - using a `return` statement to return from the function. This will
+   cause the function to return successfully with a value.
+ - using `break`, `continue`, `goto` or `result` statement to exit the block
+   of code.
+ - executing to the end of the block.
 
-You can exit the `catch` block:
- - using a `throw` statement to rethrow the error possibly with a different
-   error code. 
- - using a `trap` statement to trap the error. This will cause the program to
-   terminate and call the error handler.
- - using a `return` statement to return from the function. This will cause the
-   function to return successfully with a value.
- - executing to the end of the `catch` block. This will exit the current flow
-   control statement and continue execution the current function.
+a `try { return foo() } catch { throw }` statement is compatible with tail-call
+optimization.
 
-
-
-
-
-## try statement
-The `try` statement is used to handle errors possibly thrown by multiple
-statements or expressions. The `try` block will execute the code and when an
-error is thrown, an optional `catch` block may catch the error.
-
-```
-try {
-    var x = foo()
-    bar()
-} catch (bound_error) {
-    std.print("This was a bound error")
-}
-```
-
-A `try { return foo() } catch { throw }` statement is compatible with tail-call optimization.
-
-
-### try / trap / catch expression
+### try / trap / catch expressions
 Errors can also be handled within an expression. The `try` and `trap` prefix
 operators are used to rethrow, or trap an error.
 
-The binary `catch` operator evaluates the left operand and when it throws an
-error, it will evaluate and return the right operand. The `catch` operator can
-be used to catch an error and return a default value.
+The short-circuiting binary-operator `catch` evaluates the left operand and when
+it throws an error, it will evaluate and return the right operand. The `catch`
+operator can be used to catch an error and return a default value.
 
 The `try`, `trap` and `catch` operators have a slightly lower precedence
 (numerically higher) than the function-call operator. This means that the `try`
@@ -180,7 +172,6 @@ and `trap` operators will be applied directly to the result of the function
 call.
 
 ```
-var x = foo() // static error if foo() can throw.
 var y = trap foo() // Any error is unhandled, and will trap.
 var z = try foo() // Any error is rethrown.
 var w = foo() catch 5 // Any error causes the results to be 5.
@@ -194,9 +185,9 @@ x86 this is done by setting the `CF` flag. The caller can check the flag and if
 it is set with a conditional jump or a conditional move.
 
 The return registers are used as follows:
- - RAX[31:0] = error code.
- - RDX[30:0] = throw location id.
+ - RAX[30:0] = error code.
  - RDX[31] = `1` if the error is a trap, `0` if it is a throw.
+ - RDX[30:0] = throw location id.
 
 The error code is a 31 bit unsigned integer, the value zero is not used for
 an error.
@@ -216,6 +207,11 @@ stack frame of the function that tries to catch a trap:
  - `__u32__[n]`: A specific trap error code that will be caught.
  - `__u32__`: Terminating zero.
 
+When trapping an error the trap statement may set a dynamically generated
+error message. This is done by setting the thread-local `__trap_error_message__`
+string to an error message, this string is cleared when the trap is caught and
+not retrapped. 
+
 
 ### Throwing an error
 Throwing an error outside of a catch block.
@@ -224,8 +220,8 @@ in registers.
 
 ```
             ; End lifetime of local variables.
-            mov rdx, __error_line__this_location_0   ; This is the throw location id / throw.
-            mov rax, __error_code__bounds_error      ; Error code.
+            mov edx, __error_line__this_location     ; This is the throw location id / throw.
+            mov eax, __throw_code__bounds_error      ; Error code.
             stc                                      ; Flag as error.
             ret
 ```
@@ -275,181 +271,113 @@ When a trap is executed these are the sequence of instructions.
 ```
             ; Set __trap_message__ to the error message.
             ; End lifetime of local variables.
-            mov rdx, __error_location__0             ; Location id for the trap statement.
-            mov rax, __error_code__assertion_failure ; Error code.
-            call check_trap_mask
+            mov edx, __error_location                ; Location id for the trap statement.
+            mov eax, __trap_code__assertion_failure  ; Error code. bit 31 is set to 1.
+            call __check_trap_mask__
             jnc skip_1
             ret                                      ; CF=1 pass the trap to the caller.
-.skip_1:    mov gs:[__trap_error_code__], rax        ; Set the error code.
-            mov gs:[__trap_location_id__], rdx       ; Set the location id.
+.skip_1:    mov gs:[__trap_error_code__], eax        ; Set the error code.
+            mov gs:[__trap_location_id__], edx       ; Set the location id.
             int 3                                    ; CPU trap.
 ```
 
-
-
-
-
-
-Trapping an error:
-```
-            lea rdx, [rip + 0]                       ; Address of the throw statement.
-            mov rax, __error_code__assertion_failure ; Error code, < 64.
-            mov rcx, gs:[__trap_mask__]              ; Get the trap mask.
-            bt rcx, rax                              ; Check if the error is in the trap mask.
-            jc .trap_retrap                          ; If the error is in the trap mask, retrap.
-            int 3                                    ; Trap the error.
-.trap_retrap:
-            ret                                      ; CF is already set.
-```
-
+### Catching an error
 Catching a thrown error:
 ```
-            ; try {
-            ;     a = foo()
-            ; } catch (bounds_error) {
-            ;     a = 42
-            ; }
+; try {
+;     a = foo()
             call foo()
             jc .handle_error                         ; If the CF flag is set, ignore the error.
             mov [a], rax                             ; Store the result in a.
+finally:
+            xor eax, eax                             ; Clear the CF flag.
             ret
-.handle_error:
-            cmp eax, __error_code__bounds_error      ; Check if the error is a bounds error.
-            je .handle_bounds_error                  ; If it is, handle it.
-            stc                                      ; At this point it must be trap.
+
+handle_error:
+            cmp eax, __error_code__parse_error
+            je .handle_parse_error
+            cmp eax, __error_code__permission_denied
+            je .handle_permission_denied
+            cmp eax, __error_code__file_not_found
+            je .handle_file_not_found
+            cmp eax, __error_code__color_not_found
+            je .handle_color_not_found
+            stc                                      ; At this point it must be trap, automatically retrap.
             ret
-.handle_bounds_error:
-            xor rax, rax                             ; Clear the CF flag.
+
+.handle_parse_error:
+; } catch (parse_error) {
+;     a = 42
             mov [a], 42                              ; Store the result in a.
+            jmp finally                              ; Jump to the finally block.
+
+.handle_index_error:
+; } catch (permission_denied) {
+;    throw
+            stc
             ret
+
+.handle_file_not_found:
+; } catch (file_not_found) {
+;    throw cannot_load_theme_error, "Cannot load the theme."
+            mov edx, __error_line__handle_index_error
+            mov eax, __error_code__cannot_load_theme_error
+            stc
+            ret
+
+.handle_color_not_found:
+; } catch (color_not_found) {
+;    trap
+            bts eax, 31                              ; Set the trap bit.
+            call __check_trap_mask__
+            jnc skip_1
+            ret                                      ; CF=1 pass the trap to the caller.
+.skip_1:    mov gs:[__trap_error_code__], eax        ; Set the error code.
+            mov gs:[__trap_location_id__], edx       ; Set the location id.
+            int 3                                    ; CPU trap.     
+; }
 ```
 
-Rethrow an error:
+### Catching a trapped error:
 ```
-            ; try {
-            ;     a = foo()
-            ; } catch {
-            ;     throw
-            ; }
+; try {
+;     a = foo()
+            mov qword [sp + trap_mask_ptr], gs:[__trap_mask_ptr__] ; Save the trap mask pointer.
+            bts qword [sp + trap_mask_ptr], 0 ; Set the wildcard catch bit.
+            mov gs:[__trap_mask_ptr], sp + trap_mask_ptr ; Set the trap mask pointer to the new mask.
+            mov dword [sp + trap_mask_ptr + 8], __trap_code__assertion_failure
+            mov dword [sp + trap_mask_ptr + 4], 0
+
             call foo()
             jc .handle_error                         ; If the CF flag is set, ignore the error.
+            mov gs:[__trap_mask_ptr], [sp + trap_mask_ptr] ; Restore the trap mask pointer.
             mov [a], rax                             ; Store the result in a.
-.handle_error:
+finally:
+            xor eax, eax                             ; Clear the CF flag.
             ret
-```
 
-Rethrow an tail call optimization:
-```
-            ; try {
-            ;     return foo()
-            ; } catch {
-            ;     throw
-            ; }
-            jmp foo()
-```
+handle_error:
+            mov gs:[__trap_mask_ptr], [sp + trap_mask_ptr] ; Restore the trap mask pointer.
 
-Retrap an error:
-```
-            ; try {
-            ;     a = foo()
-            ; } catch {
-            ;     trap
-            ; }
-            call foo()
-            jc .handle_error                         ; If the CF flag is set, ignore the error.
-            mov [a], rax                             ; Store the result in a.
-            ret
-.handle_error:
-            cmp eax, 64                              ; Check if the error is a trap.
-            jb .handle_trap
-            shl rax, 32                              ; Shift the error code to the upper 32 bits. Trap zero.
-            mov rcx, gs:[__trap_mask__]              ; Get the trap mask.
-            bt rcx, al
-            jc .handle_trap
-            int 3                                    ; Trap the error.
-.handle_trap:
+            cmp eax, __trap_code__assertion_failure
+            je .handle_assertion_failure
+            jmp .handle_any_trap
+
+.handle_assertion_failure
+; } catch trap (assertion_failure) {
+;     a = 42
+            mov eax, __trap_error_message__
+            call std__string__clear
+            mov [a], 42                              ; Store the result in a.
+            jmp finally                              ; Jump to the finally block.
+
+.handle_any_trap:
+; } catch trap {
+;     throw caught_a_trap_error, "oops"
+            mov eax, __trap_error_message__
+            call std__string__clear
+            mov eax, __error_code__caught_a_trap_error
+            mov edx, __error_line__handle_any_trap
             stc
             ret
-```
-
-
-
-```
-foo:        ; throw unbound_error
-            lea rdx, [rip + 0]
-            mov rax, __error_code__bound_error
-            stc
-            ret
-
-
-bar:        ; assert(false)
-            mov rax, __error_code__assert
-            mov rdx, gs:[__trap_mask__]
-            bt rdx, al
-            jc .bar_retrap
-            int 3
-bar_retrap:
-            lea rdx, [rip + 0]
-            ret ; CF is already set.
-
-
-foo_caller: ; if (foo() and bar()) {
-            ; } catch (bounds_error) {
-            ; } catch (assert_failure) {
-            ; } catch {
-            ;    throw overflow_error
-            ; }
-
-            ; Because assert_failure, a trap, is caught by the catch blocks.
-            mov rcx, gs:[__trap_mask__]
-            push rcx ; Save the trap mask.
-            btr rcx, __error_code__assert ; Clear the trap mask for assert.
-            mov gs:[__trap_mask__], rcx ; Set the trap mask. 
-
-            call foo()
-            jc .catch
-            call bar()
-            jc .catch
-
-            ; Because assert_failure, a trap, is caught by the catch blocks.
-            pop rcx ; Restore the trap mask.
-            mov gs:[__trap_mask__], rcx ; Set the trap mask.
-
-            ; success
-            xor eax, eax ; Clears the CF flag.
-            ret
-
-catch:
-            ; Because assert_failure, a trap, is caught by the catch blocks.
-            pop rcx ; Restore the trap mask.
-            mov gs:[__trap_mask__], rcx ; Set the trap mask.
-
-            cmp eax, __error_code__bounds_error ; Only check the bottom 32 bits of the error code.
-            je .catch_bounds_error
-
-            cmp eax, __error_code__assertion_failure ; Only check the bottom 32 bits of the error code.
-            je .catch_assert_failure
-
-            cmp eax, 64
-            jea .catch_default
-            mov rdx, gs:[__trap_mask__]
-            bt rdx, al
-            jc .catch_retrap
-            int 3
-catch_retrap: ; CF is already set
-            ret
-
-catch_default:
-            ; rethrow overflow_error, rdx still contains the address of the original error.
-            mov rax, __error_code__overflow_error
-            stc
-            ret
-
-catch_bound_error:
-            xor rax, rax ; Clears the CF flag.
-            ret
-
-catch_assert_failure:
-            xor rax, rax ; Clears the CF flag.
-            ret
-```
+; }
