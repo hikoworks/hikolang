@@ -13,7 +13,7 @@ Features:
  - Compiler checks if all errors that can be thrown are caught directly by
    the caller.
  - Declaring a new error is easy; by simply throwing, trapping or catching it.
- - Very fast throw and catch.
+ - Very fast throw and catch recoverable errors.
    - No setup or teardown on catch or call.
    - Throwing is done by setting the return registers to an error code, and
      instruction pointer and setting the carry flag.
@@ -22,14 +22,11 @@ Features:
      in a register by known constant values.
    - Rethrowing is the same as throwing, but keeping the register with the
      instruction pointer intact.
- - Fast trapping.
-   - Trapping is done by checking the trap mask and either returning the error
-     like throw, or calling the trap CPU instruction.
-   - If a catch is explicitly catching a trap, the trap mask is cleared for that
-     error code, and the previous mask is restored after the catch block.
-     Expicitly catching traps should be extremely rare.
-   - Retrapping is the same as trapping, but keeping the register with the
-     instruction pointer intact.
+ - Separate from recoverable errors, you can trap fatal errors.
+   - Normally terminates the application.
+   - Possible to catch a trap for unit-testing and isolating programming bugs
+     by terminating the connection to a client.
+   - Slower than throwing an error.
 
 
 ## Throwing an error.
@@ -138,6 +135,9 @@ The `catch` clause comes in four different forms:
  - `catch trap (<error_names>)`: Catch a trapped error by name
  - `catch trap`: Catch any trapped error
 
+Inside all `catch` clauses, the `$error_code : __u32__` and `$error_location : __u32__`
+variables are available.
+
 You may exit a `catch` block by:
  - using `throw <error_name>` to throw a new error. The original error is
    discarded. The new error is not a continuation of the original error.
@@ -179,38 +179,91 @@ var w = foo() catch 5 // Any error causes the results to be 5.
 
 A `return try foo()` statement is compatible with tail-call optimization.
 
-## ABI x86-64
+## ABI
+### Error codes
+An error code is a 31 bit unsigned integer, the value zero is unused.
+
+A global static table `__error_codes__` is used to associative map an
+error code with the error name. This table must be sorted by name,
+so that searching can be done with a binary search; this dictates the
+value of error-code values, this also dictates that the first entry is an
+empty string.
+
+```
+let __error_code_entry_type__ = struct {
+    error_name : *string
+}
+let __error_codes__ : array[__error_code_entry_type__]
+```
+
+The following function are defined to access the `__error_codes__` table:
+ - `std.get_error_name(error_code: __u32__) throws(index_error) -> string` : Get the name of an error.
+ - `std.get_error_code(error_name: string) throws(index_error) -> __u32__` : Search for error code.
+
+### Dynamic trap message
+When trapping an error the trap statement may set a dynamically generated
+error message. This is done by setting the thread-local `__trap_error_message__`
+string to an error message, this string is cleared when the trap is caught and
+not retrapped.
+
+```
+thread_local var __trap_error_message__ : string = ""
+```
+
+The following function is defined to access the `__trap_error_message__` string:
+ - `std.get_trap_error_message() throws(empty) -> string` : Get the error message of a trap.
+
+### Error locations
+An error location id is a 32 bit unsigned integer.
+
+A global static table `__error_locations__` is used to associative map the
+error location id with the source file name and line number, and the error message
+of the `throw` or `trap` statement at the line. This table must be sorted by
+file name and line number, so that searching can be done with a binary
+search; this dictates the value of location id values.
+
+```
+let __error_location_entry_type__ = struct {
+    error_name : *string
+    error_message : *string
+    file_name : *string
+    line_number: __u32__
+    error_code : __u32__
+}
+let __error_locations__ : array[__error_location_entry_type__]
+```
+
+The following function are defined to access the `__error_locations__` table:
+ - `std.get_error_location_information(location_id: __u32__) throws(index_error) -> __error_location_entry_type__` :
+   Get the location of an error.
+ - `std.get_error_location_id(file_name: string, line_number: __u32__) throws(index_error) -> __u32__` :
+   Search for a location id, in the file on or above the line.
+
+
+### x86-64
 On function return an error is signaled by setting an appropriate CPU flag. On
 x86 this is done by setting the `CF` flag. The caller can check the flag and if
 it is set with a conditional jump or a conditional move.
 
 The return registers are used as follows:
- - RAX[30:0] = error code.
- - RDX[31] = `1` if the error is a trap, `0` if it is a throw.
- - RDX[30:0] = throw location id.
-
-The error code is a 31 bit unsigned integer, the value zero is not used for
-an error.
-
-A global static table `__error_throw_location__` is used to associative map the
-throw location id with, item struct:
- - `__ptr__`: A pointer to the string with the error message.
- - `__ptr__`: A pointer to the string with the filename.
- - `__u32__`: The line number in the file (1-based).
- - `__u32__`: zero
+ - RAX[30:0] : error code.
+ - RDX[31] : `1` if the error is a trap, `0` if it is a throw.
+ - RDX : location id.
 
 When trapping an error the thread-local `__trap_mask_ptr__` pointer is checked.
 It points to a struct with the following fields. This struct is allocated on the
 stack frame of the function that tries to catch a trap:
- - `__ptr__`: A pointer to the next struct in the chain.
-              Bit 0 is set if all traps are caught.
- - `__u32__[n]`: A specific trap error code that will be caught.
- - `__u32__`: Terminating zero.
 
-When trapping an error the trap statement may set a dynamically generated
-error message. This is done by setting the thread-local `__trap_error_message__`
-string to an error message, this string is cleared when the trap is caught and
-not retrapped. 
+```
+let __trap_mask_entry_type__ = struct {
+    next : *__trap_mask_entry_type__
+    // A set of trap codes, including bit 31 set to `1` to indicate a trap.
+    trap_code[] : __u32__
+    trap_code_sentinal : __u32__ = 0
+}
+thread_local var __trap_mask_ptr__ : *__trap_mask_entry_type__ = 0
+```
+
 
 
 ### Throwing an error
