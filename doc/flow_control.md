@@ -3,56 +3,22 @@
 Flow control statements are used to control the flow of execution in a program.
 They allow you to make decisions, repeat actions, and handle errors.
 
-Flow control statements include:
- - if-statement
- - do-while-statement
- - switch-statement
- - try-catch-statement
- - trap-catch-statement
- - break / continue / goto statements
- - return statement
- - throw statement
- - yield statement
- - async statement
- - await statement
-
 
 ## Else-clause
 You may add a single `else` clause to a `if`, `while` or `for` statement. The
-code-block in the `else` will be executed if the expression of the preceding
-`if`, `elif`, `while` or `for` statement is `false`.
+code-block in the `else` will be executed if the condition-expression
+of the preceding `if`, `elif`, `while` or `for` statement is `false`.
 
 The `else` clause is not executed in a `while` or `for` loop if it has been
 exited early by a `break` statement.
 
 ## Catch-clause
-The `catch` clause is used to handle errors that are thrown in the expression
-of a control-flow statement. A `catch` clause must follow the clause with
-an expression that can throw an error. It is a static-error if a error that
-can be thrown is not caught by a `catch` clause.
+The `catch` clause may catch errors thrown or trapped in the condition-expression
+of a control-expression. In a `try` control expression the `catch` will catch
+errors thrown in the code-block instead.
 
-Errors thrown from inside the code-block of a `if`, `while` or `for` statement
-are not caught by the `catch`-clause.
+See [error handling](error_handling.md) for more information.
 
-There are two forms of a `catch` clause:
- - `catch (error-expression) {...}` - When the error-expression matches an
-   error, the error is caught and the code in the `catch` block is executed.
- - `catch {...}` - The code in the `catch` block is executed if any error is
-   thrown in the preceding expression. Inside the error block the current
-   error code is accessable as `$error`.
-
-The error-expression is a comma `,` separated list of error names. An error
-matches if the error name is the same as the error name in the list.
-
-```
-if (foo()) {
-    // code
-} catch (underflow, overflow) {
-    // code
-} else {
-    // code
-}
-```
 
 ## Break statement
 The `break` statement is used to exit a loop or switch statement early. The
@@ -103,6 +69,22 @@ following label types are supported:
 When a `goto case` statement is used the case-label must be unambiguous. Either
 the `goto` is inside the `switch` statement containing the case label; or the
 label is unique in the code block.
+
+## Return statement
+The `return` statement is used to return a value from a function. It will exit
+a control-expression early.
+
+## Result statement
+Implicitly the last expression in a code-block is the result of the code-block of
+functions, lambda, and control-expressions. The implicit result is disabled in
+control-expressions where the type of the result is ambigous.
+
+The `result` statement is used to explicitly return a value from a code-block.
+This causes the compiler to try and convert values of different types to the
+destination type.
+
+The `result` statement is different from the `return` statement in that the `result`
+does not exit the function, only the control expression.
 
 ## If statement
 The `if` statement consists of a set of clauses:

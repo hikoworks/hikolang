@@ -246,11 +246,11 @@ x86 this is done by setting the `CF` flag. The caller can check the flag and if
 it is set with a conditional jump or a conditional move.
 
 The return registers are used as follows:
- - RAX[30:0] : error code.
- - RDX[31] : `1` if the error is a trap, `0` if it is a throw.
- - RDX : location id.
+ - EAX[30:0] : error code.
+ - EAX[31] : `1` if the error is a trap, `0` if it is a throw.
+ - EDX : location id.
 
-When trapping an error the thread-local `__trap_mask_ptr__` pointer is checked.
+Before trapping an error the thread-local `__trap_mask_ptr__` pointer is checked.
 It points to a struct with the following fields. This struct is allocated on the
 stack frame of the function that tries to catch a trap:
 
