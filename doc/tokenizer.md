@@ -165,11 +165,11 @@ arguments.
 The tokenizer has special handling for comma and semicolons:
  - When the bracket stack is empty or its top is a brace `{`, the tokenizer will
    insert a semicolon at the end of each the line and closing brace `}`.
+ - After the `if`, `switch`, `while`, `for`, `try` expressions a semicolon is
+   inserted after the closing brace `}`.
  - Multiple consecutive semicolons are replaced by a single semicolon.
  - Multiple consecutive commas are reported as an error by the tokenizer.
  - Any semicolon directly following a open-bracket `{`, `[` or `(` is removed.
  - A comma directly following a open-bracket `{`, `[` or `(` is reported as an
    error by the tokenizer.
- - Any comma or semicolon that is directly followed by a close-bracket `}`, `]`
-   or `)` is removed.
 
