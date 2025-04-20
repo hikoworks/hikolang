@@ -5,7 +5,8 @@
 strong {
     color: green !important;
     font-weight: normal !important;
-}</style>
+}
+</style>
 
 __(__ `do` `{` _statement-list_ `}` __)?__
 `while` `(` _condition-expression_ `)` __(__ `{` _statement-list_ `}` __)?__ _catch-clauses_**?**
