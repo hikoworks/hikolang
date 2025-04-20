@@ -158,13 +158,18 @@ Whitespace is used to separate tokens. Whitespace is not considered a token.
 Whitespace characters are defined by Pattern_White_Space from Unicode UAX #31
 (Unicode Identifier and Syntax).
 
-### End-of-statement
-The end-of-statement token is a virtual token that is used to mark the end of a
-statement. The end-of-statement token is inserted by the tokenizer when:
+### Semi-colon and comma handling
+The semicolon `;` and `,` are used to separate statements, expressions and
+arguments.
 
- - When a semicolon `;` is found.
- - When a newline is found and:
-   + Tokens have been generated since the last end-of-statement was generated.
-   + When the top of the bracket stack is a brace `{` or empty.
+The tokenizer has special handling for comma and semicolons:
+ - When the bracket stack is empty or its top is a brace `{`, the tokenizer will
+   insert a semicolon at the end of each the line and closing brace `}`.
+ - Multiple consecutive semicolons are replaced by a single semicolon.
+ - Multiple consecutive commas are reported as an error by the tokenizer.
+ - Any semicolon directly following a open-bracket `{`, `[` or `(` is removed.
+ - A comma directly following a open-bracket `{`, `[` or `(` is reported as an
+   error by the tokenizer.
+ - Any comma or semicolon that is directly followed by a close-bracket `}`, `]`
+   or `)` is removed.
 
-The generated end-of-statement token generated is the semicolon `;` token.

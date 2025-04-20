@@ -1,22 +1,16 @@
 # If statement
 
 ## Syntax
-<style type="text/css">
-strong {
-    color: green !important;
-    font-weight: normal !important;
-}
-</style>
 
-`if` `(` _condition-expression_ `)` `{` _statement-list_ `}` _catch-clauses_**?**
-__(__ `elif` `(` _condition-expression_ `)` `{` _statement-list_ `}` _catch-clauses_**?** __)*__
-__(__ `else` `{` _statement-list_ `}` __)?__
+`if` `(` [_condition-expression_](condistion_expression.md) `)` `{` [_statement-list_](statement_list.md) `}` [_catch-clauses_](catch_clauses.md)**?**\
+__(__ `else` `if` `(` [_condition-expression_](condistion_expression.md) `)` `{` [_statement-list_](statement_list.md) `}` [_catch-clauses_](catch_clauses.md)**?** __)*__\
+__(__ `else` `{` [_statement-list_](statement_list.md) `}` __)?__
 
 Alternatively when there are no `elif` clauses, the `catch` clauses may be
 placed after the `else` clause.
 
-`if` `(` _condition-expression_ `)` `{` statement-list `}`
-`else` `{` statement-list `}` _catch-clauses_**?**
+`if` `(` [_condition-expression_](condistion_expression.md) `)` `{` [_statement-list_](statement_list.md) `}`\
+`else` `{` [_statement-list_](statement_list.md) `}` [_catch-clauses_](catch_clauses.md)**?**
 
 ## Condition expression
 The condition expression is a boolean expression that evaluates to true or

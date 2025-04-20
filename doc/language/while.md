@@ -8,9 +8,8 @@ strong {
 }
 </style>
 
-__(__ `do` `{` _statement-list_ `}` __)?__
-`while` `(` _condition-expression_ `)` __(__ `{` _statement-list_ `}` __)?__ _catch-clauses_**?**
-__(__ `elwhile` `(` _condition-expression_ `)` __(__ `{` _statement-list_ `}` __)?__ _catch-clauses_**?** __)*__
+__(__ `do` `{` _statement-list_ `}` __)?__\
+`while` `(` _condition-expression_ `)` __(__ `{` _statement-list_ `}` __)?__ _catch-clauses_**?**\
 __(__ `else` `{` _statement-list_ `}` __)?__
 
 ## Condition expression
