@@ -19,7 +19,8 @@ results in a value that is convertible to a boolean value.
 The last expression in the _condition-expression_ is not allowed to be an
 assignment expression. This is to prevent a common bug; confusing `=` with `==`.
 
-> [!TIP] The compiler will report an error if the last expression is an
+> [!TIP]
+> The compiler will report an error if the last expression is an
 > assignment. To bypass this restriction, use a
 > [_sub-expression_](sub_expression.md).
 
@@ -38,6 +39,7 @@ If there are no `elif` clauses, the `catch` clauses may be placed after the
 `else` block. This is more intuitive, as handling an error is secondary to both
 the `if` and `else` branches.
 
-> [!CAUTION] Only errors occuring in the _condition-expression_ are caught by
+> [!CAUTION]
+> Only errors occuring in the _condition-expression_ are caught by
 > the [_catch-clauses_](catch_clauses.md). Errors occuring in the code-blocks
 > must be handled separately.
