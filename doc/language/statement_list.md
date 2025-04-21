@@ -1,12 +1,6 @@
 # statement-list
 
 ## Syntax
-<style type="text/css">
-strong {
-    color: green !important;
-    font-weight: normal !important;
-}
-</style>
 
 _statement_ __(__ `;` _statement_ __)*__
 

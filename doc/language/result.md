@@ -1,12 +1,6 @@
 # Result statement
 
 ## Syntax
-<style type="text/css">
-strong {
-    color: green !important;
-    font-weight: normal !important;
-}
-</style>
 
 `result` _expression_
 
