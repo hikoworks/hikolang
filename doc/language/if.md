@@ -1,52 +1,43 @@
-# If statement
+# If
 
 ## Syntax
 
-`if` `(` [_condition-expression_](condistion_expression.md) `)` `{` [_statement-list_](statement_list.md) `}` [_catch-clauses_](catch_clauses.md)**?**\
-__(__ `else` `if` `(` [_condition-expression_](condistion_expression.md) `)` `{` [_statement-list_](statement_list.md) `}` [_catch-clauses_](catch_clauses.md)**?** __)*__\
+`if` `(` _condition-expression_ `)` `{` [_statement-list_](statement_list.md) `}` [_catch-clauses_](catch_clauses.md)**?**\
+__(__ `else` `if` `(` _condition-expression_ `)` `{` [_statement-list_](statement_list.md) `}` [_catch-clauses_](catch_clauses.md)**?** __)*__\
 __(__ `else` `{` [_statement-list_](statement_list.md) `}` __)?__
 
 Alternatively when there are no `elif` clauses, the `catch` clauses may be
 placed after the `else` clause.
 
-`if` `(` [_condition-expression_](condistion_expression.md) `)` `{` [_statement-list_](statement_list.md) `}`\
+`if` `(` _condition-expression_ `)` `{` [_statement-list_](statement_list.md) `}`\
 `else` `{` [_statement-list_](statement_list.md) `}` [_catch-clauses_](catch_clauses.md)**?**
 
-## Condition expression
-The condition expression is a boolean expression that evaluates to true or
-false.
+### condition-expression
+A _condition-expression_ is an [_expression-list_](expression_list.md) which
+results in a value that is convertible to a boolean value.
 
-The following rules apply to the condition expression:
- - Condition expressions are evaluated in the scope of the `if` statement.
-   Variables declared in the `if` statement are visible in all code blocks
-   within the `if` statement.
- - The condition expression is equivalent to a sub-expression, except:
-    - The result must be convertible to a boolean value.
-    - The result expression is not allowed to be an assignment expression. As
-      a workaround an assignment expression may be contained inside a
-      sub-expression.
+The last expression in the _condition-expression_ is not allowed to be an
+assignment expression. This is to prevent a common bug; confusing `=` with `==`.
 
-## If statement as an expression
-A `if` statement may be used as an expression, this is known as a
-control-expression. When a `if` statement is used as a control-expression, then
-the result value of all branches must be of the same time, or the result must be
-convertible to the expected type.
+> [!TIP] The compiler will report an error if the last expression is an
+> assignment. To bypass this restriction, use a
+> [_sub-expression_](sub_expression.md).
 
-Example:
-```
-function foo(x : int) -> int {
-    let y = if (x > 0) {
-        // implicit result: y is assigned x + z.
-        let z = 3
-        x + z
-    } elif (x < 0) {
-        // explicit result: y is assigned x - 1.
-        result x - 1
-    } else {
-        // This directly returns from the function with the value 42.
-        return 42
-    }
+## Semantics
+The `if` statement is used to conditionally execute a block of code. Each
+_condition-expression_ is evaluated in order, until one of them evaluates to
+`true`. The block of code associated with that _condition-expression_ is then
+executed. If there are no `if` or `elif` clauses that evaluate to `true`, the
+`else` block is executed.
 
-    return y;
-}
-```
+Any errors that occur in the _condition-expression_ may be caught by the
+[_catch-clauses_](catch_clauses.md) that directly follow the code-block that is
+associated with that _condition-expression_.
+
+If there are no `elif` clauses, the `catch` clauses may be placed after the
+`else` block. This is more intuitive, as handling an error is secondary to both
+the `if` and `else` branches.
+
+> [!CAUTION] Only errors occuring in the _condition-expression_ are caught by
+> the [_catch-clauses_](catch_clauses.md). Errors occuring in the code-blocks
+> must be handled separately.

@@ -1,37 +1,32 @@
-# While statement
+# While
 
 ## Syntax
 
-__(__ `do` `{` _statement-list_ `}` __)?__\
-`while` `(` _condition-expression_ `)` __(__ `{` _statement-list_ `}` __)?__ _catch-clauses_**?**\
-__(__ `else` `{` _statement-list_ `}` __)?__
+__(__ `do` `{` [_statement-list_](statement_list.md) `}` __)?__\
+`while` `(` _condition-expression_ `)` __(__ `{` [_statement-list_](statement_list.md) `}` __)?__ [_catch-clauses_](catch_clauses.md)**?**\
+__(__ `else` `{` [_statement-list_](statement_list.md) `}` __)?__
 
-## Condition expression
-See the [condition expression](#condition-expression) section in the [if
-statement](if.md) page for details.
+### condition-expression
+See the [if; condition expression](if.md#condition-expression) section for details.
 
-## While statement as an expression
-When using the `while` statement as an expression, the result will be a list of
-items created by the `result` statements in the code-blocks. In loops the
-`result` statement acts like a local `yield` statement and does not end the loop.
+## Semantics
+The `while` control-expression is a loop that executes the body of the
+loop as long as the _condition-expression_ is true.
 
-example:
-```
-var i = 0
-var table = do {
-    result i * 10
-} while (i < 5) {
-    result i++
-}
-// table = [0, 0, 10, 1, 20, 2, 30, 3, 40, 4, 50]
-```
+A `while` control-expression does the following steps:
+ 1. The `do` code-block is executed first.
+ 2. The `while` _condition-expression_ is evaluated.
+ 3. If the _condition-expression_ is `true`:
+    4. The `while` code-block is executed.
+    2. goto 1.
+ 4. If the _condition-expression_ is `false`:
+    5. The `else` code-block is executed.
+    6. The loop is exited.
 
-As a short-hand for a `while` statement without a `do` clause; the `result`
-statement is optional, if there is no `result` statement, the last expression
-of the code-blocks is used as the result:
-```
-var i = 0
-var table = while (i < 5) { i++ } else { 42 }
-// table = [0, 1, 2, 3, 4, 42]
-```
+When the `do` or `while` code-blocks is exited early by a `break` statement,
+the `else` code-block is not executed.
+
+Different from mainstream programming languages; both the `do` and `while`
+code-blocks may exist at the same time, or not exist at all. The idea for an
+`else` code-block on a loop comes from the Python programming language.
 

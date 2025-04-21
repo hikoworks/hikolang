@@ -2,15 +2,26 @@
 
 ## Syntax
 
-[_test-expression_](test_expression.md) __|__
-[_assignment-expression_](assignment_expression.md)
+[sub-expression](sub_expression.md) __|__
+[literal](literal.md) __|__
+[name](name.md) __|__
+[initializer](initializer.md) __|__
+[binary-operator](binary_operator.md) __|__
+[prefix-operator](prefix_operator.md) __|__
+[postfix-operator](postfix_operator.md) __|__
+[call-operator](call.md) __|__
+[index-operator](index.md) __|__
+[member-operator](member.md) __|__
+[if](if.md) __|__
+[while](while.md) __|__
+[for](for.md) __|__
+[try](try.md) __|__
+[switch](switch.md) __|__
+[lambda](lambda.md) __|__
+[await](await.md)
 
 ## Semantics
-Every expression results in a value including control-expressions like `if`,
-`switch`, `while`, `for` and `try`.
-
-The [_assignment-expression_](assignment_expression.md) is a special case as it
-should not be the last part of a
-[_condition-expression_](condition_expression.md), to prevent confusion between
-`=` and `==`.
+An _expression_ is a sequence of symbols that can be evaluated to produce a
+value. When the result of the expression is not used, the restriction on the
+type of the result is relaxed.
 

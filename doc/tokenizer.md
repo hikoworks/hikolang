@@ -158,18 +158,41 @@ Whitespace is used to separate tokens. Whitespace is not considered a token.
 Whitespace characters are defined by Pattern_White_Space from Unicode UAX #31
 (Unicode Identifier and Syntax).
 
-### Semi-colon and comma handling
+### Semicolon and comma handling
 The semicolon `;` and `,` are used to separate statements, expressions and
 arguments.
 
-The tokenizer has special handling for comma and semicolons:
+The tokenizer has special handling for comma and semicolons, with the following
+goals:
+ - Not requiring the programmer to use semicolons at the end of a statement.
+   Unless there are multiple statements on a single line.
+ - Handle empty statements.
+ - Handle trailing semicolons and commas, useful for code generation.
+ - Make the parser simpler, by treating statements which end in a closing brace
+   `}` as other statements.
+
+The following rules apply to semicolons and commas:
  - When the bracket stack is empty or its top is a brace `{`, the tokenizer will
-   insert a semicolon at the end of each the line and closing brace `}`.
- - After the `if`, `switch`, `while`, `for`, `try` expressions a semicolon is
-   inserted after the closing brace `}`.
- - Multiple consecutive semicolons are replaced by a single semicolon.
- - Multiple consecutive commas are reported as an error by the tokenizer.
+   insert a semicolon `;` at the end of each the line and after each closing
+   brace `}`.
+ - Multiple consecutive semicolons `;` are replaced by a single semicolon `;`.
+ - Multiple consecutive commas `,` are reported as an error by the tokenizer.
  - Any semicolon directly following a open-bracket `{`, `[` or `(` is removed.
  - A comma directly following a open-bracket `{`, `[` or `(` is reported as an
    error by the tokenizer.
+
+### Errors
+
+The tokenizer will report the following errors:
+ - Invalid UTF-8 sequence.
+ - Invalid Unicode character.
+ - Found disallowed bidirectional override character.
+ - Found disallowed mixed scripts in identifier part.
+ - Found semicolon `;` directly after an open bracket `{`, `(`, `[`
+ - Found comma `,` directly after an open bracket `{`, `(`, `[`.
+ - Found a double comma `,,`.
+ - Found a closing bracket `?` without a matching open bracket `?`.
+ - Found a open bracket `?` without a matching closing bracket `?`.
+ - Unexpected end of file while parsing a string.
+ - Unable to create token from: "??????".
 
