@@ -5,7 +5,7 @@
 [sub-expression](sub_expression.md) __|__
 [literal](literal.md) __|__
 [name](name.md) __|__
-[initializer](initializer.md) __|__
+[variable-declaration](variable_declaration.md) __|__
 [binary-operator](binary_operator.md) __|__
 [prefix-operator](prefix_operator.md) __|__
 [postfix-operator](postfix_operator.md) __|__
