@@ -1,4 +1,4 @@
-# Argument Declaration
+# argument-declaration
 
 ## Syntax
 
@@ -24,7 +24,8 @@ specified, the type-expression must be elaborated to a concrete type at
 compile-time.
 
 The _default-value-declaration_ is optional. If specified the argument is
-optional in the [_function-call_](function_call.md). The
-[_expression_](expression.md) in the _default-value-declaration_ is evaluated in
-the scope of the [_function-call_](function_call.md), including access to
-variables at the call-site.
+optional in the [_function-call_](function_call.md).
+
+When the function is called and the argument with a default value is not passed;
+then the default value is evaluated on each call in the same scope as the function call.
+
