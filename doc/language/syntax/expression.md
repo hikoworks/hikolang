@@ -2,26 +2,27 @@
 
 ## Syntax
 
-[sub-expression](sub_expression.md) __|__
-[literal](literal.md) __|__
-[name](name.md) __|__
-[variable-declaration](variable_declaration.md) __|__
-[binary-operator](binary_operator.md) __|__
-[prefix-operator](prefix_operator.md) __|__
-[postfix-operator](postfix_operator.md) __|__
-[call-operator](call.md) __|__
-[index-operator](index.md) __|__
-[member-operator](member.md) __|__
-[if](if.md) __|__
-[while](while.md) __|__
-[for](for.md) __|__
-[try](try.md) __|__
-[switch](switch.md) __|__
-[lambda](lambda.md) __|__
-[await](await.md)
+[_sub-expression_](sub_expression.md) __|__
+[_literal_](literal.md) __|__
+[_name_](name.md) __|__
+[_variable-declaration_](variable_declaration.md) __|__
+[_operator-expression_](operator_expression.md) __|__
+[_if_](if.md) __|__
+[_while_](while.md) __|__
+[_for_](for.md) __|__
+[_try_](try.md) __|__
+[_switch_](switch.md) __|__
+[_lambda_](lambda.md)
 
 ## Semantics
 An _expression_ is a sequence of symbols that can be evaluated to produce a
 value. When the result of the expression is not used, the restriction on the
 type of the result is relaxed.
+
+For parsing expressions an algorithm like [Shunting
+Yard](https://en.wikipedia.org/wiki/Shunting-yard_algorithm) is used. All the
+operators their precedence and associativity are documented in
+[_operator-expression_](operator_expression.md). The other expressions listed in
+this document are terminal expressions which are parsed outside of the shunting
+yard.
 
