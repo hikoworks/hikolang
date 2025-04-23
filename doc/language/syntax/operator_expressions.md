@@ -40,7 +40,7 @@ Here is a table of the standard operators:
  |         10 | `a != b`  | left-to-right | `__ne__(a, b)`                     |
  |         11 | `a & b`   | left-to-right | `__bitwise_and__(a, b)`            |
  |         12 | `a ^ b`   | left-to-right | `__bitwise_xor__(a, b)`            |
- |         13 | `a | b`   | left-to-right | `__bitwise_or__(a, b)`             |
+ |         13 | `a \| b`  | left-to-right | `__bitwise_or__(a, b)`             |
  |         14 | `a and b` | left-to-right | [_and_](and.md)                    |
  |         15 | `a or b`  | left-to-right | [_or_](or.md)                      |
  |         16 | `a = b`   | right-to-left | `__assign__(a, b)`                 |
