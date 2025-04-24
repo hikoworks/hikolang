@@ -7,11 +7,11 @@
 [_name_](name.md) __|__
 [_variable-declaration_](variable_declaration.md) __|__
 [_operator-expression_](operator_expression.md) __|__
-[_if_](if.md) __|__
-[_while_](while.md) __|__
-[_for_](for.md) __|__
-[_try_](try.md) __|__
-[_switch_](switch.md) __|__
+[_if-control-expression_](if_control_expression.md) __|__
+[_while-control-expression_](while_control_expression.md) __|__
+[_for-control-expression_](for_control_expression.md) __|__
+[_try-control-expression_](try_control_expression.md) __|__
+[_switch-control-expression_](switch_control_expression.md) __|__
 [_lambda_](lambda.md)
 
 ## Semantics

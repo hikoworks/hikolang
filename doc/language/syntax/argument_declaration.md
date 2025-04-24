@@ -2,7 +2,12 @@
 
 ## Syntax
 
-[_storage_modifier_](storage_modifier.md)__?__ [_name_](name.md) _type_declaration_**?** _default_value_declaration_**?**
+*pass_method*__?__ [_name_](name.md) [_type_declaration_](type_declaration.md)**?** _default_value_declaration_**?**
+
+### pass-method
+
+`let` __|__ `var` __|__ `ref`
+
 
 ### default-value-declaration
 
@@ -13,7 +18,7 @@
 Declares an argument for a function or lambda with a [_name_](name.md)
 which can be used as a variable inside the function's or lambda's code-block.
 
-The following [_storage_modifier_](storage_modifier.md)s are allowed:
+The following *pass_method*s are allowed:
  - `let` : the value is immutable (default; if not specified).
  - `var` : the value was copied and is mutable.
  - `ref` : the value was passed by reference and is mutable.

@@ -1,25 +1,22 @@
-# While
+# while-control-expression
 
 ## Syntax
 
 __(__ `do` `{` [_statement-list_](statement_list.md) `}` __)?__\
-`while` `(` _condition-expression_ `)` __(__ `{` [_statement-list_](statement_list.md) `}` __)?__ [_catch-clauses_](catch_clauses.md)**?**\
+`while` `(` [_condition-expression_](condition_expression.md) `)` __(__ `{` [_statement-list_](statement_list.md) `}` __)?__ [_catch-clauses_](catch_clauses.md)**?**\
 __(__ `else` `{` [_statement-list_](statement_list.md) `}` __)?__
-
-### condition-expression
-See the [if; condition expression](if.md#condition-expression) section for details.
 
 ## Semantics
 The `while` control-expression is a loop that executes the body of the
-loop as long as the _condition-expression_ is true.
+loop as long as the [_condition-expression_](condition_expression.md) is true.
 
 A `while` control-expression does the following steps:
  1. The `do` code-block is executed first.
- 2. The `while` _condition-expression_ is evaluated.
- 3. If the _condition-expression_ is `true`:
+ 2. The `while` [_condition-expression_](condition_expression.md) is evaluated.
+ 3. If the [_condition-expression_](condition_expression.md) is `true`:
     4. The `while` code-block is executed.
     2. goto 1.
- 4. If the _condition-expression_ is `false`:
+ 4. If the [_condition-expression_](condition_expression.md) is `false`:
     5. The `else` code-block is executed.
     6. The loop is exited.
 
