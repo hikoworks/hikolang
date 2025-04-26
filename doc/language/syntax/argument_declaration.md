@@ -2,11 +2,7 @@
 
 ## Syntax
 
-*pass_method*__?__ [_name_](name.md) [_type_declaration_](type_declaration.md)**?** _default_value_declaration_**?**
-
-### pass-method
-
-`let` __|__ `var` __|__ `ref`
+[_binding_mode_](binding_mode.md)__?__ [_name_](name.md) [_type_declaration_](type_declaration.md)__?__ _default_value_declaration_**?**
 
 
 ### default-value-declaration
@@ -17,11 +13,6 @@
 ## Semantics
 Declares an argument for a function or lambda with a [_name_](name.md)
 which can be used as a variable inside the function's or lambda's code-block.
-
-The following *pass_method*s are allowed:
- - `let` : the value is immutable (default; if not specified).
- - `var` : the value was copied and is mutable.
- - `ref` : the value was passed by reference and is mutable.
 
 The type declaration is optional. If not specified, the type is inferred from
 the types passed in the [_function-call_](function_call.md). If the type is

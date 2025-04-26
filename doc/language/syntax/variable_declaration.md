@@ -2,7 +2,7 @@
 
 ## Syntax
 
-[_storage_modifier_](storage_modifier.md) [_name_](name.md) _type_declaration_**?**
+[_storage_class_](storage_class.md)__?__ [_binding_mode_](binding_mode.md) [_name_](name.md) _type_declaration_**?**
 
 ## Semantics
 Declares a variable with a [_name_](name.md) which can be used in the scope or

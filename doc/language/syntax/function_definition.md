@@ -3,9 +3,13 @@
 ## Syntax
 
 `function` [_name_](name.md) `(` [_argument-list_](argument_list.md) `)`\
-[_function-attributes_](function_attributes.md)\
-[_type_declaration_](type_declaration.md)\
+*function-attribute*__*__ \
+[_result-type-declaration_](result_type_declaration.md)__?__\
 `{` [_statement-list_](statement_list.md) `}`
+
+### function-attribute
+`pre` `(` [_expression_list_](expression_list.md) `)` __|__\
+`post` `(` [_expression_list_](expression_list.md) `)` __|__\
 
 ## Semantics
 
@@ -18,7 +22,7 @@ The compiler will automatically keep track of each thrown or rethrown error.
 On a call to this function each error needs to be caught or rethrown.
 
 #### Injected variables
-The compiler will automatically keep track of which [_injected_variables_](injected_variables.md)
+The compiler will automatically keep track of which [_injected_variable_](injected_variable.md)
 are used in the function. These variables have the syntax `$` [_name_](name.md) and are automatically
 passed as hidden arguments to the function.
 

@@ -15,11 +15,10 @@ control-expression that is used as an expression.
 
 There are two different semantic meanings of the `result` statement:
  1. Inside branch control-expression, such as `if`, `switch` and `try`
-    statements, the `result` statement will return the value and exit the
-    current block.
+    statements, the `result` statement will return a value.
  2. Inside loop control-expression, such as `while` and `for` statements, the
-    `result` statement will yield the value from the current block and continue
+    `result` statement will yield the value and continue
     the loop directly after the `result` statement.
 
-It is a __static error__ when there are statements following `result` inside
+It is a warning when there are statements following `result` inside
 branch control-expressions like `if`, `switch` and `try`.

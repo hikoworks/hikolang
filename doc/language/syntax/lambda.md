@@ -2,30 +2,12 @@
 
 ## Syntax
 
-`{` __(__ [_argument-list_](argument_list.md) __?__ __(__ `->` [_type_declaration_](type_declaration.md) __)?__ `:` __)?__ [_statement-list_](statement_list.md) `}`
+`{` `(` [_argument-list_](argument_list.md)__?__ `)` [_result-type-declaration_](result_type_declaration.md)__?__ `in` [_statement-list_](statement_list.md) `}`
 
-A _type_expression_ is a [_expression_](expression.md) which is evaluted to a type,
-type-template, interface or interface-template at compile time.
+`{` [_argument-list_](argument_list.md) `in` [_statement-list_](statement_list.md) `}`
 
-```
-var f = {x, y :*int -> :^int[5..=6] : x + y }
-let my_int = f(1, 2)
+`{` [_statement-list_](statement_list.md) `}`
 
-class lambda_uih4rih3495ry3294 {
-    let __call__(x, y :*int[5..=6]) -> ^[int] {
-        return x + y
-    }
-}
-
-template(I :=interval) class int {
-    static iv = I
-    var value :=I.value_type
-
-    let __add__(let a :=int[lo,hi], let b :=int) {
-        int[a.lo + b.lo, a.hi + b.hi](a.value + b.value)
-    }
-}
-```
 
 ## Semantics
 A lambda expression's result is a instance of functor.
@@ -48,5 +30,13 @@ It is a **static error** if in multiple branches the last executed expression
 are not of the same type.
 
 
+## Example
+
+```
+var a = {(x, y :*int) :^int[5..=6] : x + y }
+var b = {(x, y :*int) : x + y }
+var c = {:^int[5..=6] : $0 + $1 }
+var d = { $0 + $1 }
+```
 
 

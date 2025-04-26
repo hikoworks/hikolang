@@ -2,7 +2,7 @@
 
 ## Syntax
 
-[_expression_](expression.md) `:*` [_type-expression_](type_expression.md) __|__\
+[_expression_](expression.md) `:` [_type-expression_](type_expression.md) __|__\
 [_expression_](expression.md) `:=` [_type-expression_](type_expression.md) __|__\
 [_expression_](expression.md) `:^` [_type-expression_](type_expression.md) __|__\
 [_expression_](expression.md) `:!` [_type-expression_](type_expression.md)
@@ -25,8 +25,8 @@ The type is generally used to select the correct overload of a function or
 operator in the expression. After this the rules for each coerce-method are
 applied.
 
-### General coerce operator `:*`
-The general coerce operator `:*` is used convert a value to a specific type.
+### General coerce operator `:`
+The general coerce operator `:` is used convert a value to a specific type.
 
 On every assignment to the variable (including the first) the
 [_type-expression_](type_expression.md) bound to the variable is used to convert
