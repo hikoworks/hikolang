@@ -7,6 +7,16 @@ violations are reported as errors:
  - The encoded characters must be valid Unicode characters.
  - The source code file must not contain any null characters (U+0000).
 
+## Line directive
+The tokenizer keeps track of the path, file name, line number and column of each token.
+Since source code files may be generated, the tokenizer should use the original template
+file name and line number. This is done through the use of a line directive.
+
+`#line` [_integer_literal_](syntax/integer_literal.md) [_string_literal_](syntax/string_literal.md)__?__
+
+This line directive must be located at the start of the line. The line directive is used to set the path,
+file name, line number of the next line.
+
 ## Tokens
 The following is a list of all the tokens that are used in the language:
  - *identifier* - A name that is used to identify a variable, function, namespace, type or keyword.
@@ -66,6 +76,9 @@ For example:
 Characters are enclosed in single quotes `'` it contains a single character,
 this single character may be an escape sequence. See the section on escape
 sequences in Strings for more information.
+
+### Backticks
+Backticks `\`` are used to enclose...
 
 ### Escape Sequences
 Escape sequences are used to represent characters that are not easily typed.
