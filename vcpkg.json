@@ -1,0 +1,11 @@
+{
+  "name": "hikolang",
+  "version": "0.1",
+  "description": "A compiler for the Hiko-language, a system programming language.",
+  "homepage": "https://github.com/hikogui/hikolang",
+  "license": "BSL-1.0",
+  "supports": "windows & x64",
+  "dependencies": [
+    "llvm", "icu"
+  ]
+}

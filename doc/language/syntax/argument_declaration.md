@@ -2,7 +2,8 @@
 
 ## Syntax
 
-[_binding_mode_](binding_mode.md)__?__ [_name_](name.md) [_type_declaration_](type_declaration.md)__?__ _default_value_declaration_**?**
+[_binding_mode_](binding_mode.md)__?__ [_name_](name.md) [_type_declaration_](type_declaration.md)__?__ _default_value_declaration_**?** __|__\
+[_binding_mode_](binding_mode.md)__?__ [_name_](name.md)`...` [_type_declaration_](type_declaration.md)__?__
 
 
 ### default-value-declaration
@@ -20,7 +21,8 @@ specified, the type-expression must be elaborated to a concrete type at
 compile-time.
 
 The _default-value-declaration_ is optional. If specified the argument is
-optional in the [_function-call_](function_call.md).
+optional in the [_function-call_](function_call.md). In the call every
+argument with a default value can be passed by name or by position.
 
 When the function is called and the argument with a default value is not passed;
 then the default value is evaluated on each call in the same scope as the function call.
