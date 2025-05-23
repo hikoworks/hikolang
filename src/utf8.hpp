@@ -10,59 +10,6 @@
 
 namespace hl {
 
-[[nodiscard]] constexpr char32_t decode_utf8_code_point(uint8_t const*& ptr, uint8_t const* ptr_end) noexcept
-{
-    constexpr auto replacement_character = 0xfffd;
-
-    // Should only be called if there are code-units to decode.
-    assert(it != end);
-
-    // Get the first byte.
-    uint64_t cp = *ptr++;
-    if (cp < 128) [[likely]] {
-        return cp;
-    }
-
-    auto count = std::countl_one(static_cast<uint8_t>(cp)) - 1;
-    auto const seq_ptr_end = ptr + count;
-    if (seq_ptr_end > ptr_end) [[unlikely]] {
-        return replacement_character;
-    }
-
-    // Strip the leading bits.
-    cp &= 0x7f >> count;
-
-    uint8_t top_bits = 0x00;
-    #pragma clang loop unroll(disable)
-    for (; ptr != seq_ptr_end; ++ptr) {
-        // Invert the top bit so that we can concatonate the value.
-        auto cu = static_cast<uint8_t>(*ptr) ^ 0x80;
-        cp <<= 6;
-        cp |= cu;
-        top_bits |= cu;
-    }
-
-    if (top_bits != 0) [[unlikely]] {
-        return replacement_character;
-    }
-
-    if (cp > 0x10ffff) [[unlikely]] {
-       // code-point is greater than the maximum valid code-point.
-       return replacement_character;
-    }
-
-    // Using 8 bit per shift value, reduces an (AND r,15) instruction.
-    count *= 8;
-    constexpr auto min_code_point_shifts = uint64_t{0x38'38'38'38'09'04'00'38};
-    auto min_code_point_value = uint64_t{0x80} << ((min_code_point_shifts >> count) & 0xff);
-    if (cp < min_code_point_value) [[unlikely]] {
-        // Invalid sequence count, or overlong encoding.
-        return replacement_character;
-    }
-
-    return static_cast<char32_t>(cp);
-}
-
 /** Decode a single Unicode code-point from a UTF-8 stream.
  *
  * RFC 3629 recommends that invalid UTF-8 sequences be replaced with U+FFFD.
@@ -79,22 +26,83 @@ template<std::random_access_iterator It>
     requires (std::same_as<typename std::iterator_traits<It>::value_type, char> or
               std::same_as<typename std::iterator_traits<It>::value_type, char8_t>)
 {
-    auto ptr = reinterpret_cast<uint8_t const *>(&it);
-    auto const end_ptr = reinterpret_cast<uint8_t const *>(&end);
+    constexpr auto replacement_character = 0xfffd;
 
-    auto const ptr_prev = ptr;
-    auto const r = decode_utf8_code_point(ptr, end_ptr);
-    it += std::distance(ptr_prev, ptr);
-    return r;
+    // Should only be called if there are code-units to decode.
+    assert(it != end);
+
+    // Get the first byte.
+    uint64_t cp = static_cast<uint8_t>(*it++);
+    if (cp < 128) [[likely]] {
+        return cp;
+    }
+
+    // The value in sequence_count is between 0 and 7 inclusive.
+    // This is important later on when overlong encoding is checked.
+    auto const sequence_count = std::countl_one(static_cast<uint8_t>(cp)) - 1;
+    auto const buffer_count = std::distance(it, end);
+    if (sequence_count > buffer_count) [[unlikely]] {
+        return replacement_character;
+    }
+
+    // Strip the leading bits.
+    cp &= 0x7f >> sequence_count;
+
+    // Gather the lower 6 bits of each continuation byte.
+    // Read `sequence_count + 1` more bytes.
+    uint8_t top_bits = 0x00;
+    uint8_t i = 0;
+    #pragma clang loop unroll(disable)
+    do {
+        // Invert the top bit so that we can concatonate the value,
+        // and keep track if one of the bytes in the sequence is not
+        // a continuation byte.
+        auto cu = static_cast<uint8_t>(it[i]) ^ 0x80;
+        cp <<= 6;
+        cp |= cu;
+        top_bits |= cu;
+    } while (i++ != sequence_count);
+
+    if ((top_bits >> 6) != 0) [[unlikely]] {
+        // One of the bytes is not a continuation byte.
+        // Find where this non-continuation byte is and set the iterator
+        // at this byte.
+        while ((static_cast<uint8_t>(*it) >> 6) == 0b10) {
+            ++it;
+        }
+        return replacement_character;
+
+    } else {
+        // Before returning the value, make sure the iterator is advanced.
+        it += sequence_count;
+    }
+
+    // The following check is for:
+    // - 0: Invalid, sequence starts with continuation byte.
+    // - 1: Valid if `cp` is at least 0x80
+    // - 2: Valid if `cp` is at least 0x800
+    // - 3: Valid is `cp` is at least 0x1'0000
+    // - 4-7: Invalid the maximum sequence is 4 bytes.
+    //
+    // The 0x38-shift causes min_code_point_value to be 0x8000'0000'0000'0000.
+    // The maximum `cp` that can be encoded by an invalid sequence is:
+    // 0xff 0xbf 0xbf 0xbf 0xbf 0xbf 0xbf 0xbf 0xbf -> 0x0000'ffff'ffff'ffff
+    constexpr auto min_code_point_shifts = uint64_t{0x38'38'38'38'09'04'00'38};
+
+    auto const shift = sequence_count * 8;
+    auto min_code_point_value = uint64_t{0x80} << ((min_code_point_shifts >> shift) & 0xff);
+    if (cp < min_code_point_value) [[unlikely]] {
+        // Invalid sequence count, or overlong encoding.
+        return replacement_character;
+    }
+
+    if (cp > 0x10ffff) [[unlikely]] {
+       // code-point is greater than the maximum valid code-point.
+       return replacement_character;
+    }
+
+    return static_cast<char32_t>(cp);
 }
+
 
 } // namespace hl
-
-[[nodiscard]] char32_t test(std::string tmp, std::string::const_iterator &out) noexcept
-{
-    auto it = tmp.cbegin();
-    auto const end = tmp.cend();
-    auto const v = hl::decode_utf8_code_point(it, end);
-    out = it;
-    return v;
-}
