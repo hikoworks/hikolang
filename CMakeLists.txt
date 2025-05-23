@@ -10,12 +10,12 @@ if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
 endif()
 
 # Find LLVM (required components: core, support, etc.)
-find_package(llvm REQUIRED)
+find_package(LLVM CONFIG REQUIRED)
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 
 # Find ICU (i18n and uc components)
-find_package(icu REQUIRED COMPONENTS i18n uc)
+find_package(ICU REQUIRED COMPONENTS i18n uc)
 
 include_directories(
     ${LLVM_INCLUDE_DIRS}
@@ -31,8 +31,8 @@ target_link_libraries(hikolang
     PRIVATE
         LLVMCore
         LLVMSupport
-        icu::i18n
-        icu::uc
+        ICU::i18n
+        ICU::uc
 )
 
 # Optionally, for LLVM dynamic libraries
