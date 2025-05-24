@@ -7,6 +7,7 @@
 #include <utility>
 #include <array>
 #include <string>
+#include <bit>
 
 namespace hl {
 
@@ -22,7 +23,7 @@ namespace hl {
  *         UTF-8 stream is invalid.
  */
 template<std::random_access_iterator It>
-[[nodiscard]] constexpr char32_t decode_utf8_code_point(It& it, It end) noexcept
+[[nodiscard]] constexpr char32_t decode_utf8_code_point(It& it, It const end) noexcept
     requires (std::same_as<typename std::iterator_traits<It>::value_type, char> or
               std::same_as<typename std::iterator_traits<It>::value_type, char8_t>)
 {
