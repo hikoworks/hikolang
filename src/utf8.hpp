@@ -26,8 +26,6 @@ template<std::random_access_iterator It>
     requires (std::same_as<typename std::iterator_traits<It>::value_type, char> or
               std::same_as<typename std::iterator_traits<It>::value_type, char8_t>)
 {
-    constexpr auto replacement_character = 0xfffd;
-
     // Should only be called if there are code-units to decode.
     assert(it != end);
 
@@ -42,7 +40,7 @@ template<std::random_access_iterator It>
     auto const sequence_count = std::countl_one(static_cast<uint8_t>(cp)) - 1;
     auto const buffer_count = std::distance(it, end);
     if (sequence_count > buffer_count) [[unlikely]] {
-        return replacement_character;
+        return U'\uFFFD';
     }
 
     // Strip the leading bits.
@@ -70,7 +68,7 @@ template<std::random_access_iterator It>
         while ((static_cast<uint8_t>(*it) >> 6) == 0b10) {
             ++it;
         }
-        return replacement_character;
+        return U'\uFFFD';
 
     } else {
         // Before returning the value, make sure the iterator is advanced.
@@ -93,12 +91,12 @@ template<std::random_access_iterator It>
     auto min_code_point_value = uint64_t{0x80} << ((min_code_point_shifts >> shift) & 0xff);
     if (cp < min_code_point_value) [[unlikely]] {
         // Invalid sequence count, or overlong encoding.
-        return replacement_character;
+        return U'\uFFFD';
     }
 
     if (cp > 0x10ffff) [[unlikely]] {
        // code-point is greater than the maximum valid code-point.
-       return replacement_character;
+        return U'\uFFFD';
     }
 
     return static_cast<char32_t>(cp);
