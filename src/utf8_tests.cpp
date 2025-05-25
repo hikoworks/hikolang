@@ -9,11 +9,11 @@ TEST_CASE(utf8_decode_valid)
 {
     auto const utf8_str = std::string{"Hello, 世界!"};
     auto utf32_str = std::u32string{};
-    auto it = utf8_str.begin();
-    auto const end = utf8_str.end();
+    auto ptr = utf8_str.data();
+    auto const end = ptr + utf8_str.size();
 
-    while (it != end) {
-        auto const code_point = hl::decode_utf8_code_point(it, end);
+    while (ptr != end) {
+        auto const code_point = hl::decode_utf8_code_point(ptr, end);
         utf32_str.push_back(code_point);
 
         REQUIRE(code_point <= 0x10ffff);

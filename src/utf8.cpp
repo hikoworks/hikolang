@@ -7,7 +7,7 @@
 
 namespace hl {
 
-[[nodiscard]] constexpr uint32_t decode_utf8_code_point(char const*& ptr, char const* const end)
+[[nodiscard]] uint32_t decode_utf8_code_point(char const*& ptr, char const* const end)
 {
     // Should only be called if there are code-units to decode.
     assert(ptr != end);

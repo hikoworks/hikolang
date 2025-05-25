@@ -35,7 +35,7 @@ enum decode_utf8_error : uint32_t {
  * @retval 0x110004 The encoded value was larger than 0x10ffff.
  * @retval 0x110005 Invalid UTF-16 surrogate value encoded in UTF-8 stream.
  */
-[[nodiscard]] constexpr uint32_t decode_utf8_code_point(char const*& ptr, char const* end);
+[[nodiscard]] uint32_t decode_utf8_code_point(char const*& ptr, char const* end);
 
 
 } // namespace hl
