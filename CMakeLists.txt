@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.25)
-project(hikolang LANGUAGES CXX)
+project(hikolang LANGUAGES C CXX)
 include(FetchContent)
 
 # disable adding CTest build targets like "NightlyStart" (before ctest include)
