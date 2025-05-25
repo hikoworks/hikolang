@@ -39,17 +39,31 @@
       "binaryDir": "${sourceDir}/out/build/${presetName}",
       "installDir": "${sourceDir}/out/install/${presetName}",
       "cacheVariables": {
-        "CMAKE_VERBOSE_MAKEFILE": "ON"
-      },
-      "vendor": {
-        "microsoft.com/VisualStudioSettings/CMake/1.0": {
-          "intelliSenseMode": "linux-gcc-x64"
-        }
+        "CMAKE_VERBOSE_MAKEFILE": "ON",
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_TARGET_TRIPLET": "x64-linux"
       },
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",
         "rhs": "Linux"
+      }
+    },
+    {
+      "name": "x64-osx",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "installDir": "${sourceDir}/out/install/${presetName}",
+      "cacheVariables": {
+        "CMAKE_VERBOSE_MAKEFILE": "ON",
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_TARGET_TRIPLET": "x64-osx"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
       }
     },
     {
@@ -71,6 +85,16 @@
       "name": "clang-x64-linux",
       "displayName": "clang",
       "inherits": "x64-linux",
+      "generator": "Ninja Multi-Config",
+      "cacheVariables": {
+	      "CMAKE_CXX_COMPILER": "clang++",
+	      "CMAKE_C_COMPILER": "clang"
+      }
+    },
+    {
+      "name": "clang-x64-osx",
+      "displayName": "clang",
+      "inherits": "x64-osx",
       "generator": "Ninja Multi-Config",
       "cacheVariables": {
 	      "CMAKE_CXX_COMPILER": "clang++",
@@ -99,6 +123,20 @@
       "displayName": "Release",
       "inherits": "targets",
       "configurePreset": "clang-x64-windows",
+      "configuration": "Release"
+    },
+    {
+      "name": "clang-x64-osx-dbg",
+      "displayName": "Debug",
+      "inherits": "targets",
+      "configurePreset": "clang-x64-osx",
+      "configuration": "Debug"
+    },
+    {
+      "name": "clang-x64-osx-rel",
+      "displayName": "Release",
+      "inherits": "targets",
+      "configurePreset": "clang-x64-osx",
       "configuration": "Release"
     }
   ]

@@ -4,7 +4,7 @@
   "description": "A compiler for the Hiko-language, a system programming language.",
   "homepage": "https://github.com/hikogui/hikolang",
   "license": "BSL-1.0",
-  "supports": "windows & x64",
+  "supports": "windows | linux | osx",
   "dependencies": [
     {
       "name": "llvm",

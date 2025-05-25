@@ -35,11 +35,45 @@ find_package(ICU REQUIRED COMPONENTS i18n uc)
 # Find MS-GSL
 find_package(Microsoft.GSL CONFIG REQUIRED)
 
+add_library(hic_objects OBJECT
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/utf8.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/utf8.hpp"
+)
+
+
+
+
+# The hic compiler.
+add_executable(hic)
+target_sources(hic PRIVATE
+    $<TARGET_OBJECTS:hic_objects>
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/hic.cpp"
+)
+
+target_compile_definitions(hic PRIVATE ${LLVM_DEFINITIONS})
+if(WIN32)
+    target_compile_definitions(hic PRIVATE "_WIN32_WINNT=0x0601") # Windows 7
+    target_compile_definitions(hic PRIVATE "_CRT_SECURE_NO_WARNINGS") # Disable warnings for unsafe functions
+    target_compile_definitions(hic PRIVATE "NOMINMAX") # Disable min/max macros
+    target_compile_definitions(hic PRIVATE "WIN32_LEAN_AND_MEAN") # Exclude rarely-used Windows headers
+    target_compile_definitions(hic PRIVATE "WIN32_NO_STATUS") # Disable Windows status codes
+    target_compile_definitions(hic PRIVATE "UNICODE") # Use Unicode
+    target_compile_definitions(hic PRIVATE "_UNICODE") # Use Unicode
+endif()
+
+target_include_directories(hic PRIVATE "${CMAKE_SOURCE_DIR}/src")
+target_include_directories(hic PRIVATE "${LLVM_INCLUDE_DIRS}")
+target_include_directories(hic PRIVATE "${ICU_INCLUDE_DIRS}")
+
+target_link_libraries(hic PRIVATE ${llvm_libs})
+target_link_libraries(hic PRIVATE Microsoft.GSL::GSL)
+target_link_libraries(hic PRIVATE ICU::i18n)
+target_link_libraries(hic PRIVATE ICU::uc)
 
 if(BUILD_TESTING)
     add_executable(hic_tests)
     target_sources(hic_tests PRIVATE
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/utf8.hpp"
+        $<TARGET_OBJECTS:hic_objects>
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utf8_tests.cpp"
     )
 
@@ -67,32 +101,3 @@ if(BUILD_TESTING)
 
     add_test(NAME hic_tests COMMAND hic_tests)
 endif()
-
-
-# The hic compiler.
-add_executable(hic)
-target_sources(hic PRIVATE
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/utf8.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/hic.cpp"
-)
-
-target_compile_definitions(hic PRIVATE ${LLVM_DEFINITIONS})
-if(WIN32)
-    target_compile_definitions(hic PRIVATE "_WIN32_WINNT=0x0601") # Windows 7
-    target_compile_definitions(hic PRIVATE "_CRT_SECURE_NO_WARNINGS") # Disable warnings for unsafe functions
-    target_compile_definitions(hic PRIVATE "NOMINMAX") # Disable min/max macros
-    target_compile_definitions(hic PRIVATE "WIN32_LEAN_AND_MEAN") # Exclude rarely-used Windows headers
-    target_compile_definitions(hic PRIVATE "WIN32_NO_STATUS") # Disable Windows status codes
-    target_compile_definitions(hic PRIVATE "UNICODE") # Use Unicode
-    target_compile_definitions(hic PRIVATE "_UNICODE") # Use Unicode
-endif()
-
-target_include_directories(hic PRIVATE "${CMAKE_SOURCE_DIR}/src")
-target_include_directories(hic PRIVATE "${LLVM_INCLUDE_DIRS}")
-target_include_directories(hic PRIVATE "${ICU_INCLUDE_DIRS}")
-
-target_link_libraries(hic PRIVATE ${llvm_libs})
-target_link_libraries(hic PRIVATE Microsoft.GSL::GSL)
-target_link_libraries(hic PRIVATE ICU::i18n)
-target_link_libraries(hic PRIVATE ICU::uc)
-
