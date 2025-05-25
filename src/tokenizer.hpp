@@ -19,7 +19,7 @@ struct tokenize_delegate {
     virtual void on_token(token const &t) = 0;
 };
 
-std::expected<void, std::string> tokenize(size_t module_id, std::string_view module_text, tokenize_delegate &delegate);
+[[nodiscard]] std::expected<void, std::string> tokenize(size_t module_id, std::string_view module_text, tokenize_delegate &delegate);
 
 
 } // namespace hl
