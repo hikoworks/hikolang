@@ -77,6 +77,25 @@ public:
         return can_simple_compare() and text == str;
     }
 
+    constexpr void append(char c)
+    {
+        assert(static_cast<uint8_t>(c) <= 0x7f);
+        text.push_back(c);
+    }
+
+    constexpr void append(char32_t c)
+    {
+        auto optional_text = encode_utf8_code_point(c);
+        assert(optional_text.has_value());
+        text.append(*optional_text);
+    }
+
+    constexpr void append(std::string_view str)
+    {
+        text.append(str);
+    }
+
+
 private:
     [[nodiscard]] constexpr bool can_simple_compare() const noexcept
     {

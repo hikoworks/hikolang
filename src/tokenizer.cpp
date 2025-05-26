@@ -1,6 +1,7 @@
 
 #include "tokenizer.hpp"
 #include "utf8.hpp"
+#include "module.hpp"
 #include <cassert>
 #include <cstdint>
 #include <cstddef>
@@ -245,7 +246,9 @@ private:
             return make_error("Invalid UTF-8 sequence; surrogate value {}.", display_utf8_sequence(start, _end));
 
         default:
-            return make_error("Unexpected character: '{}' U+{:06x}.", static_cast<char32_t>(cp), cp);
+            auto optional_cp_str = encode_utf8_code_point(cp);
+            assert(optional_cp_str.has_value());
+            return make_error("Unexpected character: '{}' U+{:06x}.", *optional_cp_str, static_cast<uint32_t>(cp));
         }
     }
 
@@ -271,7 +274,7 @@ private:
 
             if (cp == quote_char and not escape) {
                 // End of string literal.
-                r.push_back(quote_char);
+                r.append(quote_char);
                 advance();
                 return r;
 
@@ -436,6 +439,8 @@ private:
 
             advance();
         }
+
+        return r;
     }
 };
 

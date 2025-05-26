@@ -30,7 +30,7 @@ message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 llvm_map_components_to_libnames(llvm_libs core support)
 
 # Find ICU (i18n and uc components)
-find_package(ICU REQUIRED COMPONENTS i18n uc)
+find_package(ICU REQUIRED COMPONENTS i18n uc data)
 
 # Find MS-GSL
 find_package(Microsoft.GSL CONFIG REQUIRED)
@@ -38,6 +38,8 @@ find_package(Microsoft.GSL CONFIG REQUIRED)
 add_library(hic_objects OBJECT
     "${CMAKE_CURRENT_SOURCE_DIR}/src/char_category.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/char_category.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/module.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/module.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utf8.cpp"
@@ -48,10 +50,6 @@ target_include_directories(hic_objects PRIVATE "${CMAKE_SOURCE_DIR}/src")
 target_include_directories(hic_objects PRIVATE "${LLVM_INCLUDE_DIRS}")
 target_include_directories(hic_objects PRIVATE "${ICU_INCLUDE_DIRS}")
 
-target_link_libraries(hic_objects PUBLIC ${llvm_libs})
-target_link_libraries(hic_objects PUBLIC Microsoft.GSL::GSL)
-target_link_libraries(hic_objects PUBLIC ICU::i18n)
-target_link_libraries(hic_objects PUBLIC ICU::uc)
 
 if(WIN32)
     target_compile_definitions(hic_objects PRIVATE "_WIN32_WINNT=0x0601") # Windows 7
@@ -72,6 +70,11 @@ target_sources(hic PRIVATE
 )
 
 target_compile_definitions(hic PRIVATE ${LLVM_DEFINITIONS})
+target_link_libraries(hic PRIVATE ${llvm_libs})
+target_link_libraries(hic PRIVATE Microsoft.GSL::GSL)
+target_link_libraries(hic PRIVATE ICU::i18n)
+target_link_libraries(hic PRIVATE ICU::uc)
+target_link_libraries(hic PRIVATE ICU::data)
 
 
 if(BUILD_TESTING)
@@ -80,7 +83,12 @@ if(BUILD_TESTING)
         $<TARGET_OBJECTS:hic_objects>
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utf8_tests.cpp"
     )
-
+    target_compile_definitions(hic_tests PRIVATE ${LLVM_DEFINITIONS})
+    target_link_libraries(hic_tests PRIVATE ${llvm_libs})
+    target_link_libraries(hic_tests PRIVATE Microsoft.GSL::GSL)
+    target_link_libraries(hic_tests PRIVATE ICU::i18n)
+    target_link_libraries(hic_tests PRIVATE ICU::uc)
+    target_link_libraries(hic_tests PRIVATE ICU::data)
     target_link_libraries(hic_tests PRIVATE hikotest)
     target_include_directories(hic_tests PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
