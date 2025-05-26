@@ -50,15 +50,16 @@
       }
     },
     {
-      "name": "x64-osx",
+      "name": "arm64-osx",
       "hidden": true,
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/out/build/${presetName}",
       "installDir": "${sourceDir}/out/install/${presetName}",
       "cacheVariables": {
         "CMAKE_VERBOSE_MAKEFILE": "ON",
+        "CMAKE_OSX_ARCHITECTURES": "arm64",
         "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-        "VCPKG_TARGET_TRIPLET": "x64-osx"
+        "VCPKG_TARGET_TRIPLET": "arm64-osx"
       },
       "condition": {
         "type": "equals",
@@ -92,9 +93,9 @@
       }
     },
     {
-      "name": "clang-x64-osx",
+      "name": "clang-arm64-osx",
       "displayName": "clang",
-      "inherits": "x64-osx",
+      "inherits": "arm64-osx",
       "generator": "Ninja Multi-Config",
       "cacheVariables": {
 	      "CMAKE_CXX_COMPILER": "clang++",
@@ -126,17 +127,17 @@
       "configuration": "Release"
     },
     {
-      "name": "clang-x64-osx-dbg",
+      "name": "clang-arm64-osx-dbg",
       "displayName": "Debug",
       "inherits": "targets",
-      "configurePreset": "clang-x64-osx",
+      "configurePreset": "clang-arm64-osx",
       "configuration": "Debug"
     },
     {
-      "name": "clang-x64-osx-rel",
+      "name": "clang-arm64-osx-rel",
       "displayName": "Release",
       "inherits": "targets",
-      "configurePreset": "clang-x64-osx",
+      "configurePreset": "clang-arm64-osx",
       "configuration": "Release"
     }
   ]
