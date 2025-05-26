@@ -1,0 +1,194 @@
+#
+# .github/workflows/build-on-windows.yml
+#
+# Copyright 2021 Jens A. Koch.
+# SPDX-License-Identifier: BSL-1.0
+# This file is part of hikogui.
+#
+
+name: "Build on Windows"
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+    branches:
+    - main
+
+# improve CI concurrency by automatically cancelling outdated jobs
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+# ---------------------------------------------------------------------------------------
+
+  build:
+    name: x64-windows
+
+    # https://github.com/actions/virtual-environments/blob/main/images/win/Windows2022-Readme.md
+    runs-on: windows-2022
+
+    env:
+      BUILD_DIR: ${{github.workspace}}/build
+      INSTALL_DIR: ${{github.workspace}}/install
+      VCPKG_ROOT: ${{github.workspace}}/vcpkg
+      VCPKG_BINARY_SOURCES: clear;files,${{github.workspace}}/vcpkg/binary-cache,readwrite
+
+    defaults:
+      run:
+        shell: cmd
+
+    steps:
+      - name: 🤘 Checkout Code
+        uses: actions/checkout@v4 # https://github.com/actions/checkout
+
+      - name: 🔽 Install CMake and Ninja
+        uses: lukka/get-cmake@latest
+
+      - name: 🛠️ Setup Visual Studio Developer Command Prompt
+        uses: ilammy/msvc-dev-cmd@v1
+    
+      - name: Setup vcpkg (optionally from cache)
+        uses: lukka/run-vcpkg@v11
+        with:
+          # This is the default location of the directory containing vcpkg sources.
+          # Change it to the right location if needed.
+          vcpkgDirectory: '${{github.workspace}}/vcpkg'
+
+          # If not using a Git submodule for vcpkg sources, this input
+          # specifies which commit id to checkout from a Git repo.
+          # Notes: 
+          # - it must _not_ be set if using a Git submodule for vcpkg.
+          # - if not provided, the `vcpkgConfigurationJsonGlob` or `vcpkgJsonGlob`
+          #   are being used to locate either a vcpkg-configuration.json or vcpkg.json
+          #   in order to use the builtin-baseline or the default-registry's
+          #   builtin baseline.
+          # vcpkgGitCommitId: '${{ matrix.vcpkgCommitId }}'
+
+          # This is only needed if the command `vcpkg install` must run at this step.
+          # Instead it is highly suggested to let `run-cmake` to run vcpkg later on
+          # using the vcpkg.cmake toolchain. The default is `false`.
+          # runVcpkgInstall: true
+
+          # This is only needed if `runVpkgInstall` is `true`.
+          # This glob expression used to locate the vcpkg.json and  use
+          # its directory location as `working directory` when running `vcpkg install`.
+          # Change it to match a single manifest file you want to use.
+          # Note: do not use `${{ github.context }}` to compose the value as it
+          # contains backslashes that would be misinterpreted. Instead
+          # compose a value relative to the root of the repository using
+          # `**/path/from/root/of/repo/to/vcpkg.json` to match the desired `vcpkg.json`.
+          # vcpkgJsonGlob: '**/vcpkg.json'
+
+      - name: Run CMake consuming CMakePreset.json and run vcpkg to build packages
+        uses: lukka/run-cmake@v10
+        with:
+          # This is the default path to the CMakeLists.txt along side the
+          # CMakePresets.json. Change if you need have CMakeLists.txt and CMakePresets.json
+          # located elsewhere.
+          # cmakeListsTxtPath: '${{ github.workspace }}/CMakeLists.txt'
+
+          # You could use CMake workflow presets defined in the CMakePresets.json
+          # with just this line below. Note this one cannot be used with any other
+          # preset input, it is mutually exclusive.
+          # workflowPreset: 'workflow-name'
+
+          # This is the name of the CMakePresets.json's configuration to use to generate
+          # the project files. This configuration leverages the vcpkg.cmake toolchain file to
+          # run vcpkg and install all dependencies specified in vcpkg.json.
+          configurePreset: 'clang-x64-windows'
+          # Additional arguments can be appended to the cmake command.
+          # This is useful to reduce the number of CMake's Presets since you can reuse
+          # an existing preset with different variables.
+          #configurePresetAdditionalArgs: "['-DENABLE_YOUR_FEATURE=1']"
+
+          # This is the name of the CMakePresets.json's configuration to build the project.
+          buildPreset: 'clang-x64-windows-dbg'
+          # Additional arguments can be appended when building, for example to specify the
+          # configuration to build.
+          # This is useful to reduce the number of CMake's Presets you need in CMakePresets.json.
+          #buildPresetAdditionalArgs: "['--config Release']"
+
+          # This is the name of the CMakePresets.json's configuration to test the project with.
+          #testPreset: 'ninja-multi-vcpkg'
+          # Additional arguments can be appended when testing, for example to specify the config
+          # to test.
+          # This is useful to reduce the number of CMake's Presets you need in CMakePresets.json.
+          #testPresetAdditionalArgs: "['--config Release']"
+
+      # Each file is differently named by adding the job name of the matrix as a suffix.
+      # This enables the "Unit Test Result" display to show all individual test runs of the matrix.
+      # The tests are published after all matrix runs finished (from job: "publish-test-results").
+#     - name: 🔼 Upload Test Results
+#       uses: actions/upload-artifact@v4 # https://github.com/actions/upload-artifact
+#       if: always()
+#       with:
+#         name: test-results-${{env.MATRIX_ID}}
+#         path: result_*.xml
+# 
+#     - name: 📑 Generate CodeCoverage Report (Debug)
+#       if: github.event_name == 'push' && github.ref == 'refs/heads/main' && env.MATRIX_ID == 'cl-x86-64'
+#       run: |
+#         curl -L -O https://github.com/OpenCppCoverage/OpenCppCoverage/releases/download/release-0.9.9.0/OpenCppCoverageSetup-x64-0.9.9.0.exe
+#         OpenCppCoverageSetup-x64-0.9.9.0.exe /VERYSILENT /DIR=.\bin\coverage
+#         .\bin\coverage\OpenCppCoverage.exe ^
+#         --sources=src ^
+#         --excluded_sources=src\*_tests.cpp ^
+#         --excluded_sources=src\*\*_tests.cpp ^
+#         --excluded_sources=build\_deps ^
+#         --export_type=cobertura:hikogui_coverage.xml ^
+#         --working_dir=${{env.BUILD_DIR}} ^
+#         -- ${{env.BUILD_DIR}}\Debug\hikogui_htests-dbg
+# 
+#     # retry uploading to codecov with limit to workaround flaky upload issue
+#     - name: 📦 🚀 Upload CodeCoverage Report to codecov.io (Debug)
+#       if: github.event_name == 'push' && github.ref == 'refs/heads/main' && env.MATRIX_ID == 'cl-x86-64'
+#       uses: wandalen/wretry.action@v3 # https://github.com/wandalen/wretry.action
+#       with:
+#         attempt_limit: 10
+#         action: codecov/codecov-action@v3 # https://github.com/codecov/codecov-action
+#         with: |
+#           files: ./hikogui_coverage.xml
+# 
+    # In the future we can do this when building dynamic libraries without whole-program-optimization.
+    #
+    #  # Double ZIP issue: https://github.com/actions/upload-artifact#zipped-artifact-downloads
+    #  # We can either zip an already zipped file; or send all files to a zip service, possibly creating a 503.
+    #  - name: 📦 Package
+    #    run: |
+    #       cd build
+    #       7z a -tzip -mx9 "${{env.ARTIFACT_NAME}}.zip" ./hikogui-${{env.VERSION}}
+    #
+    #  # To ensure that jobs don't overwrite existing artifacts, use a different "name" per job/run.
+    #  - name: 📦 🚀 Upload Artifact
+    #    uses: actions/upload-artifact@v4 # https://github.com/actions/upload-artifact
+    #    with:
+    #      name: ${{env.ARTIFACT_NAME}}
+    #      path: build/${{env.ARTIFACT_NAME}}.zip
+
+# ---------------------------------------------------------------------------------------
+
+#  publish-test-results:
+#    # Only publish test results, when the action runs in your repository's context.
+#    # In other words: this disables publishing tests results from pull requests.
+#    # PR test results are published from the standalone workflow "publish-PR-test-results.yml".
+#
+#    name: "Publish Tests Results"
+#    needs: build-and-test
+#    runs-on: ubuntu-latest
+#    if: always() && ( github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository )
+#
+#    steps:
+#      - name: 🔽 Download Artifacts
+#        uses: actions/download-artifact@v4 # https://github.com/actions/download-artifact
+#        with:
+#          path: artifacts
+#          merge-multiple: true
+#
+#      - name: 👌 Publish Test Results
+#        uses: EnricoMi/publish-unit-test-result-action/composite@v2 # https://github.com/EnricoMi/publish-unit-test-result-action
+#        if: always()
+#        with:
+#          junit_files: artifacts/**/result_*.xml
