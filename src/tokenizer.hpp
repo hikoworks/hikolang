@@ -1,4 +1,7 @@
 
+#ifndef HL_TOKENIZER_HPP
+#define HL_TOKENIZER_HPP
+
 #include "token.hpp"
 #include "char_category.hpp"
 #include "utf8.hpp"
@@ -23,3 +26,5 @@ struct tokenize_delegate {
 
 
 } // namespace hl
+
+#endif // HL_TOKENIZER_HPP

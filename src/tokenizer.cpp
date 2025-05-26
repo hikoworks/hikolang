@@ -1,5 +1,13 @@
 
 #include "tokenizer.hpp"
+#include "utf8.hpp"
+#include <cassert>
+#include <cstdint>
+#include <cstddef>
+#include <array>
+#include <algorithm>
+#include <format>
+#include <expected>
 
 namespace hl {
 
@@ -8,19 +16,19 @@ class character_lookahead {
 public:
     struct value_type {
         char const* start = nullptr;
-        std::uint32_t cp = 0;
+        char32_t cp = 0;
     };
 
     void pop_front() noexcept
     {
         if (_size > 0) {
             std::shift_right(_values.begin(), _values.end(), 1);
-            _values.last() = {};
+            _values[_values.size() - 1] = {};
             --_size;
         }
     }
 
-    void push_back(char const* start, std::uint32_t cp) noexcept
+    void push_back(char const* start, char32_t cp) noexcept
     {
         assert(start != nullptr);
 
@@ -33,8 +41,8 @@ public:
 
     bool decode_utf8(char const*& ptr, char const* const end) noexcept
     {
-        assert(_ptr != nullptr);
-        assert(_end != nullptr);
+        assert(ptr != nullptr);
+        assert(end != nullptr);
 
         while (ptr != end and _size != _values.size()) {
             auto const prev_ptr = ptr;
@@ -81,47 +89,47 @@ public:
 
         auto found_cr = false;
 
-        while (context.decode_utf8()) {
-            auto const cp = context[0].cp;
-            auto const cp_ptr = context[0].start;
-            auto const next_cp = context[1].cp;
-            auto const next_next_cp = context[2].cp;
+        while (decode_utf8()) {
+            auto const cp = _lookahead[0].cp;
+            auto const cp_ptr = _lookahead[0].start;
+            auto const next_cp = _lookahead[1].cp;
+            auto const next_next_cp = _lookahead[2].cp;
 
             if (found_cr and cp != '\n') {
                 // Treat a solo CR as a LF. Solo CR used to be old style MacOS line
                 // endings. Insert a LF token before the next token.
                 found_cr = false;
-                delegate.on_token(context.make_character_token(token::line_feed, '\r'));
+                delegate.on_token(make_character_token(token::line_feed, '\r'));
             }
 
             if (cp == '\r') {
                 // Found a CR, treat the same as horizontal space. But remember.
                 found_cr = true;
-                context.advance();
+                advance();
 
             } else if (is_vertical_space(cp)) {
-                delegate.on_token(context.make_character_token(token::line_feed, '\n'));
-                context.advance();
+                delegate.on_token(make_character_token(token::line_feed, '\n'));
+                advance();
 
             } else if (is_horizontal_space(cp)) {
-                context.advance();
+                advance();
 
             } else if (is_ignoreable(cp)) {
-                context.advance();
+                advance();
 
             } else if (is_bracket(cp)) {
-                delegate.on_token(context.make_character_token(token::bracket, cp));
-                context.advance();
+                delegate.on_token(make_character_token(token::bracket, cp));
+                advance();
 
             } else if (is_separator(cp)) {
-                delegate.on_token(context.make_character_token(token::seperator, cp));
-                context.advance();
+                delegate.on_token(make_character_token(token::seperator, cp));
+                advance();
 
             } else if (
                 is_digit(cp) or (cp == '.' and is_digit(next_cp)) or
                 ((cp == '-' or cp == '+') and (is_digit(next_cp) or (next_cp == '.' and is_digit(next_next_cp))))) {
                 // `-`, `+`, `.` and `..` are valid operators, distinguish them from numbers.
-                if (auto const optional_token = parse_number(context, lookahead)) {
+                if (auto const optional_token = parse_number()) {
                     delegate.on_token(*optional_token);
                 } else {
                     return std::unexpected{optional_token.error()};
@@ -129,30 +137,32 @@ public:
 
             } else if (
                 cp == '"' or cp == '\'' or cp == '`' or (cp == 'r' and (next_cp == '"' or next_cp == '\'' or next_cp == '`'))) {
-                if (auto const optional_token = parse_string(context, lookahead)) {
+                if (auto const optional_token = parse_string()) {
                     delegate.on_token(*optional_token);
                 } else {
                     return std::unexpected{optional_token.error()};
                 }
 
             } else if (is_identifier_start(cp)) {
-                if (auto const optional_token = parse_identifier(context, lookahead)) {
+                if (auto const optional_token = parse_identifier()) {
                     delegate.on_token(*optional_token);
                 } else {
                     return std::unexpected{optional_token.error()};
                 }
 
             } else if (is_pattern_syntax(cp)) {
-                if (auto const optional_token = parse_operator(context, lookahead)) {
+                if (auto const optional_token = parse_operator()) {
                     delegate.on_token(*optional_token);
                 } else {
                     return std::unexpected{optional_token.error()};
                 }
 
             } else {
-                return context.make_unexpected_character_error(cp, cp_ptr);
+                return make_unexpected_character_error(cp, cp_ptr);
             }
         }
+
+        return {};
     }
 
 private:
@@ -168,11 +178,6 @@ private:
         assert(_ptr != nullptr);
         assert(_end != nullptr);
         return _lookahead.decode_utf8(_ptr, _end);
-    }
-
-    [[nodiscard]] character_lookahead::value_type const& operator[](std::size_t index) const
-    {
-        return _lookahead[index];
     }
 
     char32_t advance() noexcept
@@ -192,48 +197,52 @@ private:
 
     [[nodiscard]] token make_token(token::kind_type kind) const
     {
-        return token{kind, _module_id, _line_nr, _column_nr};
+        return token{_module_id, _line_nr, _column_nr, kind};
+    }
+
+    [[nodiscard]] token make_character_token(token::kind_type kind, char c) const
+    {
+        return token{_module_id, _line_nr, _column_nr, kind, c};
     }
 
     [[nodiscard]] token make_character_token(token::kind_type kind, char32_t c) const
     {
-        assert(c < 128);
-        return token{kind, module_id, line_nr, column_nr, static_cast<char>(c)};
+        return token{_module_id, _line_nr, _column_nr, kind, c};
     }
 
     template<typename... Args>
     [[nodiscard]] std::unexpected<std::string> make_error(std::format_string<Args...> fmt, Args&&... args) const
     {
         auto error_message = std::format(fmt, std::forward<Args>(args)...);
-        auto const& m = get_module(module_id);
-        auto message = std::format("{}:{}:{}: {}", m.relative_path(), line_nr + 1, column_nr + 1, std::move(error_message));
+        auto const& m = get_module(_module_id);
+        auto message = std::format("{}:{}:{}: {}", m.relative_path(), _line_nr + 1, _column_nr + 1, std::move(error_message));
         return std::unexpected{std::move(message)};
     }
 
-    [[nodiscard]] std::unexpected<std::string> make_unexpected_character_error(std::uint32_t cp, char const* start) const
+    [[nodiscard]] std::unexpected<std::string> make_unexpected_character_error(char32_t cp, char const* start) const
     {
         switch (cp) {
         case std::to_underlying(decode_utf8_error::continuation_byte):
-            return make_error("Invalid UTF-8 sequence; found a lone continuation byte {}.", display_utf8_sequence(start, end));
+            return make_error("Invalid UTF-8 sequence; found a lone continuation byte {}.", display_utf8_sequence(start, _end));
 
         case std::to_underlying(decode_utf8_error::missing_continuation_byte):
             return make_error(
                 "Invalid UTF-8 sequence; found a non-continuation byte in a multi-byte sequence {}.",
-                display_utf8_sequence(cp_start, end));
+                display_utf8_sequence(start, _end));
 
         case std::to_underlying(decode_utf8_error::buffer_overrun):
             return make_error(
                 "Invalid UTF-8 sequence; multi-byte sequence continues beyond end of buffer {}.",
-                display_utf8_sequence(cp_start, end));
+                display_utf8_sequence(start, _end));
 
         case std::to_underlying(decode_utf8_error::overlong_encoding):
-            return make_error("Invalid UTF-8 sequence; overlong encoding {}.", display_utf8_sequence(cp_start, end));
+            return make_error("Invalid UTF-8 sequence; overlong encoding {}.", display_utf8_sequence(start, _end));
 
         case std::to_underlying(decode_utf8_error::out_of_range):
-            return make_error("Invalid UTF-8 sequence; code-point out of range {}.", display_utf8_sequence(cp_start, end));
+            return make_error("Invalid UTF-8 sequence; code-point out of range {}.", display_utf8_sequence(start, _end));
 
         case std::to_underlying(decode_utf8_error::surrogate):
-            return make_error("Invalid UTF-8 sequence; surrogate value {}.", display_utf8_sequence(cp_start, end));
+            return make_error("Invalid UTF-8 sequence; surrogate value {}.", display_utf8_sequence(start, _end));
 
         default:
             return make_error("Unexpected character: '{}' U+{:06x}.", static_cast<char32_t>(cp), cp);
@@ -243,7 +252,7 @@ private:
 
     [[nodiscard]] std::expected<token, std::string> parse_string()
     {
-        auto r = make_token{token::string_literal};
+        auto r = make_token(token::string_literal);
 
         auto const is_raw_string = [&] {
             if (_lookahead[0].cp == 'r') {
@@ -257,7 +266,7 @@ private:
         advance();
 
         auto escape = false;
-        while (lookahead.decode_utf8(ptr, end)) {
+        while (decode_utf8()) {
             auto const cp = _lookahead[0].cp;
 
             if (cp == quote_char and not escape) {
@@ -269,9 +278,7 @@ private:
             } else if (cp == '\\') {
                 // Escape sequence.
                 advance();
-                if (not lookahead.decode_utf8(ptr, end)) {
-                    return make_error("Unterminated string literal.");
-                }
+                escape = true;
             }
 
             advance();
@@ -282,13 +289,13 @@ private:
 
     [[nodiscard]] std::expected<token, std::string> parse_identifier()
     {
-        auto r = make_token{token::identifier};
+        auto r = make_token(token::identifier);
         auto const start_ptr = _lookahead[0].start;
 
         // Skip the first character, which is guaranteed to be an identifier start.
         advance();
 
-        while (lookahead.decode_utf8(ptr, end)) {
+        while (decode_utf8()) {
             auto const cp = _lookahead[0].cp;
 
             if (not is_identifier_continue(cp) and cp != '_') {
@@ -306,13 +313,13 @@ private:
 
     [[nodiscard]] std::expected<token, std::string> parse_operator()
     {
-        auto r = make_token{token::operator_};
+        auto r = make_token(token::_operator);
         auto const start_ptr = _lookahead[0].start;
 
         // Skip the first character, which is guaranteed to be a pattern syntax character.
         advance();
 
-        while (lookahead.decode_utf8(ptr, end)) {
+        while (decode_utf8()) {
             if (not is_pattern_syntax(_lookahead[0].cp)) {
                 // End of operator.
                 r.text = std::string_view{start_ptr, _lookahead[0].start};
@@ -331,22 +338,19 @@ private:
         enum class state_type {
             start,
             found_sign,
-            found_e,
-            found_esign,
-
             zero_prefix,
-            radix,
             integer_part,
             fraction_part,
+            found_e,
             exponent_part
         };
 
         auto state = state_type::start;
 
-        auto r = make_token{token::integer_literal};
+        auto r = make_token(token::integer_literal);
         auto const start_ptr = _lookahead[0].start;
 
-        while (lookahead.decode_utf8(ptr, end)) {
+        while (decode_utf8()) {
             auto const cp = _lookahead[0].cp;
             auto const cp_ptr = _lookahead[0].start;
 
@@ -377,7 +381,7 @@ private:
                 }
 
             case state_type::zero_prefix:
-                if (cp == 'b' or cp == 'B' or cp == 'o' or cp == 'O' or cp = 'd' or cp == 'D' or cp == 'x' or cp == 'X') {
+                if (cp == 'b' or cp == 'B' or cp == 'o' or cp == 'O' or cp == 'd' or cp == 'D' or cp == 'x' or cp == 'X') {
                     state = state_type::integer_part;
                 } else if (cp >= '0' and cp <= '9') {
                     state = state_type::integer_part;
@@ -438,12 +442,12 @@ private:
 [[nodiscard]] std::expected<void, std::string>
 tokenize(size_t module_id, std::string_view module_text, tokenize_delegate& delegate)
 {
-    auto context = tokenizer{module_id};
-    auto const ptr = module_text.data();
-    auto const end = ptr + module_text.size();
+    auto context = tokenizer{module_id, module_text};
 
     struct simple_delegate_type : tokenizer::delegate_type {
         tokenize_delegate& delegate;
+
+        explicit simple_delegate_type(tokenize_delegate& delegate) noexcept : delegate(delegate) {}
 
         void on_token(token const& t) override
         {
@@ -452,5 +456,7 @@ tokenize(size_t module_id, std::string_view module_text, tokenize_delegate& dele
     };
 
     auto simple_delegate = simple_delegate_type{delegate};
-    return tokenizer.tokenize(simple_delegate);
+    return context.tokenize(simple_delegate);
+}
+
 }

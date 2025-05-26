@@ -4,10 +4,11 @@
 #include <cassert>
 #include <cstdint>
 #include <cstddef>
+#include <format>
 
 namespace hl {
 
-[[nodiscard]] uint32_t decode_utf8_code_point(char const*& ptr, char const* const end)
+[[nodiscard]] char32_t decode_utf8_code_point(char const*& ptr, char const* const end)
 {
     // Should only be called if there are code-units to decode.
     assert(ptr != end);
@@ -72,6 +73,51 @@ namespace hl {
     }
 
     return cp;
+}
+
+[[nodiscard]] std::expected<std::string, encode_utf8_error> encode_utf8_code_point(char32_t cp)
+{
+    if (cp < 0x80) [[likely]] {
+        return std::string{static_cast<char>(cp)};
+    } else if (cp < 0x800) {
+        return std::string{
+            static_cast<char>(0xc0 | (cp >> 6)),
+            static_cast<char>(0x80 | (cp & 0x3f))
+        };
+    } else if (cp < 0x10000) {
+        if (cp >= 0xd800 and cp <= 0xdfff) [[unlikely]] {
+            return std::unexpected{encode_utf8_error::surrogate};
+        }
+        return std::string{
+            static_cast<char>(0xe0 | (cp >> 12)),
+            static_cast<char>(0x80 | ((cp >> 6) & 0x3f)),
+            static_cast<char>(0x80 | (cp & 0x3f))
+        };
+    } else if (cp <= 0x10ffff) {
+        return std::string{
+            static_cast<char>(0xf0 | (cp >> 18)),
+            static_cast<char>(0x80 | ((cp >> 12) & 0x3f)),
+            static_cast<char>(0x80 | ((cp >> 6) & 0x3f)),
+            static_cast<char>(0x80 | (cp & 0x3f))
+        };
+    } else {
+        return std::unexpected{encode_utf8_error::out_of_range};
+    }
+}
+
+[[nodiscard]] std::string display_utf8_sequence(char const* start, char const* end) noexcept
+{
+    auto r = std::string{};
+
+    for (auto it = start; it != end; ++it) {
+        r.append(std::format("{:02x} ", static_cast<unsigned char>(*it)));
+
+        if (static_cast<uint8_t>(*it) < 0x80) {
+            break;
+        }
+    }
+
+    return r;
 }
 
 }

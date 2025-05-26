@@ -1,41 +1,57 @@
 
+#ifndef HL_UTF8_HPP
+#define HL_UTF8_HPP
+
 #include <cstdint>
 #include <expected>
 #include <cstddef>
 #include <utility>
 #include <array>
 #include <bit>
+#include <string>
 
 namespace hl {
 
-enum decode_utf8_error : uint32_t {
-    /// Found a sole continuation byte.
-    continuation_byte = 0x11'0000,
-    /// Found a non-continuation byte in a UTF-8 multi-byte sequence.
-    missing_continuation_byte = 0x11'0001,
-    /// UTF-8 multi-byte sequence continues beyond end of buffer.
-    buffer_overrun = 0x11'0002,
-    /// Overlong encoding.
-    overlong_encoding = 0x11'0003,
-    /// The encoded value was larger than 0x10ffff.
-    out_of_range = 0x11'0004,
+enum class decode_utf8_error : char32_t {
     /// Invalid UTF-16 surrogate value encoded in UTF-8 stream.
-    surrogate = 0x11'0005,
+    surrogate = 0xd800,
+    /// Found a sole continuation byte.
+    continuation_byte = 0xd801,
+    /// Found a non-continuation byte in a UTF-8 multi-byte sequence.
+    missing_continuation_byte = 0xd802,
+    /// UTF-8 multi-byte sequence continues beyond end of buffer.
+    buffer_overrun = 0xd803,
+    /// Overlong encoding.
+    overlong_encoding = 0xd804,
+    /// The encoded value was larger than 0x10ffff.
+    out_of_range = 0xd805,
 };
+
+enum class encode_utf8_error : char32_t {
+    /// Invalid UTF-16 surrogate can not be encoded in UTF-8.
+    surrogate = 0xd800,
+    /// The code-point is larger than 0x10ffff.
+    out_of_range = 0xd801,
+}; 
 
 /** Decode a single Unicode code-point from a UTF-8 stream.
  *
  * @param [in,out] first The iterator to the current position in the UTF-8 stream.
  * @param last The end of the UTF-8 stream.
  * @return The decoded Unicode code-point.
- * @retval 0x110000 Found a sole continuation byte.
- * @retval 0x110001 Found a non-continuation byte in a UTF-8 multi-byte sequence.
- * @retval 0x110002 UTF-8 multi-byte sequence continues beyond end of buffer.
- * @retval 0x110003 Overlong encoding.
- * @retval 0x110004 The encoded value was larger than 0x10ffff.
- * @retval 0x110005 Invalid UTF-16 surrogate value encoded in UTF-8 stream.
+ * @retval 0xd800 Invalid UTF-16 surrogate value encoded in UTF-8 stream.
+ * @retval 0xd801 Found a sole continuation byte.
+ * @retval 0xd802 Found a non-continuation byte in a UTF-8 multi-byte sequence.
+ * @retval 0xd803 UTF-8 multi-byte sequence continues beyond end of buffer.
+ * @retval 0xd804 Overlong encoding.
+ * @retval 0xd805 The encoded value was larger than 0x10ffff.
  */
-[[nodiscard]] uint32_t decode_utf8_code_point(char const*& ptr, char const* end);
+[[nodiscard]] char32_t decode_utf8_code_point(char const*& ptr, char const* end);
 
+[[nodiscard]] std::expected<std::string, encode_utf8_error> encode_utf8_code_point(char32_t cp);
+
+[[nodiscard]] std::string display_utf8_sequence(char const* start, char const* end) noexcept;
 
 } // namespace hl
+
+#endif // HL_UTF8_HPP
