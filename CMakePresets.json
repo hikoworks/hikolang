@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 9,
   "configurePresets": [
     {
       "name": "x64-windows",
@@ -139,6 +139,29 @@
       "inherits": "targets",
       "configurePreset": "clang-arm64-osx",
       "configuration": "Release"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "shared-test-presets",
+      "hidden": true,
+      "output": {
+        "outputJUnitFile": "${sourceDir}/out/test/${presetName}/test-results.xml"
+      }
+    },
+    {
+      "name": "clang-x64-windows",
+      "displayName": "test-dbg",
+      "inherits": "shared-test-presets",
+      "configurePreset": "clang-x64-windows",
+      "configuration": "Debug"
+    },
+    {
+      "name": "clang-arm64-osx",
+      "displayName": "test-dbg",
+      "inherits": "shared-test-presets",
+      "configurePreset": "clang-arm64-osx",
+      "configuration": "Debug"
     }
   ]
 }

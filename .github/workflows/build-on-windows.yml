@@ -112,7 +112,7 @@ jobs:
           #buildPresetAdditionalArgs: "['--config Release']"
 
           # This is the name of the CMakePresets.json's configuration to test the project with.
-          #testPreset: 'ninja-multi-vcpkg'
+          testPreset: 'test-dbg'
           # Additional arguments can be appended when testing, for example to specify the config
           # to test.
           # This is useful to reduce the number of CMake's Presets you need in CMakePresets.json.
