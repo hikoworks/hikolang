@@ -33,8 +33,6 @@ jobs:
     env:
       BUILD_DIR: ${{github.workspace}}/build
       INSTALL_DIR: ${{github.workspace}}/install
-      VCPKG_ROOT: ${{github.workspace}}/vcpkg
-      VCPKG_BINARY_SOURCES: clear;files,${{github.workspace}}/vcpkg/binary-cache,readwrite
 
     defaults:
       run:
@@ -55,7 +53,7 @@ jobs:
         with:
           # This is the default location of the directory containing vcpkg sources.
           # Change it to the right location if needed.
-          vcpkgDirectory: '${{github.workspace}}/vcpkg'
+          # vcpkgDirectory: '${{ github.workspace }}/vcpkg'
 
           # If not using a Git submodule for vcpkg sources, this input
           # specifies which commit id to checkout from a Git repo.
