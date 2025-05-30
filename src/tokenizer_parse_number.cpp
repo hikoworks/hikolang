@@ -1,6 +1,4 @@
 
-#ifndef HL_TOKENIZER_PARSE_NUMBER_HPP
-#define HL_TOKENIZER_PARSE_NUMBER_HPP
 
 #include "tokenizer.hpp"
 
@@ -173,5 +171,3 @@ namespace hl {
 }
 
 }
-
-#endif

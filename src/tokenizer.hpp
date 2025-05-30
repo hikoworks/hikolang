@@ -5,6 +5,7 @@
 #include "token.hpp"
 #include "char_category.hpp"
 #include "char_lookahead.hpp"
+#include "maybe_expected.hpp"
 #include "utf8.hpp"
 #include "module.hpp"
 #include <concepts>
@@ -25,6 +26,7 @@ public:
     struct delegate_type {
         virtual ~delegate_type() = default;
         virtual void on_token(token const& t) = 0;
+        virtual void on_eof() = 0;
     };
 
     tokenizer(size_t module_id, std::string_view module_text) noexcept;
@@ -67,18 +69,19 @@ private:
 
 
     [[nodiscard]] std::expected<token, std::string> parse_string();
-
     [[nodiscard]] std::expected<token, std::string> parse_identifier();
-
     [[nodiscard]] std::expected<token, std::string> parse_operator();
-
     [[nodiscard]] std::expected<token, std::string> parse_number();
+    [[nodiscard]] maybe_expected<token, std::string> parse_comment();
+    [[nodiscard]] maybe_expected<token, std::string> parse_line_comment();
+    [[nodiscard]] maybe_expected<token, std::string> parse_block_comment();
 };
 
 struct tokenize_delegate {
     virtual ~tokenize_delegate() = default;
 
     virtual void on_token(token const &t) = 0;
+    virtual void on_eof() = 0;
 };
 
 [[nodiscard]] std::expected<void, std::string> tokenize(size_t module_id, std::string_view module_text, tokenize_delegate &delegate);

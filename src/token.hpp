@@ -13,25 +13,27 @@ namespace hl {
 class token {
 public:
     enum class kind_type {
-        end,
+        empty,
         identifier,
         _operator,
         bracket,
         seperator,
         line_feed,
-        comment,
+        documentation,
+        back_documentation,
         string_literal,
         integer_literal,
         float_literal,
     };
 
-    static constexpr kind_type end = kind_type::end;
+    static constexpr kind_type empty = kind_type::empty;
     static constexpr kind_type identifier = kind_type::identifier;
     static constexpr kind_type _operator = kind_type::_operator;
     static constexpr kind_type bracket = kind_type::bracket;
     static constexpr kind_type seperator = kind_type::seperator;
     static constexpr kind_type line_feed = kind_type::line_feed;
-    static constexpr kind_type comment = kind_type::comment;
+    static constexpr kind_type documentation = kind_type::documentation;
+    static constexpr kind_type back_documentation = kind_type::back_documentation;
     static constexpr kind_type string_literal = kind_type::string_literal;
     static constexpr kind_type integer_literal = kind_type::integer_literal;
     static constexpr kind_type float_literal = kind_type::float_literal;
@@ -39,7 +41,7 @@ public:
     std::size_t module_id = 0;
     std::size_t line_nr = 0;
     std::size_t column_nr = 0;
-    kind_type kind = kind_type::end;
+    kind_type kind = kind_type::empty;
 
     std::string text = {};
 
@@ -55,11 +57,11 @@ public:
     }
 
     constexpr token(std::size_t module_id, std::size_t line_nr, std::size_t column_nr, kind_type kind, char32_t c) noexcept :
-        module_id(module_id), line_nr(line_nr), column_nr(column_nr), kind(kind)
+        module_id(module_id), line_nr(line_nr), column_nr(column_nr), kind(kind), text()
     {
         auto optional_text = encode_utf8_code_point(c);
         assert(optional_text.has_value());
-        text = *optional_text;
+        optional_text.append_to(text);
     }
 
     constexpr token(token&&) noexcept = default;
@@ -87,7 +89,7 @@ public:
     {
         auto optional_text = encode_utf8_code_point(c);
         assert(optional_text.has_value());
-        text.append(*optional_text);
+        optional_text.append_to(text);
     }
 
     constexpr void append(std::string_view str)

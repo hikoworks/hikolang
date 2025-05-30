@@ -62,6 +62,18 @@ tokenizer::tokenizer(size_t module_id, std::string_view module_text) noexcept :
             delegate.on_token(make_character_token(token::seperator, cp));
             advance();
 
+        } else if (cp == '/' and (next_cp == '/' or next_cp == '*')) {
+            if (auto const optional_token = parse_comment()) {
+                if (optional_token.has_value()) {
+                    delegate.on_token(*optional_token);
+                }
+            } else {
+                return std::unexpected{optional_token.error()};
+            }
+
+        } else if (cp == '*' and next_cp == '/') {
+            return make_error("Unexpected end of comment; found '*/' without a matching '/*'.");
+
         } else if (
             is_digit(cp) or (cp == '.' and is_digit(next_cp)) or
             ((cp == '-' or cp == '+') and (is_digit(next_cp) or (next_cp == '.' and is_digit(next_next_cp))))) {
@@ -99,6 +111,7 @@ tokenizer::tokenizer(size_t module_id, std::string_view module_text) noexcept :
         }
     }
 
+    delegate.on_eof();
     return {};
 }
 
@@ -142,25 +155,25 @@ char32_t tokenizer::advance() noexcept
 [[nodiscard]] std::unexpected<std::string> tokenizer::make_unexpected_character_error(char32_t cp, char const* start) const
 {
     switch (cp) {
-    case std::to_underlying(decode_utf8_error::continuation_byte):
+    case std::to_underlying(unicode_error::continuation_byte):
         return make_error("Invalid UTF-8 sequence; found a lone continuation byte {}.", display_utf8_sequence(start, _end));
 
-    case std::to_underlying(decode_utf8_error::missing_continuation_byte):
+    case std::to_underlying(unicode_error::missing_continuation_byte):
         return make_error(
             "Invalid UTF-8 sequence; found a non-continuation byte in a multi-byte sequence {}.",
             display_utf8_sequence(start, _end));
 
-    case std::to_underlying(decode_utf8_error::buffer_overrun):
+    case std::to_underlying(unicode_error::buffer_overrun):
         return make_error(
             "Invalid UTF-8 sequence; multi-byte sequence continues beyond end of buffer {}.", display_utf8_sequence(start, _end));
 
-    case std::to_underlying(decode_utf8_error::overlong_encoding):
+    case std::to_underlying(unicode_error::overlong_encoding):
         return make_error("Invalid UTF-8 sequence; overlong encoding {}.", display_utf8_sequence(start, _end));
 
-    case std::to_underlying(decode_utf8_error::out_of_range):
+    case std::to_underlying(unicode_error::out_of_range):
         return make_error("Invalid UTF-8 sequence; code-point out of range {}.", display_utf8_sequence(start, _end));
 
-    case std::to_underlying(decode_utf8_error::surrogate):
+    case std::to_underlying(unicode_error::surrogate):
         return make_error("Invalid UTF-8 sequence; surrogate value {}.", display_utf8_sequence(start, _end));
 
     default:
@@ -170,88 +183,6 @@ char32_t tokenizer::advance() noexcept
     }
 }
 
-[[nodiscard]] std::expected<token, std::string> tokenizer::parse_string()
-{
-    auto r = make_token(token::string_literal);
-
-    auto const is_raw_string = [&] {
-        if (_lookahead[0].cp == 'r') {
-            advance();
-            return true;
-        }
-        return false;
-    }();
-
-    auto const quote_char = _lookahead[0].cp;
-    advance();
-
-    auto escape = false;
-    while (decode_utf8()) {
-        auto const cp = _lookahead[0].cp;
-
-        if (cp == quote_char and not escape) {
-            // End of string literal.
-            r.append(quote_char);
-            advance();
-            return r;
-
-        } else if (cp == '\\') {
-            // Escape sequence.
-            advance();
-            escape = true;
-        }
-
-        advance();
-    }
-
-    return make_error("Unterminated string literal.");
-}
-
-[[nodiscard]] std::expected<token, std::string> tokenizer::parse_identifier()
-{
-    auto r = make_token(token::identifier);
-    auto const start_ptr = _lookahead[0].start;
-
-    // Skip the first character, which is guaranteed to be an identifier start.
-    advance();
-
-    while (decode_utf8()) {
-        auto const cp = _lookahead[0].cp;
-
-        if (not is_identifier_continue(cp) and cp != '_') {
-            // End of identifier.
-            r.text = std::string_view{start_ptr, _lookahead[0].start};
-            return r;
-        }
-
-        advance();
-    }
-
-    r.text = std::string_view{start_ptr, _end};
-    return r;
-}
-
-[[nodiscard]] std::expected<token, std::string> tokenizer::parse_operator()
-{
-    auto r = make_token(token::_operator);
-    auto const start_ptr = _lookahead[0].start;
-
-    // Skip the first character, which is guaranteed to be a pattern syntax character.
-    advance();
-
-    while (decode_utf8()) {
-        if (not is_pattern_syntax(_lookahead[0].cp)) {
-            // End of operator.
-            r.text = std::string_view{start_ptr, _lookahead[0].start};
-            return r;
-        }
-
-        advance();
-    }
-
-    r.text = std::string_view{start_ptr, _end};
-    return r;
-}
 
 
 
@@ -268,6 +199,11 @@ tokenize(size_t module_id, std::string_view module_text, tokenize_delegate& dele
         void on_token(token const& t) override
         {
             delegate.on_token(t);
+        }
+
+        void on_eof() override
+        {
+            delegate.on_eof();
         }
     };
 

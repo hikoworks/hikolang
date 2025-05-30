@@ -10,6 +10,10 @@ TEST_SUITE(tokenizer_suite)
         void on_token(hl::token const& t) override {
             tokens.push_back(t);
         }
+
+        void on_eof() override {
+            // No action needed for EOF in this test.
+        }
     };
 
     static hl::token parse_single_token(std::string_view module_text)

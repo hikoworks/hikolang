@@ -154,14 +154,24 @@
       "displayName": "test-dbg",
       "inherits": "shared-test-presets",
       "configurePreset": "clang-x64-windows",
-      "configuration": "Debug"
+      "configuration": "Debug",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
     },
     {
       "name": "clang-arm64-osx",
       "displayName": "test-dbg",
       "inherits": "shared-test-presets",
       "configurePreset": "clang-arm64-osx",
-      "configuration": "Debug"
+      "configuration": "Debug",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      }
     }
   ]
 }
