@@ -29,8 +29,8 @@ tokenizer::tokenizer(size_t module_id, std::string_view module_text) noexcept :
     while (decode_utf8()) {
         auto const cp = _lookahead[0].cp;
         auto const cp_ptr = _lookahead[0].start;
-        auto const next_cp = _lookahead[1].cp;
-        auto const next_next_cp = _lookahead[2].cp;
+        auto const cp2 = _lookahead[1].cp;
+        auto const cp3 = _lookahead[2].cp;
 
         if (found_cr and cp != '\n') {
             // Treat a solo CR as a LF. Solo CR used to be old style MacOS line
@@ -62,7 +62,7 @@ tokenizer::tokenizer(size_t module_id, std::string_view module_text) noexcept :
             delegate.on_token(make_character_token(token::seperator, cp));
             advance();
 
-        } else if (cp == '/' and (next_cp == '/' or next_cp == '*')) {
+        } else if (cp == '/' and (cp2 == '/' or cp2 == '*')) {
             if (auto const optional_token = parse_comment()) {
                 if (optional_token.has_value()) {
                     delegate.on_token(*optional_token);
@@ -71,12 +71,12 @@ tokenizer::tokenizer(size_t module_id, std::string_view module_text) noexcept :
                 return std::unexpected{optional_token.error()};
             }
 
-        } else if (cp == '*' and next_cp == '/') {
+        } else if (cp == '*' and cp2 == '/') {
             return make_error("Unexpected end of comment; found '*/' without a matching '/*'.");
 
         } else if (
-            is_digit(cp) or (cp == '.' and is_digit(next_cp)) or
-            ((cp == '-' or cp == '+') and (is_digit(next_cp) or (next_cp == '.' and is_digit(next_next_cp))))) {
+            is_digit(cp) or (cp == '.' and is_digit(cp2)) or
+            ((cp == '-' or cp == '+') and (is_digit(cp2) or (cp2 == '.' and is_digit(cp3))))) {
             // `-`, `+`, `.` and `..` are valid operators, distinguish them from numbers.
             if (auto const optional_token = parse_number()) {
                 delegate.on_token(*optional_token);
@@ -85,12 +85,32 @@ tokenizer::tokenizer(size_t module_id, std::string_view module_text) noexcept :
             }
 
         } else if (
-            cp == '"' or cp == '\'' or cp == '`' or (cp == 'r' and (next_cp == '"' or next_cp == '\'' or next_cp == '`'))) {
+            cp == '"' or cp == '\'' or cp == '`' or (cp == 'r' and (cp2 == '"' or cp2 == '\'' or cp2 == '`'))) {
             if (auto const optional_token = parse_string()) {
                 delegate.on_token(*optional_token);
             } else {
                 return std::unexpected{optional_token.error()};
             }
+
+        } else if (cp == '$' and is_digit(cp2)) {
+            if (auto const optional_token = parse_numbered_argument()) {
+                delegate.on_token(*optional_token);
+            } else {
+                return std::unexpected{optional_token.error()};
+            }
+            
+        } else if (cp == '$' and is_identifier_start(cp2)) {
+            if (auto const optional_token = parse_injected_variable()) {
+                delegate.on_token(*optional_token);
+            } else {
+                return std::unexpected{optional_token.error()};
+            }
+
+        } else if (cp == '$' and cp2 == '#') {
+            // Number of arguments.
+
+        } else if (cp == '$') {
+            // Dummy variable.
 
         } else if (is_identifier_start(cp)) {
             if (auto const optional_token = parse_identifier()) {

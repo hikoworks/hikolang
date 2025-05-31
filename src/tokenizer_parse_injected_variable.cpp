@@ -4,9 +4,12 @@
 
 namespace hl {
 
-[[nodiscard]] std::expected<token, std::string> tokenizer::parse_identifier()
+[[nodiscard]] std::expected<token, std::string> tokenizer::parse_injected_variable()
 {
-    auto r = make_token(token::injected_variable);
+    assert(_lookahead[0].cp == '$');
+    advance(); // Skip the '$' character.
+
+    auto r = make_token(token::identifier);
     auto const start_ptr = _lookahead[0].start;
 
     // Skip the first character, which is guaranteed to be an identifier start.

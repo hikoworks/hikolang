@@ -150,10 +150,10 @@ jobs:
           path: artifacts
 
       - name: 👌 Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action/composite@v2 # https://github.com/EnricoMi/publish-unit-test-result-action
-        if: always()
+        uses: EnricoMi/publish-unit-test-result-action/windows@v2 # https://github.com/EnricoMi/publish-unit-test-result-action
+        if: (!cancelled())
         with:
-          junit_files: |
+          files: |
             artifacts/Debug/hic_tests-dbg.xml
             artifacts/Release/hic_tests-rel.xml
 

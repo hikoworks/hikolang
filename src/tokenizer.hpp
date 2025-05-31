@@ -43,6 +43,11 @@ private:
     char const* _ptr = nullptr;
     char const* _end = nullptr;
     std::size_t _module_id = 0;
+
+    /** The file that is part of the module, which is the source of the tokens.
+     * This is used to report errors in the actual source, in for exampl
+     */
+    std::size_t _file_id = 0;
     std::size_t _line_nr = 0;
     std::size_t _column_nr = 0;
 
@@ -75,6 +80,8 @@ private:
     [[nodiscard]] maybe_expected<token, std::string> parse_comment();
     [[nodiscard]] maybe_expected<token, std::string> parse_line_comment();
     [[nodiscard]] maybe_expected<token, std::string> parse_block_comment();
+    [[nodiscard]] std::expected<token, std::string> parse_numbered_argument();
+    [[nodiscard]] std::expected<token, std::string> parse_injected_variable();
 };
 
 struct tokenize_delegate {

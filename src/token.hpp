@@ -24,6 +24,8 @@ public:
         string_literal,
         integer_literal,
         float_literal,
+        numbered_argument,
+        injected_variable,
     };
 
     static constexpr kind_type empty = kind_type::empty;
@@ -37,8 +39,11 @@ public:
     static constexpr kind_type string_literal = kind_type::string_literal;
     static constexpr kind_type integer_literal = kind_type::integer_literal;
     static constexpr kind_type float_literal = kind_type::float_literal;
+    static constexpr kind_type numbered_argument = kind_type::numbered_argument;
+    static constexpr kind_type injected_variable = kind_type::injected_variable;
 
     std::size_t module_id = 0;
+    std::size_t file_id = 0;
     std::size_t line_nr = 0;
     std::size_t column_nr = 0;
     kind_type kind = kind_type::empty;
