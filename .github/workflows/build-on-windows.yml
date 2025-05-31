@@ -32,7 +32,7 @@ jobs:
 
     env:
       DEBUG_BUILD_DIR: ${{github.workspace}}\out\build\clang-x64-windows\Debug
-      RELEASE_BUILD_DIR: ${{github.workspace}}\out\build\clang-x64-windows\Debug
+      RELEASE_BUILD_DIR: ${{github.workspace}}\out\build\clang-x64-windows\Release
       INSTALL_DIR: ${{github.workspace}}\out\install
 
     defaults:
@@ -73,7 +73,7 @@ jobs:
         working-directory: ${{env.DEBUG_BUILD_DIR}}
         run: .\hic_tests-dbg.exe --gtest_output=xml:hic_tests-dbg.xml
 
-      - name: Run tests (Debug)
+      - name: Run tests (Release)
         working-directory: ${{env.RELEASE_BUILD_DIR}}
         run: .\hic_tests-rel.exe --gtest_output=xml:hic_tests-rel.xml
 
