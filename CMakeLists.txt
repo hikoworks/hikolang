@@ -23,11 +23,13 @@ if(BUILD_TESTING)
 endif()
 
 # Find LLVM (required components: core, support, etc.)
-find_package(LLVM CONFIG REQUIRED)
-message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
-message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+# vcpkg.json dependency example:
+#     { "name": "llvm", "default-features": false, "features": ["default-targets"] }
+#find_package(LLVM CONFIG REQUIRED)
+#message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+#message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 # Optionally, for LLVM dynamic libraries
-llvm_map_components_to_libnames(llvm_libs core support)
+#llvm_map_components_to_libnames(llvm_libs core support)
 
 # Find ICU (i18n and uc components)
 find_package(ICU REQUIRED COMPONENTS i18n uc data)
@@ -46,7 +48,7 @@ add_library(hic_objects OBJECT
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer_parse_comment.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer_parse_identifier.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer_parse_injected_variable.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer_parse_line_directive.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer_parse_number.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer_parse_numbered_argument.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer_parse_operator.cpp"
@@ -56,7 +58,7 @@ add_library(hic_objects OBJECT
 )
 
 target_include_directories(hic_objects PRIVATE "${CMAKE_SOURCE_DIR}/src")
-target_include_directories(hic_objects PRIVATE "${LLVM_INCLUDE_DIRS}")
+#target_include_directories(hic_objects PRIVATE "${LLVM_INCLUDE_DIRS}")
 target_include_directories(hic_objects PRIVATE "${ICU_INCLUDE_DIRS}")
 
 
@@ -78,8 +80,8 @@ target_sources(hic PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/src/hic.cpp"
 )
 
-target_compile_definitions(hic PRIVATE ${LLVM_DEFINITIONS})
-target_link_libraries(hic PRIVATE ${llvm_libs})
+#target_compile_definitions(hic PRIVATE ${LLVM_DEFINITIONS})
+#target_link_libraries(hic PRIVATE ${llvm_libs})
 target_link_libraries(hic PRIVATE Microsoft.GSL::GSL)
 target_link_libraries(hic PRIVATE ICU::i18n)
 target_link_libraries(hic PRIVATE ICU::uc)
@@ -93,8 +95,8 @@ if(BUILD_TESTING)
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utf8_tests.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer_tests.cpp"
     )
-    target_compile_definitions(hic_tests PRIVATE ${LLVM_DEFINITIONS})
-    target_link_libraries(hic_tests PRIVATE ${llvm_libs})
+    #target_compile_definitions(hic_tests PRIVATE ${LLVM_DEFINITIONS})
+    #target_link_libraries(hic_tests PRIVATE ${llvm_libs})
     target_link_libraries(hic_tests PRIVATE Microsoft.GSL::GSL)
     target_link_libraries(hic_tests PRIVATE ICU::i18n)
     target_link_libraries(hic_tests PRIVATE ICU::uc)

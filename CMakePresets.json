@@ -2,13 +2,25 @@
   "version": 9,
   "configurePresets": [
     {
-      "name": "x64-windows",
+      "name": "defaults",
       "hidden": true,
       "binaryDir": "${sourceDir}/out/build/${presetName}",
       "installDir": "${sourceDir}/out/install/${presetName}",
+      "generator": "Ninja Multi-Config",
       "cacheVariables": {
         "CMAKE_VERBOSE_MAKEFILE": "ON",
-        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/vcpkg/scripts/buildsystems/vcpkg.cmake",
+	      "CMAKE_CXX_COMPILER": "clang++",
+	      "CMAKE_C_COMPILER": "clang"
+      },
+      "environment": {
+        "VCPKG_BINARY_SOURCES": "clear;files,${sourceDir}/vcpkg/binary-sources,readwrite"
+      }
+    },
+    {
+      "name": "x64-windows",
+      "inherits": "defaults",
+      "cacheVariables": {
         "VCPKG_TARGET_TRIPLET": "x64-windows"
       },
       "architecture": {
@@ -23,7 +35,8 @@
         "microsoft.com/VisualStudioSettings/CMake/1.0": {
           "hostOS": [
             "Windows"
-          ]
+          ],
+          "intelliSenseMode": "windows-clang-x64"
         }
       },
       "condition": {
@@ -34,13 +47,8 @@
     },
     {
       "name": "x64-linux",
-      "hidden": true,
-      "generator": "Ninja",
-      "binaryDir": "${sourceDir}/out/build/${presetName}",
-      "installDir": "${sourceDir}/out/install/${presetName}",
+      "inherits": "defaults",
       "cacheVariables": {
-        "CMAKE_VERBOSE_MAKEFILE": "ON",
-        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
         "VCPKG_TARGET_TRIPLET": "x64-linux"
       },
       "condition": {
@@ -51,55 +59,15 @@
     },
     {
       "name": "arm64-osx",
-      "hidden": true,
-      "generator": "Ninja",
-      "binaryDir": "${sourceDir}/out/build/${presetName}",
-      "installDir": "${sourceDir}/out/install/${presetName}",
+      "inherits": "defaults",
       "cacheVariables": {
-        "CMAKE_VERBOSE_MAKEFILE": "ON",
         "CMAKE_OSX_ARCHITECTURES": "arm64",
-        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
         "VCPKG_TARGET_TRIPLET": "arm64-osx"
       },
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",
         "rhs": "Darwin"
-      }
-    },
-    {
-      "name": "clang-x64-windows",
-      "displayName": "clang",
-      "inherits": "x64-windows",
-      "generator": "Ninja Multi-Config",
-      "cacheVariables": {
-	      "CMAKE_CXX_COMPILER": "clang++",
-	      "CMAKE_C_COMPILER": "clang"
-      },
-      "vendor": {
-        "microsoft.com/VisualStudioSettings/CMake/1.0": {
-          "intelliSenseMode": "windows-clang-x64"
-        }
-      }
-    },
-    {
-      "name": "clang-x64-linux",
-      "displayName": "clang",
-      "inherits": "x64-linux",
-      "generator": "Ninja Multi-Config",
-      "cacheVariables": {
-	      "CMAKE_CXX_COMPILER": "clang++",
-	      "CMAKE_C_COMPILER": "clang"
-      }
-    },
-    {
-      "name": "clang-arm64-osx",
-      "displayName": "clang",
-      "inherits": "arm64-osx",
-      "generator": "Ninja Multi-Config",
-      "cacheVariables": {
-	      "CMAKE_CXX_COMPILER": "clang++",
-	      "CMAKE_C_COMPILER": "clang"
       }
     }
   ],
@@ -113,31 +81,31 @@
       ]
     },
     {
-      "name": "clang-x64-windows-dbg",
+      "name": "x64-windows-dbg",
       "displayName": "Debug",
       "inherits": "targets",
-      "configurePreset": "clang-x64-windows",
+      "configurePreset": "x64-windows",
       "configuration": "Debug"
     },
     {
-      "name": "clang-x64-windows-rel",
+      "name": "x64-windows-rel",
       "displayName": "Release",
       "inherits": "targets",
-      "configurePreset": "clang-x64-windows",
+      "configurePreset": "x64-windows",
       "configuration": "Release"
     },
     {
-      "name": "clang-arm64-osx-dbg",
+      "name": "arm64-osx-dbg",
       "displayName": "Debug",
       "inherits": "targets",
-      "configurePreset": "clang-arm64-osx",
+      "configurePreset": "arm64-osx",
       "configuration": "Debug"
     },
     {
-      "name": "clang-arm64-osx-rel",
+      "name": "arm64-osx-rel",
       "displayName": "Release",
       "inherits": "targets",
-      "configurePreset": "clang-arm64-osx",
+      "configurePreset": "arm64-osx",
       "configuration": "Release"
     }
   ],
@@ -150,10 +118,10 @@
       }
     },
     {
-      "name": "clang-x64-windows",
+      "name": "x64-windows",
       "displayName": "test-dbg",
       "inherits": "shared-test-presets",
-      "configurePreset": "clang-x64-windows",
+      "configurePreset": "x64-windows",
       "configuration": "Debug",
       "condition": {
         "type": "equals",
@@ -162,10 +130,10 @@
       }
     },
     {
-      "name": "clang-arm64-osx",
+      "name": "arm64-osx",
       "displayName": "test-dbg",
       "inherits": "shared-test-presets",
-      "configurePreset": "clang-arm64-osx",
+      "configurePreset": "arm64-osx",
       "configuration": "Debug",
       "condition": {
         "type": "equals",

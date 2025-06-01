@@ -51,8 +51,6 @@ jobs:
     
       - name: 🛠️ Setup vcpkg (optionally from cache)
         uses: lukka/run-vcpkg@v11
-        with:
-          vcpkgGitCommitId: '8f54ef5453e7e76ff01e15988bf243e7247c5eb5'
 
       - name: Configure application (Debug, Release
         uses: lukka/run-cmake@v10
@@ -132,28 +130,28 @@ jobs:
 
 # ---------------------------------------------------------------------------------------
 
-  publish-test-results:
-    # Only publish test results, when the action runs in your repository's context.
-    # In other words: this disables publishing tests results from pull requests.
-    # PR test results are published from the standalone workflow "publish-PR-test-results.yml".
-
-    name: "Publish Tests Results"
-    needs: build-and-test
-    runs-on: ubuntu-latest
-    if: always() && ( github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository )
-
-    steps:
-      - name: 🔽 Download Artifacts
-        uses: actions/download-artifact@v4 # https://github.com/actions/download-artifact
-        with:
-          name: test-results
-          path: artifacts
-
-      - name: 👌 Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action/windows@v2 # https://github.com/EnricoMi/publish-unit-test-result-action
-        if: (!cancelled())
-        with:
-          files: |
-            artifacts/Debug/hic_tests-dbg.xml
-            artifacts/Release/hic_tests-rel.xml
+#  publish-test-results:
+#    # Only publish test results, when the action runs in your repository's context.
+#    # In other words: this disables publishing tests results from pull requests.
+#    # PR test results are published from the standalone workflow "publish-PR-test-results.yml".
+#
+#    name: "Publish Tests Results"
+#    needs: build-and-test
+#    runs-on: windows-2022
+#    if: always() && ( github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository )
+#
+#    steps:
+#      - name: 🔽 Download Artifacts
+#        uses: actions/download-artifact@v4 # https://github.com/actions/download-artifact
+#        with:
+#          name: test-results
+#          path: artifacts
+#
+#      - name: 👌 Publish Test Results
+#        uses: EnricoMi/publish-unit-test-result-action/windows@v2 # https://github.com/EnricoMi/publish-unit-test-result-action
+#        if: (!cancelled())
+#        with:
+#          files: |
+#            artifacts/Debug/hic_tests-dbg.xml
+#            artifacts/Release/hic_tests-rel.xml
 

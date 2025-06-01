@@ -6,7 +6,7 @@ namespace hl {
 
 [[nodiscard]] std::expected<token, std::string> tokenizer::parse_identifier()
 {
-    auto r = make_token(token::injected_variable);
+    auto r = make_token(token::identifier);
     auto const start_ptr = _lookahead[0].start;
 
     // Skip the first character, which is guaranteed to be an identifier start.
@@ -16,7 +16,7 @@ namespace hl {
         while (decode_utf8()) {
             auto const cp = _lookahead[0].cp;
 
-            if (not is_identifier_continue(cp) and cp != '_') {
+            if (not is_identifier_continue(cp)) {
                 // End of identifier.
                 return std::string{start_ptr, _lookahead[0].start};
             }

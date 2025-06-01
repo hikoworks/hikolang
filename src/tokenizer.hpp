@@ -81,7 +81,7 @@ private:
     [[nodiscard]] maybe_expected<token, std::string> parse_line_comment();
     [[nodiscard]] maybe_expected<token, std::string> parse_block_comment();
     [[nodiscard]] std::expected<token, std::string> parse_numbered_argument();
-    [[nodiscard]] std::expected<token, std::string> parse_injected_variable();
+    [[nodiscard]] maybe_expected<token, std::string> parse_line_directive();
 };
 
 struct tokenize_delegate {

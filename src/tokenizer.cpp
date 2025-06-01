@@ -92,27 +92,28 @@ tokenizer::tokenizer(size_t module_id, std::string_view module_text) noexcept :
                 return std::unexpected{optional_token.error()};
             }
 
+        } else if (cp == '#') {
+            if (auto const optional_token = parse_line_directive()) {
+                if (optional_token.has_value()) {
+                    continue;
+                }
+            } else {
+                return std::unexpected{optional_token.error()};
+            }
+
+            return make_error("Unexpected pre-processor '#' directive found.");
+
         } else if (cp == '$' and is_digit(cp2)) {
             if (auto const optional_token = parse_numbered_argument()) {
                 delegate.on_token(*optional_token);
             } else {
                 return std::unexpected{optional_token.error()};
             }
-            
-        } else if (cp == '$' and is_identifier_start(cp2)) {
-            if (auto const optional_token = parse_injected_variable()) {
-                delegate.on_token(*optional_token);
-            } else {
-                return std::unexpected{optional_token.error()};
-            }
 
         } else if (cp == '$' and cp2 == '#') {
-            // Number of arguments.
-
-        } else if (cp == '$') {
-            // Dummy variable.
-
-        } else if (is_identifier_start(cp)) {
+            delegate.on_token(make_character_token(token::numbered_argument, '#'));
+            
+        } else if (is_identifier_start(cp) or cp == '$') {
             if (auto const optional_token = parse_identifier()) {
                 delegate.on_token(*optional_token);
             } else {

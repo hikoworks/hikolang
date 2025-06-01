@@ -6,12 +6,6 @@
   "license": "BSL-1.0",
   "supports": "windows | linux | osx",
   "dependencies": [
-    {
-      "name": "llvm",
-      "default-features": false,
-      "features": [
-        "default-targets"
-      ]
-    }, "icu", "ms-gsl"
+    "icu", "ms-gsl"
   ]
 }
