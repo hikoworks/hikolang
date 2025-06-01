@@ -31,8 +31,8 @@ jobs:
     runs-on: windows-2022
 
     env:
-      DEBUG_BUILD_DIR: ${{github.workspace}}\out\build\clang-x64-windows\Debug
-      RELEASE_BUILD_DIR: ${{github.workspace}}\out\build\clang-x64-windows\Release
+      DEBUG_BUILD_DIR: ${{github.workspace}}\out\build\x64-windows\Debug
+      RELEASE_BUILD_DIR: ${{github.workspace}}\out\build\x64-windows\Release
       INSTALL_DIR: ${{github.workspace}}\out\install
 
     defaults:
@@ -91,7 +91,7 @@ jobs:
 
 # 
 #     - name: 📑 Generate CodeCoverage Report (Debug)
-#       if: github.event_name == 'push' && github.ref == 'refs/heads/main' && env.MATRIX_ID == 'cl-x86-64'
+#       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 #       run: |
 #         curl -L -O https://github.com/OpenCppCoverage/OpenCppCoverage/releases/download/release-0.9.9.0/OpenCppCoverageSetup-x64-0.9.9.0.exe
 #         OpenCppCoverageSetup-x64-0.9.9.0.exe /VERYSILENT /DIR=.\bin\coverage

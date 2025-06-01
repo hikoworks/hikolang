@@ -101,6 +101,7 @@ tokenizer::tokenizer(size_t module_id, std::string_view module_text) noexcept :
                 return std::unexpected{optional_token.error()};
             }
 
+            
             return make_error("Unexpected pre-processor '#' directive found.");
 
         } else if (cp == '$' and is_digit(cp2)) {
