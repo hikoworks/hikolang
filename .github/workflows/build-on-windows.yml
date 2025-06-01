@@ -57,17 +57,17 @@ jobs:
       - name: Configure application (Debug, Release
         uses: lukka/run-cmake@v10
         with:
-          configurePreset: 'clang-x64-windows'
+          configurePreset: 'x64-windows'
 
       - name: Build application (Debug)
         uses: lukka/run-cmake@v10
         with:
-          buildPreset: 'clang-x64-windows-dbg'
+          buildPreset: 'x64-windows-dbg'
 
       - name: Build application (Release)
         uses: lukka/run-cmake@v10
         with:
-          buildPreset: 'clang-x64-windows-rel'
+          buildPreset: 'x64-windows-rel'
 
       - name: Run tests (Debug)
         working-directory: ${{env.DEBUG_BUILD_DIR}}
