@@ -47,7 +47,7 @@ namespace hl {
 
     auto const start_ptr = _lookahead[0].start;
     auto state = state_type::start;
-    while (decode_utf8()) {
+    while (not end_of_file()) {
         auto const cp = _lookahead[0].cp;
         auto const cp_ptr = _lookahead[0].start;
 

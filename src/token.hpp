@@ -54,28 +54,28 @@ public:
 
     constexpr token() noexcept = default;
 
-    constexpr token(std::size_t module_id, std::size_t line_nr, std::size_t column_nr) noexcept :
-        module_id(module_id), line_nr(line_nr), column_nr(column_nr), kind(kind_type::empty)
+    constexpr token(std::size_t module_id, std::size_t file_id, std::size_t line_nr, std::size_t column_nr) noexcept :
+        module_id(module_id), file_id(file_id), line_nr(line_nr), column_nr(column_nr), kind(kind_type::empty)
     {
     }
 
-    constexpr token(std::size_t module_id, std::size_t line_nr, std::size_t column_nr, kind_type kind) noexcept :
-        module_id(module_id), line_nr(line_nr), column_nr(column_nr), kind(kind)
+    constexpr token(std::size_t module_id, std::size_t file_id, std::size_t line_nr, std::size_t column_nr, kind_type kind) noexcept :
+        module_id(module_id), file_id(file_id), line_nr(line_nr), column_nr(column_nr), kind(kind)
     {
     }
 
-    constexpr token(std::size_t module_id, std::size_t line_nr, std::size_t column_nr, kind_type kind, std::string text) noexcept :
-        module_id(module_id), line_nr(line_nr), column_nr(column_nr), kind(kind), text(std::move(text))
+    constexpr token(std::size_t module_id, std::size_t file_id, std::size_t line_nr, std::size_t column_nr, kind_type kind, std::string text) noexcept :
+        module_id(module_id), file_id(file_id), line_nr(line_nr), column_nr(column_nr), kind(kind), text(std::move(text))
     {
     }
 
-    constexpr token(std::size_t module_id, std::size_t line_nr, std::size_t column_nr, kind_type kind, char c) noexcept :
-        module_id(module_id), line_nr(line_nr), column_nr(column_nr), kind(kind), text(1, c)
+    constexpr token(std::size_t module_id, std::size_t file_id, std::size_t line_nr, std::size_t column_nr, kind_type kind, char c) noexcept :
+        module_id(module_id), file_id(file_id), line_nr(line_nr), column_nr(column_nr), kind(kind), text(1, c)
     {
     }
 
-    constexpr token(std::size_t module_id, std::size_t line_nr, std::size_t column_nr, kind_type kind, char32_t c) noexcept :
-        module_id(module_id), line_nr(line_nr), column_nr(column_nr), kind(kind), text()
+    constexpr token(std::size_t module_id, std::size_t file_id, std::size_t line_nr, std::size_t column_nr, kind_type kind, char32_t c) noexcept :
+        module_id(module_id), file_id(file_id), line_nr(line_nr), column_nr(column_nr), kind(kind), text()
     {
         auto optional_text = encode_utf8_code_point(c);
         assert(optional_text.has_value());

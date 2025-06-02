@@ -51,7 +51,7 @@ namespace hl {
     auto value_length = uint64_t{0};
     auto value = uint64_t{0};
     auto name = std::string{};
-    while (decode_utf8()) {
+    while (not end_of_file()) {
         auto const cp = _lookahead[0].cp;
 
         switch (state) {

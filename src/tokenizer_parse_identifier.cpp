@@ -14,7 +14,7 @@ namespace hl {
     advance();
 
     auto identifier = [&] {
-        while (decode_utf8()) {
+        while (not end_of_file()) {
             if (not is_identifier_continue(_lookahead[0].cp)) {
                 // End of identifier.
                 return std::string{start_ptr, _lookahead[0].start};

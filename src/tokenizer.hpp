@@ -51,14 +51,24 @@ private:
     std::size_t _line_nr = 0;
     std::size_t _column_nr = 0;
 
-    bool decode_utf8() noexcept;
+    /** Check if the tokenizer has processed all bytes in the input.
+     * 
+     */
+    [[nodiscard]] bool end_of_file() const noexcept;
 
-    char32_t advance() noexcept;
+    /** Advance one Unicode code-point.
+     * 
+     * It has the following effects:
+     *  - It will pop the first value from the lookahead buffer.
+     *  - It will update the line and column number based on the code-point.
+     *  - It will decode the next code-point from the input buffer.
+     */
+    void advance() noexcept;
 
     template<typename... Args>
-    [[nodiscard]] token make_token(token::kind_type kind, Args&&... args) const
+    [[nodiscard]] token make_token(Args&&... args) const
     {
-        return token{_module_id, _line_nr, _column_nr, kind, std::forward<Args>(args)...};
+        return token{_module_id, _file_id, _line_nr, _column_nr, std::forward<Args>(args)...};
     }
 
     template<typename... Args>
@@ -77,7 +87,6 @@ private:
     [[nodiscard]] maybe_expected<token, std::string> parse_identifier();
     [[nodiscard]] maybe_expected<token, std::string> parse_operator();
     [[nodiscard]] maybe_expected<token, std::string> parse_number();
-    [[nodiscard]] maybe_expected<token, std::string> parse_comment();
     [[nodiscard]] maybe_expected<token, std::string> parse_line_comment();
     [[nodiscard]] maybe_expected<token, std::string> parse_block_comment();
     [[nodiscard]] maybe_expected<token, std::string> parse_positional_argument();

@@ -15,7 +15,7 @@ namespace hl {
     advance(); // Skip the '$' character.
     auto const value_start = _lookahead[0].start;
 
-    while (decode_utf8()) {
+    while (not end_of_file()) {
         if (not is_digit(_lookahead[0].cp)) {
             // End of numbered argument.
             return make_token(token::positional_argument, std::string{value_start, _lookahead[0].start});

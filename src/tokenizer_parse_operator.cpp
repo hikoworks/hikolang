@@ -24,7 +24,7 @@ namespace hl {
 
     auto r = make_token(token::_operator);
 
-    while (decode_utf8()) {
+    while (not end_of_file()) {
         if (not is_pattern_syntax(_lookahead[0].cp)) {
             // End of operator.
             r.text = std::string_view{start_ptr, _lookahead[0].start};

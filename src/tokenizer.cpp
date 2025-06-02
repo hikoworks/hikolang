@@ -15,6 +15,12 @@ namespace hl {
 tokenizer::tokenizer(size_t module_id, std::string_view module_text) noexcept :
     _lookahead(), _ptr(module_text.data()), _end(_ptr + module_text.size()), _module_id(module_id), _line_nr(0), _column_nr(0)
 {
+    assert(_ptr != nullptr);
+    assert(_end != nullptr);
+    assert(_end >= _ptr);
+
+    // Fill the lookahead buffer.
+    _lookahead.decode_utf8(_ptr, _end);
 }
 
 [[nodiscard]] std::expected<void, std::string> tokenizer::tokenize(delegate_type& delegate)
@@ -26,7 +32,7 @@ tokenizer::tokenizer(size_t module_id, std::string_view module_text) noexcept :
 
     auto found_cr = false;
 
-    while (decode_utf8()) {
+    while (not end_of_file()) {
         auto const cp = _lookahead[0].cp;
         auto const cp_ptr = _lookahead[0].start;
         auto const cp2 = _lookahead[1].cp;
@@ -36,118 +42,124 @@ tokenizer::tokenizer(size_t module_id, std::string_view module_text) noexcept :
             // Treat a solo CR as a LF. Solo CR used to be old style MacOS line
             // endings. Insert a LF token before the next token.
             found_cr = false;
-            delegate.on_token(make_character_token(token::line_feed, '\r'));
+            delegate.on_token(make_token(token::line_feed, '\r'));
         }
 
         if (cp == '\r') {
             // Found a CR, treat the same as horizontal space. But remember.
             found_cr = true;
             advance();
-
-        } else if (is_vertical_space(cp)) {
-            delegate.on_token(make_character_token(token::line_feed, '\n'));
-            advance();
-
-        } else if (is_horizontal_space(cp)) {
-            advance();
-
-        } else if (is_ignoreable(cp)) {
-            advance();
-
-        } else if (is_bracket(cp)) {
-            delegate.on_token(make_character_token(token::bracket, cp));
-            advance();
-
-        } else if (is_separator(cp)) {
-            delegate.on_token(make_character_token(token::seperator, cp));
-            advance();
-
-        } else if (cp == '/' and (cp2 == '/' or cp2 == '*')) {
-            if (auto const optional_token = parse_comment()) {
-                if (optional_token.has_value()) {
-                    delegate.on_token(*optional_token);
-                }
-            } else {
-                return std::unexpected{optional_token.error()};
-            }
-
-        } else if (cp == '*' and cp2 == '/') {
-            return make_error("Unexpected end of comment; found '*/' without a matching '/*'.");
-
-        } else if (
-            is_digit(cp) or (cp == '.' and is_digit(cp2)) or
-            ((cp == '-' or cp == '+') and (is_digit(cp2) or (cp2 == '.' and is_digit(cp3))))) {
-            // `-`, `+`, `.` and `..` are valid operators, distinguish them from numbers.
-            if (auto const optional_token = parse_number()) {
-                delegate.on_token(*optional_token);
-            } else {
-                return std::unexpected{optional_token.error()};
-            }
-
-        } else if (
-            cp == '"' or cp == '\'' or cp == '`' or (cp == 'r' and (cp2 == '"' or cp2 == '\'' or cp2 == '`'))) {
-            if (auto const optional_token = parse_string()) {
-                delegate.on_token(*optional_token);
-            } else {
-                return std::unexpected{optional_token.error()};
-            }
-
-        } else if (cp == '#') {
-            if (auto const optional_token = parse_line_directive()) {
-                if (optional_token.has_value()) {
-                    continue;
-                }
-            } else {
-                return std::unexpected{optional_token.error()};
-            }
-
-            
-            return make_error("Unexpected pre-processor '#' directive found.");
-
-        } else if (cp == '$' and is_digit(cp2)) {
-            if (auto const optional_token = parse_positional_argument()) {
-                delegate.on_token(*optional_token);
-            } else {
-                return std::unexpected{optional_token.error()};
-            }
-
-        } else if (cp == '$' and cp2 == '#') {
-            delegate.on_token(make_character_token(token::numbered_argument, '#'));
-            
-        } else if (is_identifier_start(cp) or cp == '$') {
-            if (auto const optional_token = parse_identifier()) {
-                delegate.on_token(*optional_token);
-            } else {
-                return std::unexpected{optional_token.error()};
-            }
-
-        } else if (is_pattern_syntax(cp)) {
-            if (auto const optional_token = parse_operator()) {
-                delegate.on_token(*optional_token);
-            } else {
-                return std::unexpected{optional_token.error()};
-            }
-
-        } else {
-            return make_unexpected_character_error(cp, cp_ptr);
+            continue;
         }
+
+        if (is_vertical_space(cp)) {
+            delegate.on_token(make_token(token::line_feed, '\n'));
+            advance();
+            continue;
+        }
+        
+        if (is_horizontal_space(cp) or is_ignoreable(cp)) {
+            advance();
+            continue;
+        }
+
+        if (is_bracket(cp)) {
+            delegate.on_token(make_token(token::bracket, cp));
+            advance();
+            continue;
+        }
+
+        if (is_separator(cp)) {
+            delegate.on_token(make_token(token::seperator, cp));
+            advance();
+            continue;
+        }
+
+        if (auto const token = parse_line_comment(); token.has_error()) {
+            return std::unexpected{token.error()};
+        } else if (token.has_value()) {
+            delegate.on_token(*token);
+            continue;
+        }
+
+        if (auto const token = parse_block_comment(); token.has_error()) {
+            return std::unexpected{token.error()};
+        } else if (token.has_value()) {
+            delegate.on_token(*token);
+            continue;
+        }
+
+        if (cp == '*' and cp2 == '/') {
+            return make_error("Unexpected end of comment; found '*/' without a matching '/*'.");
+        }
+
+        if (auto const token = parse_number(); token.has_error()) {
+            return std::unexpected{token.error()};
+        } else if (token.has_value()) {
+            delegate.on_token(*token);
+            continue;
+        }
+
+        if (auto const token = parse_string(); token.has_error()) {
+            return std::unexpected{token.error()};
+        } else if (token.has_value()) {
+            delegate.on_token(*token);
+            continue;
+        }
+
+        if (parse_line_directive()) {
+            // A line directive only affects the tokenizer state, it does not
+            // produce a token.
+            continue;
+        }
+
+        if (auto const token = parse_positional_argument(); token.has_error()) {
+            return std::unexpected{token.error()};
+        } else if (token.has_value()) {
+            delegate.on_token(*token);
+            continue;
+        }
+
+        if (cp == '$' and cp2 == '#') {
+            delegate.on_token(make_token(token::positional_argument, '#'));
+            advance(); // Skip the '$'
+            advance(); // Skip the '#'
+            continue;
+        }
+
+        if (auto const token = parse_identifier(); token.has_error()) {
+            return std::unexpected{token.error()};
+        } else if (token.has_value()) {
+            delegate.on_token(*token);
+            continue;
+        }
+
+        if (auto const token = parse_operator(); token.has_error()) {
+            return std::unexpected{token.error()};
+        } else if (token.has_value()) {
+            delegate.on_token(*token);
+            continue;
+        }
+
+        return make_unexpected_character_error(cp, cp_ptr);
     }
 
     delegate.on_eof();
     return {};
 }
 
-bool tokenizer::decode_utf8() noexcept
+[[nodiscard]] bool tokenizer::end_of_file() const noexcept
 {
-    assert(_ptr != nullptr);
-    assert(_end != nullptr);
-    return _lookahead.decode_utf8(_ptr, _end);
+    auto const empty = _lookahead.empty();
+    assert(not empty or _ptr == _end);
+    return empty;
 }
 
-char32_t tokenizer::advance() noexcept
+void tokenizer::advance() noexcept
 {
     auto const cp = _lookahead[0].cp;
     _lookahead.pop_front();
+    _lookahead.decode_utf8(_ptr, _end);
 
     if (is_vertical_space(cp)) {
         ++_line_nr;
@@ -155,8 +167,6 @@ char32_t tokenizer::advance() noexcept
     } else {
         ++_column_nr;
     }
-
-    return cp;
 }
 
 [[nodiscard]] std::unexpected<std::string> tokenizer::make_unexpected_character_error(char32_t cp, char const* start) const
