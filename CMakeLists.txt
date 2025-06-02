@@ -50,8 +50,8 @@ add_library(hic_objects OBJECT
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer_parse_identifier.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer_parse_line_directive.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer_parse_number.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer_parse_numbered_argument.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer_parse_operator.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer_parse_positional_argument.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer_parse_string.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utf8.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utf8.hpp"
@@ -89,30 +89,30 @@ target_link_libraries(hic PRIVATE ICU::data)
 
 
 if(BUILD_TESTING)
-    add_executable(hic_tests)
-    target_sources(hic_tests PRIVATE
+    add_executable(hic-tests)
+    target_sources(hic-tests PRIVATE
         $<TARGET_OBJECTS:hic_objects>
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utf8_tests.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer_tests.cpp"
     )
-    #target_compile_definitions(hic_tests PRIVATE ${LLVM_DEFINITIONS})
-    #target_link_libraries(hic_tests PRIVATE ${llvm_libs})
-    target_link_libraries(hic_tests PRIVATE Microsoft.GSL::GSL)
-    target_link_libraries(hic_tests PRIVATE ICU::i18n)
-    target_link_libraries(hic_tests PRIVATE ICU::uc)
-    target_link_libraries(hic_tests PRIVATE ICU::data)
-    target_link_libraries(hic_tests PRIVATE hikotest)
-    target_include_directories(hic_tests PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src")
+    #target_compile_definitions(hic-tests PRIVATE ${LLVM_DEFINITIONS})
+    #target_link_libraries(hic-tests PRIVATE ${llvm_libs})
+    target_link_libraries(hic-tests PRIVATE Microsoft.GSL::GSL)
+    target_link_libraries(hic-tests PRIVATE ICU::i18n)
+    target_link_libraries(hic-tests PRIVATE ICU::uc)
+    target_link_libraries(hic-tests PRIVATE ICU::data)
+    target_link_libraries(hic-tests PRIVATE hikotest)
+    target_include_directories(hic-tests PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
-    set_target_properties(hic_tests PROPERTIES DEBUG_POSTFIX "-dbg")
-    set_target_properties(hic_tests PROPERTIES RELEASE_POSTFIX "-rel")
-    set_target_properties(hic_tests PROPERTIES RELWITHDEBINFO_POSTFIX "-rdi")
+    set_target_properties(hic-tests PROPERTIES DEBUG_POSTFIX "-dbg")
+    set_target_properties(hic-tests PROPERTIES RELEASE_POSTFIX "-rel")
+    set_target_properties(hic-tests PROPERTIES RELWITHDEBINFO_POSTFIX "-rdi")
 
     # Sanitizers do not work on Windows.
     if (NOT WIN32)
-        target_compile_options(hic_tests PRIVATE -fsanitize=address)
-        target_link_options(hic_tests PRIVATE -fsanitize=address)
+        target_compile_options(hic-tests PRIVATE -fsanitize=address)
+        target_link_options(hic-tests PRIVATE -fsanitize=address)
     endif()
 
-    add_test(NAME hic_tests COMMAND hic_tests)
+    add_test(NAME hic-tests COMMAND hic-tests)
 endif()

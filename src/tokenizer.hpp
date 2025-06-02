@@ -55,11 +55,11 @@ private:
 
     char32_t advance() noexcept;
 
-    [[nodiscard]] token make_token(token::kind_type kind) const;
-
-    [[nodiscard]] token make_character_token(token::kind_type kind, char c) const;
-
-    [[nodiscard]] token make_character_token(token::kind_type kind, char32_t c) const;
+    template<typename... Args>
+    [[nodiscard]] token make_token(token::kind_type kind, Args&&... args) const
+    {
+        return token{_module_id, _line_nr, _column_nr, kind, std::forward<Args>(args)...};
+    }
 
     template<typename... Args>
     [[nodiscard]] std::unexpected<std::string> make_error(std::format_string<Args...> fmt, Args&&... args) const
@@ -73,14 +73,14 @@ private:
     [[nodiscard]] std::unexpected<std::string> make_unexpected_character_error(char32_t cp, char const* start) const;
 
 
-    [[nodiscard]] std::expected<token, std::string> parse_string();
-    [[nodiscard]] std::expected<token, std::string> parse_identifier();
-    [[nodiscard]] std::expected<token, std::string> parse_operator();
-    [[nodiscard]] std::expected<token, std::string> parse_number();
+    [[nodiscard]] maybe_expected<token, std::string> parse_string();
+    [[nodiscard]] maybe_expected<token, std::string> parse_identifier();
+    [[nodiscard]] maybe_expected<token, std::string> parse_operator();
+    [[nodiscard]] maybe_expected<token, std::string> parse_number();
     [[nodiscard]] maybe_expected<token, std::string> parse_comment();
     [[nodiscard]] maybe_expected<token, std::string> parse_line_comment();
     [[nodiscard]] maybe_expected<token, std::string> parse_block_comment();
-    [[nodiscard]] std::expected<token, std::string> parse_numbered_argument();
+    [[nodiscard]] maybe_expected<token, std::string> parse_positional_argument();
     [[nodiscard]] maybe_expected<token, std::string> parse_line_directive();
 };
 

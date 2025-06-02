@@ -4,19 +4,18 @@
 
 namespace hl {
 
-[[nodiscard]] std::expected<token, std::string> tokenizer::parse_identifier()
+[[nodiscard]] maybe_expected<token, std::string> tokenizer::parse_identifier()
 {
-    auto r = make_token(token::identifier);
     auto const start_ptr = _lookahead[0].start;
 
-    // Skip the first character, which is guaranteed to be an identifier start.
+    if (not is_identifier_start(_lookahead[0].cp) and _lookahead[0].cp != '$') {
+        return {};
+    }
     advance();
 
     auto identifier = [&] {
         while (decode_utf8()) {
-            auto const cp = _lookahead[0].cp;
-
-            if (not is_identifier_continue(cp)) {
+            if (not is_identifier_continue(_lookahead[0].cp)) {
                 // End of identifier.
                 return std::string{start_ptr, _lookahead[0].start};
             }
@@ -34,7 +33,7 @@ namespace hl {
         return make_error("Failed to normalize identifier '{}'", identifier);
     }
 
-    r.text = std::move(normalized_identifier).value();
+    auto r = make_token(token::identifier, std::move(normalized_identifier).value());
 
     if (auto check_result = security_check_utf8_string(r.text); not check_result) [[unlikely]] {
         switch (check_result.error()) {

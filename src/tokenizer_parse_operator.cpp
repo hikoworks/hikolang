@@ -12,13 +12,17 @@
 
 namespace hl {
 
-[[nodiscard]] std::expected<token, std::string> tokenizer::parse_operator()
+[[nodiscard]] maybe_expected<token, std::string> tokenizer::parse_operator()
 {
-    auto r = make_token(token::_operator);
     auto const start_ptr = _lookahead[0].start;
 
-    // Skip the first character, which is guaranteed to be a pattern syntax character.
+    if (not is_pattern_syntax(_lookahead[0].cp)) {
+        // Not an operator, return empty.
+        return {};
+    }
     advance();
+
+    auto r = make_token(token::_operator);
 
     while (decode_utf8()) {
         if (not is_pattern_syntax(_lookahead[0].cp)) {

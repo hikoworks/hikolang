@@ -22,9 +22,11 @@ public:
         documentation,
         back_documentation,
         string_literal,
+        character_literal,
+        quote_literal,
         integer_literal,
         float_literal,
-        numbered_argument,
+        positional_argument,
     };
 
     static constexpr kind_type empty = kind_type::empty;
@@ -36,9 +38,11 @@ public:
     static constexpr kind_type documentation = kind_type::documentation;
     static constexpr kind_type back_documentation = kind_type::back_documentation;
     static constexpr kind_type string_literal = kind_type::string_literal;
+    static constexpr kind_type character_literal = kind_type::character_literal;
+    static constexpr kind_type quote_literal = kind_type::quote_literal;
     static constexpr kind_type integer_literal = kind_type::integer_literal;
     static constexpr kind_type float_literal = kind_type::float_literal;
-    static constexpr kind_type numbered_argument = kind_type::numbered_argument;
+    static constexpr kind_type positional_argument = kind_type::positional_argument;
 
     std::size_t module_id = 0;
     std::size_t file_id = 0;
@@ -49,7 +53,18 @@ public:
     std::string text = {};
 
     constexpr token() noexcept = default;
-    constexpr token(std::size_t module_id, std::size_t line_nr, std::size_t column_nr, kind_type kind, std::string text = std::string{}) noexcept :
+
+    constexpr token(std::size_t module_id, std::size_t line_nr, std::size_t column_nr) noexcept :
+        module_id(module_id), line_nr(line_nr), column_nr(column_nr), kind(kind_type::empty)
+    {
+    }
+
+    constexpr token(std::size_t module_id, std::size_t line_nr, std::size_t column_nr, kind_type kind) noexcept :
+        module_id(module_id), line_nr(line_nr), column_nr(column_nr), kind(kind)
+    {
+    }
+
+    constexpr token(std::size_t module_id, std::size_t line_nr, std::size_t column_nr, kind_type kind, std::string text) noexcept :
         module_id(module_id), line_nr(line_nr), column_nr(column_nr), kind(kind), text(std::move(text))
     {
     }

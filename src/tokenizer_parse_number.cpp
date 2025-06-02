@@ -5,15 +5,22 @@
 
 namespace hl {
 
-[[nodiscard]] std::expected<token, std::string> tokenizer::parse_number()
+[[nodiscard]] maybe_expected<token, std::string> tokenizer::parse_number()
 {
     enum class state_type { start, found_sign, zero_prefix, integer_part, fraction_part, found_e, found_esign, exponent_part };
 
-    auto state = state_type::start;
+    auto const cp = _lookahead[0].cp;
+    auto const cp2 = _lookahead[1].cp;
+    auto const cp3 = _lookahead[2].cp;
 
-    auto r = make_token(token::integer_literal);
-    auto const start_ptr = _lookahead[0].start;
-    uint8_t radix = 10;
+    auto is_number = is_digit(cp);
+    is_number |= cp == '.' and is_digit(cp2);
+    is_number |= (cp == '-' or cp == '+') and (is_digit(cp2) or (cp2 == '.' and is_digit(cp3)));
+    if (not is_number) {
+        return {};
+    }
+
+    auto radix = 10;
 
     auto is_radix_digit = [&](char32_t cp) -> bool {
         if (radix == 2) {
@@ -36,6 +43,10 @@ namespace hl {
         }
     };
 
+    auto r = make_token(token::integer_literal);
+
+    auto const start_ptr = _lookahead[0].start;
+    auto state = state_type::start;
     while (decode_utf8()) {
         auto const cp = _lookahead[0].cp;
         auto const cp_ptr = _lookahead[0].start;

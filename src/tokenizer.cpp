@@ -105,7 +105,7 @@ tokenizer::tokenizer(size_t module_id, std::string_view module_text) noexcept :
             return make_error("Unexpected pre-processor '#' directive found.");
 
         } else if (cp == '$' and is_digit(cp2)) {
-            if (auto const optional_token = parse_numbered_argument()) {
+            if (auto const optional_token = parse_positional_argument()) {
                 delegate.on_token(*optional_token);
             } else {
                 return std::unexpected{optional_token.error()};
@@ -157,21 +157,6 @@ char32_t tokenizer::advance() noexcept
     }
 
     return cp;
-}
-
-[[nodiscard]] token tokenizer::make_token(token::kind_type kind) const
-{
-    return token{_module_id, _line_nr, _column_nr, kind};
-}
-
-[[nodiscard]] token tokenizer::make_character_token(token::kind_type kind, char c) const
-{
-    return token{_module_id, _line_nr, _column_nr, kind, c};
-}
-
-[[nodiscard]] token tokenizer::make_character_token(token::kind_type kind, char32_t c) const
-{
-    return token{_module_id, _line_nr, _column_nr, kind, c};
 }
 
 [[nodiscard]] std::unexpected<std::string> tokenizer::make_unexpected_character_error(char32_t cp, char const* start) const

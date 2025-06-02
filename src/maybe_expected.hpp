@@ -25,7 +25,8 @@ public:
 
     constexpr maybe_expected(std::monostate) noexcept : _storage{std::in_place_index_t<0>{}, std::monostate{}} {}
     constexpr maybe_expected(value_type value) noexcept : _storage{std::in_place_index_t<1>{}, std::move(value)} {}
-    constexpr explicit maybe_expected(unexpected_type error) noexcept : _storage{std::in_place_index_t<2>{}, std::move(error).error()} {}
+    constexpr maybe_expected(unexpected_type const& error) noexcept : _storage{std::in_place_index_t<2>{}, error.error()} {}
+    constexpr maybe_expected(unexpected_type&& error) noexcept : _storage{std::in_place_index_t<2>{}, std::move(error).error()} {}
 
     constexpr maybe_expected& operator=(std::monostate) noexcept {
         _storage.emplace<0>(std::monostate{});

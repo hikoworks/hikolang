@@ -13,7 +13,7 @@
 
 namespace hl {
 
-[[nodiscard]] std::expected<token, std::string> tokenizer::parse_string()
+[[nodiscard]] maybe_expected<token, std::string> tokenizer::parse_string()
 {
     enum class state_type {
         idle,
@@ -22,18 +22,30 @@ namespace hl {
         escape_N
     };
 
-    auto r = make_token(token::string_literal);
+    auto const cp = _lookahead[0].cp;
+    auto const cp2 = _lookahead[1].cp;
 
-    auto const is_raw_string = [&] {
-        if (_lookahead[0].cp == 'r') {
-            advance();
-            return true;
-        }
-        return false;
-    }();
+    auto const is_raw_string = cp == 'r';
+    auto const quote_char = is_raw_string ? cp2 : cp;
+    if (quote_char != '\'' and quote_char != '"' and quote_char != '`') {
+        return {};
+    }
 
-    auto const quote_char = _lookahead[0].cp;
+    if (is_raw_string) {
+        advance();
+    }
     advance();
+
+    auto r = make_token();
+    if (quote_char == '"') {
+        r.kind = token::string_literal;
+    } else if (quote_char == '\'') {
+        r.kind = token::character_literal;
+    } else if (quote_char == '`') {
+        r.kind = token::quote_literal;
+    } else {
+        std::unreachable();
+    }
 
     auto state = state_type::idle;
     auto value_length = uint64_t{0};
