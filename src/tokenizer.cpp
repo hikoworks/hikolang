@@ -75,17 +75,17 @@ tokenizer::tokenizer(size_t module_id, std::string_view module_text) noexcept :
             continue;
         }
 
-        if (auto const token = parse_line_comment(); token.has_error()) {
+        if (auto token = parse_line_comment(); token.has_error()) {
             return std::unexpected{token.error()};
         } else if (token.has_value()) {
-            delegate.on_token(*token);
+            delegate.on_token(std::move(token).value());
             continue;
         }
 
-        if (auto const token = parse_block_comment(); token.has_error()) {
+        if (auto token = parse_block_comment(); token.has_error()) {
             return std::unexpected{token.error()};
         } else if (token.has_value()) {
-            delegate.on_token(*token);
+            delegate.on_token(std::move(token).value());
             continue;
         }
 
@@ -93,17 +93,24 @@ tokenizer::tokenizer(size_t module_id, std::string_view module_text) noexcept :
             return make_error("Unexpected end of comment; found '*/' without a matching '/*'.");
         }
 
-        if (auto const token = parse_number(); token.has_error()) {
+        if (auto token = parse_version(); token.has_error()) {
             return std::unexpected{token.error()};
         } else if (token.has_value()) {
-            delegate.on_token(*token);
+            delegate.on_token(std::move(token).value());
             continue;
         }
 
-        if (auto const token = parse_string(); token.has_error()) {
+        if (auto token = parse_number(); token.has_error()) {
             return std::unexpected{token.error()};
         } else if (token.has_value()) {
-            delegate.on_token(*token);
+            delegate.on_token(std::move(token).value());
+            continue;
+        }
+
+        if (auto token = parse_string(); token.has_error()) {
+            return std::unexpected{token.error()};
+        } else if (token.has_value()) {
+            delegate.on_token(std::move(token).value());
             continue;
         }
 
@@ -113,10 +120,10 @@ tokenizer::tokenizer(size_t module_id, std::string_view module_text) noexcept :
             continue;
         }
 
-        if (auto const token = parse_positional_argument(); token.has_error()) {
+        if (auto token = parse_positional_argument(); token.has_error()) {
             return std::unexpected{token.error()};
         } else if (token.has_value()) {
-            delegate.on_token(*token);
+            delegate.on_token(std::move(token).value());
             continue;
         }
 
@@ -127,17 +134,17 @@ tokenizer::tokenizer(size_t module_id, std::string_view module_text) noexcept :
             continue;
         }
 
-        if (auto const token = parse_identifier(); token.has_error()) {
+        if (auto token = parse_identifier(); token.has_error()) {
             return std::unexpected{token.error()};
         } else if (token.has_value()) {
-            delegate.on_token(*token);
+            delegate.on_token(std::move(token).value());
             continue;
         }
 
-        if (auto const token = parse_operator(); token.has_error()) {
+        if (auto token = parse_operator(); token.has_error()) {
             return std::unexpected{token.error()};
         } else if (token.has_value()) {
-            delegate.on_token(*token);
+            delegate.on_token(std::move(token).value());
             continue;
         }
 

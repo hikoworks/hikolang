@@ -54,6 +54,7 @@ add_library(hic_objects OBJECT
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer_parse_operator.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer_parse_positional_argument.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer_parse_string.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer_parse_version.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utf8.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utf8.hpp"
 )

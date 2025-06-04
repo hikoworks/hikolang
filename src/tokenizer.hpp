@@ -39,7 +39,7 @@ public:
     [[nodiscard]] std::expected<void, std::string> tokenize(delegate_type& delegate);
 
 private:
-    character_lookahead<3> _lookahead = {};
+    character_lookahead<8> _lookahead = {};
     char const* _ptr = nullptr;
     char const* _end = nullptr;
     std::size_t _module_id = 0;
@@ -86,6 +86,7 @@ private:
     [[nodiscard]] maybe_expected<token, std::string> parse_string();
     [[nodiscard]] maybe_expected<token, std::string> parse_identifier();
     [[nodiscard]] maybe_expected<token, std::string> parse_operator();
+    [[nodiscard]] maybe_expected<token, std::string> parse_version();
     [[nodiscard]] maybe_expected<token, std::string> parse_number();
     [[nodiscard]] maybe_expected<token, std::string> parse_line_comment();
     [[nodiscard]] maybe_expected<token, std::string> parse_block_comment();

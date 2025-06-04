@@ -26,6 +26,7 @@ public:
         quote_literal,
         integer_literal,
         float_literal,
+        version_literal,
         positional_argument,
     };
 
@@ -42,6 +43,7 @@ public:
     static constexpr kind_type quote_literal = kind_type::quote_literal;
     static constexpr kind_type integer_literal = kind_type::integer_literal;
     static constexpr kind_type float_literal = kind_type::float_literal;
+    static constexpr kind_type version_literal = kind_type::version_literal;
     static constexpr kind_type positional_argument = kind_type::positional_argument;
 
     std::size_t module_id = 0;
