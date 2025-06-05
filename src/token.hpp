@@ -7,13 +7,16 @@
 #include <string_view>
 #include <cstddef>
 #include <cassert>
+#include <variant>
 
 namespace hl {
 
 class token {
 public:
+
     enum class kind_type {
         empty,
+        error,
         identifier,
         _operator,
         bracket,
@@ -31,6 +34,7 @@ public:
     };
 
     static constexpr kind_type empty = kind_type::empty;
+    static constexpr kind_type error = kind_type::error;
     static constexpr kind_type identifier = kind_type::identifier;
     static constexpr kind_type _operator = kind_type::_operator;
     static constexpr kind_type bracket = kind_type::bracket;
@@ -46,38 +50,48 @@ public:
     static constexpr kind_type version_literal = kind_type::version_literal;
     static constexpr kind_type positional_argument = kind_type::positional_argument;
 
-    std::size_t module_id = 0;
+    /** The file this token belongs to.
+     */
     std::size_t file_id = 0;
-    std::size_t line_nr = 0;
-    std::size_t column_nr = 0;
+
+    /** The byte-index to the first character of the token.
+     */
+    std::size_t first = 0;
+
+    /** The byte-index to one beyond the last character of the token.
+     */
+    std::size_t last = 0;
+
     kind_type kind = kind_type::empty;
 
+    /** The significant part of the token.
+     */
     std::string text = {};
 
     constexpr token() noexcept = default;
 
-    constexpr token(std::size_t module_id, std::size_t file_id, std::size_t line_nr, std::size_t column_nr) noexcept :
-        module_id(module_id), file_id(file_id), line_nr(line_nr), column_nr(column_nr), kind(kind_type::empty)
+    constexpr token(std::size_t file_id, std::size_t first, std::size_t last) noexcept :
+        file_id(file_id), first(first), last(last), kind(kind_type::empty)
     {
     }
 
-    constexpr token(std::size_t module_id, std::size_t file_id, std::size_t line_nr, std::size_t column_nr, kind_type kind) noexcept :
-        module_id(module_id), file_id(file_id), line_nr(line_nr), column_nr(column_nr), kind(kind)
+    constexpr token(std::size_t file_id, std::size_t first, std::size_t last, kind_type kind) noexcept :
+        file_id(file_id), first(first), last(last), kind(kind)
     {
     }
 
-    constexpr token(std::size_t module_id, std::size_t file_id, std::size_t line_nr, std::size_t column_nr, kind_type kind, std::string text) noexcept :
-        module_id(module_id), file_id(file_id), line_nr(line_nr), column_nr(column_nr), kind(kind), text(std::move(text))
+    constexpr token(std::size_t file_id, std::size_t first, std::size_t last, kind_type kind, std::string text) noexcept :
+        file_id(file_id), first(first), last(last), kind(kind), text(std::move(text))
     {
     }
 
-    constexpr token(std::size_t module_id, std::size_t file_id, std::size_t line_nr, std::size_t column_nr, kind_type kind, char c) noexcept :
-        module_id(module_id), file_id(file_id), line_nr(line_nr), column_nr(column_nr), kind(kind), text(1, c)
+    constexpr token(std::size_t file_id, std::size_t first, std::size_t last, kind_type kind, char c) noexcept :
+        file_id(file_id), first(first), last(last), kind(kind), text(1, c)
     {
     }
 
-    constexpr token(std::size_t module_id, std::size_t file_id, std::size_t line_nr, std::size_t column_nr, kind_type kind, char32_t c) noexcept :
-        module_id(module_id), file_id(file_id), line_nr(line_nr), column_nr(column_nr), kind(kind), text()
+    constexpr token(std::size_t file_id, std::size_t first, std::size_t last, kind_type kind, char32_t c) noexcept :
+        file_id(file_id), first(first), last(last), kind(kind), text()
     {
         auto optional_text = encode_utf8_code_point(c);
         assert(optional_text.has_value());

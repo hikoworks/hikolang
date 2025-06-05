@@ -37,6 +37,7 @@ find_package(ICU REQUIRED COMPONENTS i18n uc data)
 # Find MS-GSL
 find_package(Microsoft.GSL CONFIG REQUIRED)
 
+
 add_library(hic_objects OBJECT
     "${CMAKE_CURRENT_SOURCE_DIR}/src/char_category.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/char_category.hpp"
@@ -44,6 +45,8 @@ add_library(hic_objects OBJECT
     "${CMAKE_CURRENT_SOURCE_DIR}/src/maybe_expected.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/module.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/module.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/token.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/token.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer_parse_block_comment.cpp"

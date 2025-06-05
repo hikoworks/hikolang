@@ -29,7 +29,7 @@ public:
         virtual void on_eof() = 0;
     };
 
-    tokenizer(size_t module_id, std::string_view module_text) noexcept;
+    tokenizer(size_t file_id, std::string_view file_text) noexcept;
 
     tokenizer(tokenizer&&) noexcept = delete;
     tokenizer(tokenizer const&) noexcept = delete;
@@ -48,8 +48,6 @@ private:
      * This is used to report errors in the actual source, in for exampl
      */
     std::size_t _file_id = 0;
-    std::size_t _line_nr = 0;
-    std::size_t _column_nr = 0;
 
     /** Check if the tokenizer has processed all bytes in the input.
      * 
@@ -68,7 +66,7 @@ private:
     template<typename... Args>
     [[nodiscard]] token make_token(Args&&... args) const
     {
-        return token{_module_id, _file_id, _line_nr, _column_nr, std::forward<Args>(args)...};
+        return token{_file_id, std::forward<Args>(args)...};
     }
 
     template<typename... Args>
