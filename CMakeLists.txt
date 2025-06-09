@@ -45,6 +45,8 @@ add_library(hic_objects OBJECT
     "${CMAKE_CURRENT_SOURCE_DIR}/src/maybe_expected.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/module.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/module.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/path.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/path.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/token.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/token.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer.cpp"
