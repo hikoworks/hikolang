@@ -13,7 +13,7 @@ file::file(hl::path_id path_id)
 {
 }
 
-[[nodiscard]] std::size_t file::read(std::size_t position, std::span<char> buffer) const
+[[nodiscard]] std::size_t file::read(std::size_t position, std::span<char> buffer)
 {
     if (buffer.size() == 0) {
         return 0; // No data to read
@@ -29,7 +29,7 @@ file::file(hl::path_id path_id)
     }
 
     _file_stream.seekg(position);
-    if (_file_stream.is_bad()) {
+    if (_file_stream.bad()) {
         // If the file stream is in a bad state, we close it and return 0.
         // This can happen if the file was not opened successfully or if it
         // was closed while we were trying to read from it.

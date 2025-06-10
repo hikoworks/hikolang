@@ -4,6 +4,7 @@
 
 #include "utf8.hpp"
 #include "path.hpp"
+#include "file_location.hpp"
 #include <cstddef>
 #include <bit>
 #include <vector>
@@ -21,34 +22,46 @@
 
 namespace hl {
 
-class cursor {
+class file_cursor {
 public:
-    constexpr cursor() noexcept = default;
+    constexpr file_cursor() noexcept = default;
 
-    cursor(hl::path_id path_id) noexcept;
+    file_cursor(hl::path_id base_path_id, hl::path_id path_id) noexcept;
 
-    void set_line(size_t line) noexcept;
+    [[nodiscard]] file_location location() const noexcept
+    {
+        return _location;
+    }
 
-    /** Synchronize the cursor with the source file.
+    void set_line(size_t line) noexcept
+    {
+        return _location.set_line(line);
+    }
+
+    /** Synchronize the file_cursor with the source file.
      * 
      * This function should be called after advancing beyond the vertical space
      * after the #line directive.
      */
-    void set_line(std::filesystem::path const& file_name, size_t line) noexcept;
+    void set_line(std::filesystem::path const& file_name, size_t line)
+    {
+        return _location.set_line(file_name, line);
+    }
 
     void advance();
 
-    cursor &operator++()
+    file_cursor &operator++()
     {
         advance();
         return *this;
     }
 
-    cursor &operator+=(unsigned int n)
+    file_cursor &operator+=(unsigned int n)
     {
         for (unsigned int i = 0; i != n; ++i) {
             advance();
         }
+        return *this;
     }
     
     [[nodiscard]] char32_t operator[](std::size_t offset) const noexcept
@@ -102,12 +115,9 @@ private:
      */
     std::size_t _lookahead_size = 0;
 
-    hl::path_id _path_id = hl::path_id::invalid;
-    std::size_t _line = 0;
-    std::size_t _column = 0;
-
-    hl::path_id _source_path_id = hl::path_id::invalid;
-    std::size_t _source_line = 0;
+    /** The file location where the current first character is positioned.
+     */
+    file_location _location = {};
 
     void fill_buffer();
 

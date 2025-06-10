@@ -1,5 +1,5 @@
 
-#include "tokenizer.hpp"
+#include "token_parsers.hpp"
 #include "utf8.hpp"
 #include <format>
 #include <cassert>
@@ -13,7 +13,7 @@
 
 namespace hl {
 
-[[nodiscard]] maybe_expected<token, std::string> tokenizer::parse_string()
+[[nodiscard]] std::optional<token> parse_string(file_cursor& c)
 {
     enum class state_type {
         idle,
@@ -22,21 +22,19 @@ namespace hl {
         escape_N
     };
 
-    auto const cp = _lookahead[0].cp;
-    auto const cp2 = _lookahead[1].cp;
-
-    auto const is_raw_string = cp == 'r';
-    auto const quote_char = is_raw_string ? cp2 : cp;
+    auto const is_raw_string = c[0] == 'r';
+    auto const quote_char = is_raw_string ? c[1] : c[0];
     if (quote_char != '\'' and quote_char != '"' and quote_char != '`') {
-        return {};
+        return std::nullopt;
     }
+
+    auto r = token{c.location(), token::empty};
 
     if (is_raw_string) {
-        advance();
+        ++c;
     }
-    advance();
-
-    auto r = make_token();
+    ++c;
+    
     if (quote_char == '"') {
         r.kind = token::string_literal;
     } else if (quote_char == '\'') {
@@ -51,29 +49,26 @@ namespace hl {
     auto value_length = uint64_t{0};
     auto value = uint64_t{0};
     auto name = std::string{};
-    while (not end_of_file()) {
-        auto const cp = _lookahead[0].cp;
-
+    for (; not c.end_of_file(); ++c) {
         switch (state) {
         case state_type::idle:
-            if (cp == quote_char) {
+            if (c[0] == quote_char) {
                 // End of string literal.
-                r.append(quote_char);
-                advance();
+                r.last = c.location();
                 return r;
 
-            } else if (cp == '\\') {
+            } else if (c[0] == '\\') {
                 // Escape sequence.
                 state = state_type::escape;
 
             } else {
-                r.append(cp);
+                r.append(c[0]);
             }
             break;
 
         case state_type::escape:
             // clang-format off
-            switch (cp) {
+            switch (c[0]) {
             case '\'': state = state_type::idle; r.append('\''); break;
             case '"':  state = state_type::idle; r.append('\"'); break;
             case '?':  state = state_type::idle; r.append('\?'); break;
@@ -90,44 +85,44 @@ namespace hl {
             case 'N':  state = state_type::escape_N; break;
             default:
                 // Invalid escape sequence.
-                return make_error("Invalid escape sequence in string literal.");
+                return r.make_error(c.location(), "Invalid escape sequence in string literal.");
             }
             // clang-format on
             break;
 
         case state_type::escape_u:
-            if (cp == '{' and value == 0) {
+            if (c[0] == '{' and value == 0) {
                 // Brace escape sequence, we will read until we find a '}'.
                 value_length = std::numeric_limits<uint64_t>::max();
 
-            } else if (cp == '}') {
+            } else if (c[0] == '}') {
                 // End of brace escape sequence.
                 value_length = 1;
 
-            } else if (cp >= '0' and cp <= '9') {
+            } else if (c[0] >= '0' and c[0] <= '9') {
                 value <<= 4;
-                value |= cp - '0';
+                value |= c[0] - '0';
 
-            } else if (cp >= 'a' and cp <= 'f') {
+            } else if (c[0] >= 'a' and c[0] <= 'f') {
                 value <<= 4;
-                value = cp - 'a' + 10;
+                value = c[0] - 'a' + 10;
 
-            } else if (cp >= 'A' and cp <= 'F') {
+            } else if (c[0] >= 'A' and c[0] <= 'F') {
                 value <<= 4;
-                value = cp - 'A' + 10;
+                value = c[0] - 'A' + 10;
 
             } else {
                 // Invalid escape sequence.
-                return make_error("Invalid hex-digit in \\u escape sequence.");
+                return r.make_error(c.location(), "Invalid hex-digit in \\u escape sequence.");
             }
 
             if (--value_length == 0) {
                 // We have a complete code-point.
                 if (value > 0x10FFFF) {
-                    return make_error("Invalid code-point U+{:06x} in \\u escape sequence.", value);
+                    return r.make_error(c.location(), "Invalid code-point U+{:06x} in \\u escape sequence.", value);
                 }
                 if (value >= 0xD800 and value <= 0xDFFF) {
-                    return make_error("Invalid surrogate code-point U+{:06x} in \\u escape sequence.", value);
+                    return r.make_error(c.location(), "Invalid surrogate code-point U+{:06x} in \\u escape sequence.", value);
                 }
                 r.append(static_cast<char32_t>(value));
                 state = state_type::idle;
@@ -135,42 +130,40 @@ namespace hl {
             break;
 
         case state_type::escape_N:
-            if (cp == '{') {
+            if (c[0] == '{') {
                 // Start of name escape sequence.
                 name.clear();
 
-            } else if (cp == '}') {
+            } else if (c[0] == '}') {
                 // End of name escape sequence.
                 if (name.empty()) {
-                    return make_error("Empty name in \\N escape sequence.");
+                    return r.make_error(c.location(), "Empty name in \\N escape sequence.");
                 }
 
                 if (auto new_cp = unicode_name_to_code_point(name); new_cp != std::to_underlying(unicode_error::name_not_found)) {
                     r.append(new_cp);
                 } else {
-                    return make_error("Could not find unicode name '{}'", name);
+                    return r.make_error(c.location(), "Could not find unicode name '{}'", name);
                 }
 
                 state = state_type::idle;
 
             } else {
-                if ((cp >= 'A' and cp <= 'Z') or (cp >= '0' and cp <= '9') or cp == ' ' or cp == '(' or cp == ')') {
+                if ((c[0] >= 'A' and c[0] <= 'Z') or (c[0] >= '0' and c[0] <= '9') or c[0] == ' ' or c[0] == '(' or c[0] == ')') {
                     // Valid character in name.
-                    name.push_back(static_cast<char>(cp));
+                    name.push_back(static_cast<char>(c[0]));
 
                 } else {
                     // Invalid character in name.
-                    return make_error("Invalid character U+{:04x}' in \\N escape sequence.", static_cast<uint32_t>(cp));
+                    return r.make_error(c.location(), "Invalid character U+{:04x}' in \\N escape sequence.", static_cast<uint32_t>(c[0]));
                 }
             }
             break;
 
         }
-
-        advance();
     }
 
-    return make_error("Unterminated string literal.");
+    return r.make_error(c.location(), "Unterminated string literal.");
 }
 
 }

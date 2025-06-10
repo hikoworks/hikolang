@@ -1,49 +1,33 @@
 
-#include "cursor.hpp"
+#include "file_cursor.hpp"
 #include "file.hpp"
+#include "char_category.hpp"
 #include <cassert>
 
 namespace hl {
 
-cursor::cursor(hl::path_id path_id) noexcept : _path_id(path_id), _source_path_id(path_id)
+file_cursor::file_cursor(hl::path_id base_path_id, hl::path_id path_id) noexcept : _location(base_path_id, path_id)
 {
     _buffer.resize(max_buffer_size);
     fill_lookahead();
 }
 
-void set_line(size_t line) noexcept
-{
-    _source_line = line;
-}
-
-void cursor::set_line(std::filesystem::path const& path, size_t line)
-{
-    _source_path_id = hl::get_path_id(std::move(path), _path_id);
-    set_line(line);
-}
-
-void cursor::advance()
+void file_cursor::advance()
 {
     auto const cp = _lookahead[0];
     std::shift_left(_lookahead.begin(), _lookahead.end(), 1);
     --_lookahead_size;
     fill_lookahead();
 
-    if (is_vertical_space(cp)) {
-        ++_line;
-        ++_source_line;
-        _column = 0;
-    } else {
-        ++_column;
-    }
+    _location.advance(cp);
 }
 
-void cursor::fill_buffer()
+void file_cursor::fill_buffer()
 {
-    auto file = hl::get_file(_path_id);
+    auto &file = hl::get_file(_location.path_id);
 
     assert(_buffer.size() == max_buffer_size);
-    _buffer_size = file->read(_offset, std::span<char>(_buffer));
+    _buffer_size = file.read(_offset, std::span<char>(_buffer));
     if (_buffer_size < max_buffer_size) {
         // Fill the rest of the buffer with zeros, so that the lookahead
         // can safely read beyond the end of the file.
@@ -51,7 +35,7 @@ void cursor::fill_buffer()
     }
 }
 
-void cursor::fill_lookahead()
+void file_cursor::fill_lookahead()
 {
     char32_t code_point = 0;
     std::size_t code_units_left = 0;

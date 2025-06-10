@@ -42,7 +42,7 @@ public:
      * @param buffer The buffer to read the content into.
      * @return The number of bytes read. If zero, the end of the file has been reached.
      */
-    [[nodiscard]] std::size_t read(std::size_t position, std::span<char> buffer) const;
+    [[nodiscard]] std::size_t read(std::size_t position, std::span<char> buffer);
 
     /** Open the file.
      * 

@@ -3,6 +3,7 @@
 #define HL_TOKEN_HPP
 
 #include "utf8.hpp"
+#include "file_location.hpp"
 #include <string>
 #include <string_view>
 #include <cstddef>
@@ -16,12 +17,14 @@ public:
 
     enum class kind_type {
         empty,
+        end_of_file,
         error,
         identifier,
         _operator,
         bracket,
         seperator,
         line_feed,
+        comment,
         documentation,
         back_documentation,
         string_literal,
@@ -34,12 +37,14 @@ public:
     };
 
     static constexpr kind_type empty = kind_type::empty;
+    static constexpr kind_type end_of_file = kind_type::end_of_file;
     static constexpr kind_type error = kind_type::error;
     static constexpr kind_type identifier = kind_type::identifier;
     static constexpr kind_type _operator = kind_type::_operator;
     static constexpr kind_type bracket = kind_type::bracket;
     static constexpr kind_type seperator = kind_type::seperator;
     static constexpr kind_type line_feed = kind_type::line_feed;
+    static constexpr kind_type comment = kind_type::comment;
     static constexpr kind_type documentation = kind_type::documentation;
     static constexpr kind_type back_documentation = kind_type::back_documentation;
     static constexpr kind_type string_literal = kind_type::string_literal;
@@ -50,17 +55,13 @@ public:
     static constexpr kind_type version_literal = kind_type::version_literal;
     static constexpr kind_type positional_argument = kind_type::positional_argument;
 
-    /** The file this token belongs to.
+    /** The location in the file where the first character of a token is located.
      */
-    std::size_t file_id = 0;
+    file_location first = {};
 
-    /** The byte-index to the first character of the token.
+    /** One position after the location of the last character of the token.
      */
-    std::size_t first = 0;
-
-    /** The byte-index to one beyond the last character of the token.
-     */
-    std::size_t last = 0;
+    file_location last = {};
 
     kind_type kind = kind_type::empty;
 
@@ -70,29 +71,49 @@ public:
 
     constexpr token() noexcept = default;
 
-    constexpr token(std::size_t file_id, std::size_t first, std::size_t last) noexcept :
-        file_id(file_id), first(first), last(last), kind(kind_type::empty)
+    constexpr token(file_location const &first) noexcept :
+        first(first), last(first), kind(kind_type::empty)
     {
     }
 
-    constexpr token(std::size_t file_id, std::size_t first, std::size_t last, kind_type kind) noexcept :
-        file_id(file_id), first(first), last(last), kind(kind)
+    constexpr token(file_location const &first, kind_type kind) noexcept :
+        first(first), last(first), kind(kind)
     {
     }
 
-    constexpr token(std::size_t file_id, std::size_t first, std::size_t last, kind_type kind, std::string text) noexcept :
-        file_id(file_id), first(first), last(last), kind(kind), text(std::move(text))
+    /** Construct a token with a single character.
+     * 
+     * The character must be a valid ASCII character (0x00 to 0x7f).
+     * The `last` location will be advanced to the next position after the character.
+     * 
+     * This is used for single-character tokens like brackets, separators, and operators.
+     * 
+     * @param first The location of the first character of the token.
+     * @param kind The kind of the token.
+     * @param c The character of the token.
+     */
+    constexpr token(file_location const &first, kind_type kind, char c) noexcept :
+        first(first), last(first), kind(kind), text(1, c)
     {
+        // Ensure that the character is a valid ASCII character.
+        assert(static_cast<uint8_t>(c) <= 0x7f);
+        last.advance(c);
     }
 
-    constexpr token(std::size_t file_id, std::size_t first, std::size_t last, kind_type kind, char c) noexcept :
-        file_id(file_id), first(first), last(last), kind(kind), text(1, c)
+    /** Construct a token with a single character.
+     * 
+     * The `last` location will be advanced to the next position after the character.
+     * 
+     * This is used for single-character tokens like brackets, separators, and operators.
+     * 
+     * @param first The location of the first character of the token.
+     * @param kind The kind of the token.
+     * @param c The character of the token.
+     */
+    constexpr token(file_location const &first, kind_type kind, char32_t c) noexcept :
+        first(first), last(first), kind(kind), text()
     {
-    }
-
-    constexpr token(std::size_t file_id, std::size_t first, std::size_t last, kind_type kind, char32_t c) noexcept :
-        file_id(file_id), first(first), last(last), kind(kind), text()
-    {
+        last.advance(c);
         auto optional_text = encode_utf8_code_point(c);
         assert(optional_text.has_value());
         optional_text.append_to(text);
@@ -131,6 +152,87 @@ public:
         text.append(str);
     }
 
+    /** Convert this token into an error.
+     */
+    template<typename... Args>
+    token &make_error(file_location last, std::format_string<Args...> fmt, Args &&...args)
+    {
+        this->kind = kind_type::error;
+        this->text = std::format(std::move(fmt), std::forward<Args>(args)...);
+        this->last = last;
+        return *this;
+    }
+
+    /** Normalize the text of the token to NFC form.
+     * 
+     * This is required for identifiers.
+     */
+    bool normalize() noexcept
+    {
+        auto normalized_text = normalize_utf8_string(text);
+        if (not normalized_text) {
+            make_error(last, "Failed to normalize token text '{}'", text);
+            return false;
+        }
+
+        text = std::move(normalized_text).value();
+        return true;
+    }
+
+    /** Check the text of the token for security issues.
+     * 
+     * This is required for identifiers.
+     */
+    bool security_check() noexcept
+    {
+        if (auto const check_result = security_check_utf8_string(text); not check_result) {
+            switch (check_result.error()) {
+            case utf8_security_error::invalid_utf8_sequence:
+                make_error(last, "Token security: Invalid UTF-8 sequence in token '{}'", text);
+                break;
+            case utf8_security_error::string_to_long:
+                make_error(last, "Token security: Token is too long");
+                break;
+            case utf8_security_error::restriction_level:
+                make_error(last, "Token security: Restricted character found in token '{}'", text);
+                break;
+            case utf8_security_error::invisible:
+                make_error(last, "Token security: Invisible character found in token '{}'", text);
+                break;
+            case utf8_security_error::mixed_numbers:
+                make_error(last, "Token security: Mixed numbers found in token '{}'", text);
+                break;
+            case utf8_security_error::hidden_overlay:
+                make_error(last, "Token security: Combining character overlays with base character in token '{}'", text);
+                break;
+            case utf8_security_error::unknown_error:
+                make_error(last, "Token security: Unknown error while checking token '{}'", text);
+                break;
+            }
+            return false;
+        }
+        return true;
+    }
+
+    /** Normalize and security check the token.
+     * 
+     * This is required for identifiers.
+     */
+    token &normalize_and_security_check()
+    {
+        if (not normalize()) {
+            return *this;
+        }
+        if (not security_check()) {
+            return *this;
+        }
+        return *this;
+    }
+
+    [[nodiscard]] constexpr bool has_value() const noexcept
+    {
+        return kind != kind_type::empty and not text.empty();
+    }
 
 private:
     [[nodiscard]] constexpr bool can_simple_compare() const noexcept
