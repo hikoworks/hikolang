@@ -2,13 +2,77 @@
 
 #include "token_parsers.hpp"
 
-
 namespace hl {
 
 [[nodiscard]] std::optional<token> parse_line_directive(file_cursor& c)
 {
-    auto r = token(c.location(), token::line_feed);
+    if (c.location().column != 0) {
+        // The line directive must be at the start of the line.
+        return std::nullopt;
+    }
+
+    if (c[0] != '#' or c[1] != 'l' or c[2] != 'i' or c[3] != 'n' or c[4] != 'e' or c[5] != ' ' or not is_digit(c[6])) {
+        return std::nullopt;
+    }
+
+    auto r = token{c.location(), token::line_directive};
+
+    // Skip the "#line " part.
+    c += 6;
+
+    std::size_t line_number = 0;
+    std::string file_name = {};
+
+    if (auto n = parse_number(c)) {
+        if (n->kind != token::integer_literal) {
+            return r.make_error(c.location(), "Invalid #line directive; expected a integer line number, got '{}'.", n->text);
+        }
+
+        line_number = std::stoull(n->text);
+        if (line_number == 0) {
+            return r.make_error(c.location(), "Invalid #line directive; line number must be greater than zero.");
+        }
+
+    } else {
+        return r.make_error(c.location(), "Invalid #line directive; expected a line number.");
+    }
     
+    if (is_horizontal_space(c[0])) {
+        while (is_horizontal_space(c[0])) {
+            ++c;
+        }
+
+        if (auto s = parse_string(c)) {
+            if (s->kind != token::string_literal) {
+                return r.make_error(c.location(), "Invalid #line directive; expected a string literal for the file name, got '{}'.", s->text);
+            }
+
+            file_name = std::move(s->text);
+        } else {
+            return r.make_error(c.location(), "Invalid #line directive; expected a string literal for the file name.");
+        }
+    }
+
+    // Consume the line ending after the file name, so that the line counter is correct.
+    if (c[0] == '\r' and c[1] == '\n') {
+        // Skip the CRLF line ending.
+        c += 2;
+    } else if (c[0] == '\r' or is_vertical_space(c[0])) {
+        // Skip the LF or CR line ending.
+        ++c;
+    } else {
+        return r.make_error(c.location(), "Invalid #line directive; expected a line ending after the file name.");
+    }
+
+    // Convert to zero-based line number.
+    --line_number; 
+
+    if (file_name.empty()) {
+        c.set_line(line_number);
+    } else {
+        c.set_line(std::filesystem::path{file_name}, line_number);
+    }
+
     return r;
 }
 

@@ -74,9 +74,12 @@ static void simple_tokenize(hl::file_cursor& c, tokenize_delegate& delegate)
         } else if (auto t = parse_string(c)) {
             delegate.on_token(std::move(t).value());
 
-        } else if (parse_line_directive(c)) {
-            // A line directive only affects the tokenizer state, it does not
-            // produce a token.
+        } else if (auto t = parse_line_directive(c)) {
+            if (t->kind == token::error) {
+                // Only pass on errors from the line directive parser.
+                // As the directive is purely handled by the tokenizer.
+                delegate.on_token(std::move(t).value());
+            }
 
         } else if (auto t = parse_positional_argument(c)) {
             delegate.on_token(std::move(t).value());

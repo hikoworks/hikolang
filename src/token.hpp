@@ -34,6 +34,7 @@ public:
         float_literal,
         version_literal,
         positional_argument,
+        line_directive,
     };
 
     static constexpr kind_type empty = kind_type::empty;
@@ -54,6 +55,7 @@ public:
     static constexpr kind_type float_literal = kind_type::float_literal;
     static constexpr kind_type version_literal = kind_type::version_literal;
     static constexpr kind_type positional_argument = kind_type::positional_argument;
+    static constexpr kind_type line_directive = kind_type::line_directive;
 
     /** The location in the file where the first character of a token is located.
      */
