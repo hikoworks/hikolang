@@ -15,45 +15,98 @@ file::file(hl::path_id path_id)
 
 [[nodiscard]] std::size_t file::read(std::size_t position, std::span<char> buffer) const
 {
-    assert(position < _file_size);
-
     if (buffer.size() == 0) {
         return 0; // No data to read
     }
 
-    auto const &path = get_path(_path_id);
-
     auto const _ = std::scoped_lock(_mutex);
 
-    if (not _file_stream.is_open()) {
-        _file_stream.open(_path, std::ios::binary);
-        if (not _file_stream) {
-            throw std::runtime_error("Failed to open file stream: " + _path.string());
-        }
-    }
+    _open();
 
-    if (not _file_stream.seekg(position)) {
-        // Could not seek to the position, possibly because the position is
-        // beyond the end of the file.
-        close();
+    if (_file_stream.eof()) {
+        // If the end of the file has been reached, we return 0.
         return 0;
     }
 
+    _file_stream.seekg(position);
+    if (_file_stream.is_bad()) {
+        // If the file stream is in a bad state, we close it and return 0.
+        // This can happen if the file was not opened successfully or if it
+        // was closed while we were trying to read from it.
+        _close();
+        throw std::runtime_error{std::format("Failed to seek in file stream: {}", path().string())};
+
+    } else if (_file_stream.eof()) {
+        // If the end of the file has been reached, we return 0.
+        return 0;
+
+    } else if (_file_stream.fail()) {
+        // This may still have happened because of end-of-file. But the error
+        // is recoverable. Force seek to the end of the file.
+        _file_stream.clear(); // Clear the fail state.
+        _file_stream.seekg(0, std::ios::end);
+        if (_file_stream.fail() or _file_stream.bad()) {
+            // If we cannot seek to the end of the file, we close it and throw an error.
+            _close();
+            throw std::runtime_error{std::format("Failed to seek to end of file stream: {}", path().string())};
+        }
+    }
+
     _file_stream.read(buffer.data(), buffer.size());
-    if (not _file_stream) {
-        close();
-        throw std::runtime_error("Failed to read from file stream: " + _path.string());
+    if (_file_stream.bad()) {
+        // If the file stream is in a bad state, we close it and throw an error.
+        _close();
+        throw std::runtime_error{std::format("Failed to read from file stream: {}", path().string())};
+
+    } else if (_file_stream.eof()) {
+        return 0;
+
+    } else if (_file_stream.fail()) {
+        _close();
+        throw std::runtime_error{std::format("Failed to read from file stream: {}", path().string())};
     }
 
     return _file_stream.gcount();
 }
 
+void file::_open()
+{
+    if (_file_stream.is_open()) {
+        return;
+    }
+
+    auto const &path = get_path(_path_id);
+    _file_stream.open(path, std::ios::binary);
+    if (_file_stream.fail() or _file_stream.bad()) {
+        // If the file stream could not be opened, we throw an exception.
+        // This is important to ensure that the file is not left in an
+        // inconsistent state.
+        throw std::runtime_error{std::format("Failed to open file stream: {}", path.string())};
+    }
+    // End-of-file is not an error, so we do not check for it here.
+}
+
+void file::open()
+{
+    auto const _ = std::scoped_lock(_mutex);
+    _open();
+}
+
+void file::_close() noexcept
+{
+    if (not _file_stream.is_open()) {
+        return; // Nothing to close
+    }
+
+    _file_stream.close();
+    _file_stream.clear();
+    // Don't check for errors here, we can't really do anything about them.
+}
+
 void file::close() noexcept
 {
     auto const _ = std::scoped_lock(_mutex);
-    if (_file_stream.is_open()) {
-        _file_stream.close();
-    }
+    _close();
 }
 
 inline static std::mutex file_mutex;

@@ -1,7 +1,7 @@
 
 
-#ifndef HL_FILE_NAMES_HPP
-#define HL_FILE_NAMES_HPP
+#ifndef HL_PATH_HPP
+#define HL_PATH_HPP
 
 #include <cstddef>
 #include <limits>

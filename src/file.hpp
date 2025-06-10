@@ -15,6 +15,7 @@
 #include <array>
 #include <span>
 #include <mutex>
+#include <fstream>
 
 namespace hl {
 
@@ -43,6 +44,18 @@ public:
      */
     [[nodiscard]] std::size_t read(std::size_t position, std::span<char> buffer) const;
 
+    /** Open the file.
+     * 
+     * This will open the file for reading. If the file is already open, this
+     * will do nothing.
+     */
+    void open();
+
+    /** Close the file.
+     * 
+     * This will close the file and release any resources associated with it.
+     * If the file is not open, this will do nothing.
+     */
     void close() noexcept;
 
 private:
@@ -60,6 +73,9 @@ private:
     bool _is_source_code = false;
 
     std::ifstream _file_stream = {};
+
+    void _open();
+    void _close() noexcept;
 };
 
 /** Get a file object pointing the the given path identifier.

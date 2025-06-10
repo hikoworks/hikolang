@@ -6,23 +6,20 @@
 #include <filesystem>
 #include <utility>
 #include <stdexcept>
+#include <cassert>
 
 namespace hl {
 
 inline static std::mutex _path_mutex;
 inline static std::map<std::filesystem::path, path_id> _path_by_name;
-inline static std::vector<decltype(_path_by_name)::node_type *> _path_by_id;
+inline static std::vector<decltype(_path_by_name)::key_type const*> _path_by_id;
 
 [[nodiscard]] path_id get_path_id(std::filesystem::path path)
 {
     path = path.lexically_normal();
 
-    if (path.empty()) {
-        throw std::invalid_argument("Path cannot be empty.");
-    }
-    if (path.is_relative()) {
-        throw std::invalid_argument("Path must be absolute.");
-    }
+    assert(not path.empty());
+    assert(path.is_absolute());
 
     auto const _ = std::scoped_lock(_path_mutex);
 
@@ -33,7 +30,7 @@ inline static std::vector<decltype(_path_by_name)::node_type *> _path_by_id;
 
     auto index = _path_by_id.size();
     it = _path_by_name.emplace_hint(it, std::move(path), static_cast<path_id>(index));
-    _path_by_id.push_back(&*it);
+    _path_by_id.push_back(std::addressof(it->first));
 
     return static_cast<path_id>(index);
 }
@@ -59,9 +56,9 @@ inline static std::vector<decltype(_path_by_name)::node_type *> _path_by_id;
 [[nodiscard]] std::filesystem::path const &get_path(path_id id)
 {
     auto const _ = std::scoped_lock(_path_mutex);
-    auto node_ptr = _path_by_id.at(std::to_underlying(id));
-    assert(node_ptr != nullptr);
-    return node_ptr->first;
+    auto key_ptr = _path_by_id.at(std::to_underlying(id));
+    assert(key_ptr != nullptr);
+    return *key_ptr;
 }
 
 } // namespace hl
