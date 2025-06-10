@@ -1,13 +1,11 @@
 
-#ifndef HL_TOKENIZER_HPP
-#define HL_TOKENIZER_HPP
+#pragma once
 
 #include "token.hpp"
-#include "file_cursor.hpp"
-#include "char_category.hpp"
-#include "maybe_expected.hpp"
-#include "utf8.hpp"
-#include "module.hpp"
+#include "utility/file_cursor.hpp"
+#include "utility/char_category.hpp"
+#include "utility/utf8.hpp"
+#include "utility/module.hpp"
 #include <concepts>
 #include <string>
 #include <string_view>
@@ -32,5 +30,3 @@ void tokenize(hl::file_cursor &file_cursor, tokenize_delegate &delegate);
 
 
 } // namespace hl
-
-#endif // HL_TOKENIZER_HPP

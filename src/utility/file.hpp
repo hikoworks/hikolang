@@ -1,6 +1,5 @@
 
-#ifndef HL_FILE_HPP
-#define HL_FILE_HPP
+#pragma once
 
 #include "path.hpp"
 #include <filesystem>
@@ -95,5 +94,3 @@ private:
 void free_file(hl::path_id path_id) noexcept;
 
 } // namespace hl
-
-#endif // HL_FILE_HPP

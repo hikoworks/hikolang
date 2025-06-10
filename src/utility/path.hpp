@@ -1,7 +1,6 @@
 
 
-#ifndef HL_PATH_HPP
-#define HL_PATH_HPP
+#pragma once
 
 #include <cstddef>
 #include <limits>
@@ -47,5 +46,3 @@ enum class path_id : std::size_t {
 [[nodiscard]] std::filesystem::path const& get_path(path_id id);
 
 }
-
-#endif // HL_FILE_NAMES_HPP

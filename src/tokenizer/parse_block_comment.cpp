@@ -1,7 +1,7 @@
 
 #include "token_parsers.hpp"
-#include "char_category.hpp"
-#include "utf8.hpp"
+#include "utility/char_category.hpp"
+#include "utility/utf8.hpp"
 #include <format>
 #include <cassert>
 #include <utility>

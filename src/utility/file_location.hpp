@@ -1,7 +1,6 @@
 
 
-#ifndef HL_FILE_LOCATION_HPP
-#define HL_FILE_LOCATION_HPP
+#pragma once
 
 #include "path.hpp"
 #include "char_category.hpp"
@@ -71,5 +70,3 @@ struct file_location {
 };
 
 } // namespace hl
-
-#endif // HL_FILE_LOCATION_HPP

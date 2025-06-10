@@ -1,11 +1,8 @@
 
-#ifndef HL_TOKEN_PARSERS_HPP
-#define HL_TOKEN_PARSERS_HPP
-
+#pragma once
 
 #include "token.hpp"
-#include "file_cursor.hpp"
-#include "maybe_expected.hpp"
+#include "utility/file_cursor.hpp"
 
 namespace hl {
 
@@ -17,10 +14,6 @@ namespace hl {
 [[nodiscard]] std::optional<token> parse_operator(file_cursor& c);
 [[nodiscard]] std::optional<token> parse_positional_argument(file_cursor& c);
 [[nodiscard]] std::optional<token> parse_string(file_cursor& c);
-[[nodiscard]] std::optional<token> parse_version(file_cursor& c);
 
 
 }
-
-
-#endif // HL_TOKEN_PARSERS_HPP

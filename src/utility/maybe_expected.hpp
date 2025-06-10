@@ -1,6 +1,5 @@
 
-#ifndef HL_EXPECTED_HPP
-#define HL_EXPECTED_HPP
+#pragma once
 
 #include <variant>
 #include <expected>
@@ -131,9 +130,3 @@ private:
 
     storage_type _storage = storage_type{std::in_place_index_t<0>{}, std::monostate{}};
 };
-
-
-
-        
-
-#endif // HL_EXPECTED_HPP

@@ -1,6 +1,5 @@
 
-#ifndef HL_MODULE_HPP
-#define HL_MODULE_HPP
+#pragma once
 
 #include <filesystem>
 #include <string>
@@ -30,5 +29,3 @@ private:
 [[nodiscard]] module& get_module(std::size_t module_id);
 
 }
-
-#endif // HL_MODULE_HPP

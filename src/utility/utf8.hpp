@@ -1,6 +1,5 @@
 
-#ifndef HL_UTF8_HPP
-#define HL_UTF8_HPP
+#pragma once
 
 #include <cstdint>
 #include <expected>
@@ -192,5 +191,3 @@ enum class unicode_name_error {
 [[nodiscard]] char32_t unicode_name_to_code_point(std::string name);
 
 } // namespace hl
-
-#endif // HL_UTF8_HPP

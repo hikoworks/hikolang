@@ -1,6 +1,5 @@
 
-#ifndef HL_CHAR_CATEGORY_HPP
-#define HL_CHAR_CATEGORY_HPP
+#pragma once
 
 namespace hl {
 
@@ -42,5 +41,3 @@ namespace hl {
 [[nodiscard]] bool is_pattern_syntax(char32_t cp) noexcept;
 
 } // namespace hl
-
-#endif // HL_CHAR_CATEGORY_HPP

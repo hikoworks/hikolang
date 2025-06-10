@@ -76,8 +76,11 @@ radix_prefix:
 
 integer_part:
     while (true) {
-        if (is_radix_digit(radix, c[0]) or c[0] == '\'') {
+        if (is_radix_digit(radix, c[0])) {
             r.append(c[0]);
+            ++c;
+
+        } else if (c[0] == '\'') {
             ++c;
 
         } else if (c[0] == '.') {
@@ -100,10 +103,27 @@ integer_part:
     }
 
 fraction_part:
+    if (c[0] == '*' and c[1] == '.') {
+        r.kind = token::version_literal;
+        r.append(c[0]);
+        r.append(c[1]);
+        c += 2;
+        goto patch_part;
+    }
+
     while (true) {
-        if (is_radix_digit(radix, c[0]) or c[0] == '\'') {
+        if (is_radix_digit(radix, c[0])) {
             r.append(c[0]);
             ++c;
+
+        } else if (c[0] == '\'') {
+            ++c;
+
+        } else if (c[0] == '.') {
+            r.kind = token::version_literal;
+            r.append(c[0]);
+            ++c;
+            goto patch_part;
 
         } else if (is_exponent_prefix(radix, c[0])) {
             r.append(c[0]);
@@ -131,6 +151,29 @@ exponent_part:
     while (true) {
         if (is_radix_digit(radix, c[0]) or c[0] == '\'') {
             r.append(c[0]);
+            ++c;
+
+        } else {
+            // End of number, including end of file.
+            r.last = c.location();
+            return r;
+        }
+    }
+
+patch_part:
+    if (c[0] != '*') {
+        r.append(c[0]);
+        ++c;
+        r.last = c.location();
+        return r;
+    }
+
+    while (true) {
+        if (is_radix_digit(radix, c[0])) {
+            r.append(c[0]);
+            ++c;
+
+        } else if (c[0] == '\'') {
             ++c;
 
         } else {

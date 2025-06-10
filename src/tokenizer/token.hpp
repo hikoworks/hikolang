@@ -1,14 +1,15 @@
 
-#ifndef HL_TOKEN_HPP
-#define HL_TOKEN_HPP
+#pragma once
 
-#include "utf8.hpp"
-#include "file_location.hpp"
+#include "utility/utf8.hpp"
+#include "utility/file_location.hpp"
+#include "utility/semantic_version.hpp"
 #include <string>
 #include <string_view>
 #include <cstddef>
 #include <cassert>
 #include <variant>
+#include <format>
 
 namespace hl {
 
@@ -236,6 +237,22 @@ public:
         return kind != kind_type::empty and not text.empty();
     }
 
+    [[nodiscard]] long long integer_value() const noexcept
+    {
+        assert(kind == kind_type::integer_literal);
+        return std::stoll(text);
+    }
+
+    [[nodiscard]] semantic_version version_value() const noexcept
+    {
+        assert(kind == kind_type::version_literal);
+        return semantic_version{text};
+    }
+
+    
+
+    
+
 private:
     [[nodiscard]] constexpr bool can_simple_compare() const noexcept
     {
@@ -245,5 +262,3 @@ private:
 };
 
 } // namespace hl
-
-#endif // HL_TOKEN_HPP

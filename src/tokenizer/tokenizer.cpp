@@ -1,8 +1,8 @@
 
 #include "tokenizer.hpp"
 #include "token_parsers.hpp"
-#include "utf8.hpp"
-#include "module.hpp"
+#include "utility/utf8.hpp"
+#include "utility/module.hpp"
 #include <cassert>
 #include <cstdint>
 #include <cstddef>
@@ -64,9 +64,6 @@ static void simple_tokenize(hl::file_cursor& c, tokenize_delegate& delegate)
 
         } else if (c[0] == '*' and c[1] == '/') {
             send_error(c, delegate, 2, "Unexpected end of comment; found '*/' without a matching '/*'. ");
-
-        } else if (auto t = parse_version(c)) {
-            delegate.on_token(std::move(t).value());
 
         } else if (auto t = parse_number(c)) {
             delegate.on_token(std::move(t).value());

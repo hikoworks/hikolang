@@ -1,6 +1,5 @@
 
-#ifndef HL_CURSOR_HPP
-#define HL_CURSOR_HPP
+#pragma once
 
 #include "utf8.hpp"
 #include "path.hpp"
@@ -125,5 +124,3 @@ private:
 };
 
 }
-
-#endif
