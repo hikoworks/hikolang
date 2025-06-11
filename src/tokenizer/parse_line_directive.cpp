@@ -37,8 +37,8 @@ namespace hl {
         return r.make_error(c.location(), "Invalid #line directive; expected a line number.");
     }
     
-    if (is_horizontal_space(c[0])) {
-        while (is_horizontal_space(c[0])) {
+    if (is_horizontal_space(c[0], c[1])) {
+        while (is_horizontal_space(c[0], c[1])) {
             ++c;
         }
 
@@ -53,15 +53,13 @@ namespace hl {
         }
     }
 
-    // Consume the line ending after the file name, so that the line counter is correct.
-    if (c[0] == '\r' and c[1] == '\n') {
-        // Skip the CRLF line ending.
-        c += 2;
-    } else if (c[0] == '\r' or is_vertical_space(c[0])) {
-        // Skip the LF or CR line ending.
-        ++c;
-    } else {
-        return r.make_error(c.location(), "Invalid #line directive; expected a line ending after the file name.");
+    while (not is_vertical_space(c[0], c[1])) {
+        if (is_horizontal_space(c[0], c[1])) {
+            ++c;
+        } else {
+            // Invalid character, or end of file.
+            return r.make_error(c.location(), "Invalid #line directive; expected a line ending after the file name.");        
+        }
     }
 
     // Convert to zero-based line number.

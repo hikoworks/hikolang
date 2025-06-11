@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "utility/utf8.hpp"
+#include "utility/unicode.hpp"
 #include "utility/file_location.hpp"
 #include "utility/semantic_version.hpp"
 #include <string>
@@ -100,7 +100,9 @@ public:
     {
         // Ensure that the character is a valid ASCII character.
         assert(static_cast<uint8_t>(c) <= 0x7f);
-        last.advance(c);
+        // A token can not be a carriage return, it will properly be handled by advance.
+        assert(c != '\r');
+        last.advance(c, '\0');
     }
 
     /** Construct a token with a single character.
@@ -116,7 +118,10 @@ public:
     constexpr token(file_location const &first, kind_type kind, char32_t c) noexcept :
         first(first), last(first), kind(kind), text()
     {
-        last.advance(c);
+        // A token can not be a carriage return, it will properly be handled by advance.
+        assert(c != '\r');
+        last.advance(c, '\0');
+        
         auto optional_text = encode_utf8_code_point(c);
         assert(optional_text.has_value());
         optional_text.append_to(text);

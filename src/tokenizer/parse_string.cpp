@@ -1,6 +1,5 @@
 
 #include "token_parsers.hpp"
-#include "utility/utf8.hpp"
 #include <format>
 #include <cassert>
 #include <cstdint>

@@ -57,12 +57,13 @@ struct file_location {
         set_line(line);
     }
 
-    void advance(char32_t cp) noexcept
+    void advance(char32_t cp, char32_t cp2) noexcept
     {
-        if (is_vertical_space(cp)) {
+        if (is_vertical_space(cp, cp2)) {
             ++line;
             ++source_line;
             column = 0;
+
         } else {
             ++column;
         }

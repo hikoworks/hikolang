@@ -19,7 +19,7 @@ void file_cursor::advance()
     --_lookahead_size;
     fill_lookahead();
 
-    _location.advance(cp);
+    _location.advance(cp, _lookahead[1]);
 }
 
 void file_cursor::fill_buffer()

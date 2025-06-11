@@ -1,7 +1,6 @@
 
 #include "token_parsers.hpp"
 #include "utility/char_category.hpp"
-#include "utility/utf8.hpp"
 #include <format>
 #include <cassert>
 #include <utility>
@@ -39,7 +38,7 @@ namespace hl {
             r.last = c.location();
             return r;
 
-        } else if (line_start and c[0] == '*' and is_horizontal_space(c[1])) {
+        } else if (line_start and c[0] == '*' and is_horizontal_space(c[1], c[2])) {
             // Skip the leading '*' and horizontal space after it.
             ++c;
             line_start = false;
@@ -48,10 +47,10 @@ namespace hl {
             // Skip the leading '*'.
             line_start = false;
 
-        } else if (line_start and is_horizontal_space(c[0])) {
+        } else if (line_start and is_horizontal_space(c[0], c[1])) {
             // Skip all leading spaces before an optional '*'.
 
-        } else if (is_vertical_space(c[0])) {
+        } else if (is_vertical_space(c[0], c[1])) {
             // Don't eat the vertical space, so that the tokenizer can insert a semicollon if needed.
             if (r.kind != token::empty) {
                 r.append('\n');

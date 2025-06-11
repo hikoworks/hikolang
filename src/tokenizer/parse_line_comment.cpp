@@ -1,6 +1,5 @@
 
 #include "token_parsers.hpp"
-#include "utility/utf8.hpp"
 #include <format>
 #include <cassert>
 #include <utility>
@@ -28,7 +27,7 @@ namespace hl {
     }
 
     while (true) {
-        if (is_vertical_space(c[0]) or c.end_of_file()) {
+        if (is_vertical_space(c[0], c[1]) or c.end_of_file()) {
             // Don't eat the vertical space, so that the tokenizer can insert a semicolon if needed.
             r.last = c.location();
             return r;

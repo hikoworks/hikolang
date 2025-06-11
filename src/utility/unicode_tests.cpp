@@ -1,11 +1,11 @@
 
-#include "utf8.hpp"
+#include "unicode.hpp"
 #include <hikotest/hikotest.hpp>
 
-TEST_SUITE(utf8_suite) 
+TEST_SUITE(unicode_suite) 
 {
 
-TEST_CASE(utf8_decode_valid) 
+TEST_CASE(unicode_decode_valid) 
 {
     auto const utf8_str = std::string{"Hello, 世界!"};
     auto utf32_str = std::u32string{};

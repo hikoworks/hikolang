@@ -4,7 +4,6 @@
 #include "token.hpp"
 #include "utility/file_cursor.hpp"
 #include "utility/char_category.hpp"
-#include "utility/utf8.hpp"
 #include "utility/module.hpp"
 #include <concepts>
 #include <string>

@@ -56,6 +56,8 @@ add_library(hic_objects OBJECT
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/char_category.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/file_cursor.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/file_cursor.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/file_ifstream.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/file_ifstream.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/file_location.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/file.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/file.hpp"
@@ -66,8 +68,8 @@ add_library(hic_objects OBJECT
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/path.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/semantic_version.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/semantic_version.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/utf8.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/utf8.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/unicode.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/unicode.hpp"
 )
 
 target_include_directories(hic_objects PRIVATE "${CMAKE_SOURCE_DIR}/src")
@@ -105,7 +107,7 @@ if(BUILD_TESTING)
     add_executable(hic-tests)
     target_sources(hic-tests PRIVATE
         $<TARGET_OBJECTS:hic_objects>
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/utf8_tests.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/unicode_tests.cpp"
         #"${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer/tokenizer_tests.cpp"
     )
     #target_compile_definitions(hic-tests PRIVATE ${LLVM_DEFINITIONS})
