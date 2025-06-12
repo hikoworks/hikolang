@@ -59,6 +59,8 @@ add_library(hic_objects OBJECT
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/file_ifstream.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/file_ifstream.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/file_location.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/file_vector.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/file_vector.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/file.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/file.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/maybe_expected.hpp"

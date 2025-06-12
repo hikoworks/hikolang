@@ -13,10 +13,11 @@ TEST_SUITE(tokenizer_suite)
 
     };
 
-    static hl::token parse_single_token(std::string_view module_text)
+    static std::vector<hl::token> parse_tokens(std::string_view text)
     {
         auto delegate = delegate_type{};
-        auto result = hl::tokenize(1, module_text, delegate);
+        auto module_text = hl::get_file_vector(text);
+        auto result = hl::tokenize();
         REQUIRE(result.has_value());
         REQUIRE(delegate.tokens.size() == 1);
         return delegate.tokens.front();

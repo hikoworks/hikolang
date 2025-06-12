@@ -32,21 +32,29 @@ public:
      * @param buffer The buffer to read the content into.
      * @return The number of bytes read. If zero, the end of the file has been reached.
      */
-    [[nodiscard]] virtual std::size_t read(std::size_t position, std::span<char> buffer) = 0;
+    [[nodiscard]] virtual std::size_t read(std::size_t position, std::span<char> buffer)
+    {
+        throw std::runtime_error{"Read operation not supported on this file type."};
+    }
+
+    [[nodiscard]] virtual std::size_t write(std::size_t position, std::span<char const> buffer)
+    {
+        throw std::runtime_error{"Write operation not supported on this file type."};
+    }
 
     /** Open the file.
      * 
      * This will open the file for reading. If the file is already open, this
      * will do nothing.
      */
-    virtual void open() = 0;
+    virtual void open() {};
 
     /** Close the file.
      * 
      * This will close the file and release any resources associated with it.
      * If the file is not open, this will do nothing.
      */
-    virtual void close() noexcept = 0;
+    virtual void close() noexcept {};
 
 protected:
     /** This class is thread-safe, so we need a mutex to protect access to the file stream.
@@ -64,6 +72,10 @@ protected:
  * @return A file object pointing to the file, or an error code if the file could not be opened.
  */
 [[nodiscard]] file &get_file(hl::path_id path_id);
+
+[[nodiscard]] file& get_file_vector();
+
+[[nodiscard]] file& get_file_vector(std::string_view content);
 
 /** Remove the file object from memory.
  * 

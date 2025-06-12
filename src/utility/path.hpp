@@ -38,6 +38,11 @@ enum class path_id : std::size_t {
  */
 [[nodiscard]] path_id get_path_id(std::filesystem::path path, path_id relative_to);
 
+/** Get a unique identifier for a 
+ * 
+ */
+[[nodiscard]] path_id get_path_id();
+
 /** Get the absolute normalized path for a given path identifier.
  * 
  * @param id The path identifier.
