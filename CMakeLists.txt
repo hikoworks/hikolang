@@ -54,13 +54,13 @@ add_library(hic_objects OBJECT
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer/token_parsers.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/char_category.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/char_category.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/file_buffer.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/file_buffer.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/file_cursor.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/file_cursor.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/file_ifstream.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/file_ifstream.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/file_location.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/file_vector.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/file_vector.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/file.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/file.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/maybe_expected.hpp"
@@ -110,7 +110,7 @@ if(BUILD_TESTING)
     target_sources(hic-tests PRIVATE
         $<TARGET_OBJECTS:hic_objects>
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/unicode_tests.cpp"
-        #"${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer/tokenizer_tests.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer/tokenizer_tests.cpp"
     )
     #target_compile_definitions(hic-tests PRIVATE ${LLVM_DEFINITIONS})
     #target_link_libraries(hic-tests PRIVATE ${llvm_libs})

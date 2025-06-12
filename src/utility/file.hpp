@@ -73,10 +73,6 @@ protected:
  */
 [[nodiscard]] file &get_file(hl::path_id path_id);
 
-[[nodiscard]] file& get_file_vector();
-
-[[nodiscard]] file& get_file_vector(std::string_view content);
-
 /** Remove the file object from memory.
  * 
  * This will close the file and remove it from the internal cache.

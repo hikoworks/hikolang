@@ -38,8 +38,11 @@ enum class path_id : std::size_t {
  */
 [[nodiscard]] path_id get_path_id(std::filesystem::path path, path_id relative_to);
 
-/** Get a unique identifier for a 
+/** Get a unique identifier for a buffer_file.
  * 
+ * This path does not need to exist on the filesystem.
+ * The path will have the following format:
+ *  - "/tmp/hic-buffer-<unique_id>.bin"
  */
 [[nodiscard]] path_id get_path_id();
 

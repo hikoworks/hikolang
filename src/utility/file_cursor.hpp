@@ -103,7 +103,7 @@ public:
      */
     [[nodiscard]] char32_t operator[](std::size_t offset) const noexcept
     {
-        assert(offset < _lookahead_size);
+        assert(offset < _lookahead.size());
         return _lookahead[offset];
     }
 

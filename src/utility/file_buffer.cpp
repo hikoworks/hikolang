@@ -1,14 +1,16 @@
 
-#include "file_vector.hpp"
+#include "file_buffer.hpp"
+#include "file.hpp"
+#include <cassert>
 
 namespace hl {
 
-file_vector::file_vector(hl::path_id path_id)
+file_buffer::file_buffer(hl::path_id path_id)
     : file(path_id)
 {
 }
 
-[[nodiscard]] std::size_t file_vector::read(std::size_t position, std::span<char> buffer)
+[[nodiscard]] std::size_t file_buffer::read(std::size_t position, std::span<char> buffer)
 {
     if (buffer.size() == 0) {
         return 0; // No data to read
@@ -31,13 +33,28 @@ file_vector::file_vector(hl::path_id path_id)
     return bytes_read;
 }
 
-std::size_t file_vector::write(std::size_t position, std::span<char const> buffer)
+std::size_t file_buffer::write(std::size_t position, std::span<char const> buffer)
 {
     if (position >= _content.size()) {
         _content.resize(position + buffer.size(), '\0');
     }
     std::copy(buffer.begin(), buffer.end(), _content.begin() + position);
     return buffer.size();
+}
+
+[[nodiscard]] path_id make_file_buffer(std::span<char const> content)
+{
+    auto path = get_path_id();
+    auto& file = get_file(path);
+    assert(dynamic_cast<file_buffer*>(&file) != nullptr);
+
+    file.write(0, content);
+    return path;
+}
+
+[[nodiscard]] path_id make_file_buffer(std::string_view content)
+{
+    return make_file_buffer(std::span<char const>{content.data(), content.size()});
 }
 
 } // namespace hl

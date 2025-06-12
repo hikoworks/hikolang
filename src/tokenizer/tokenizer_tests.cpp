@@ -1,5 +1,7 @@
 
 #include "tokenizer.hpp"
+#include "utility/file_buffer.hpp"
+#include "utility/file_cursor.hpp"
 #include <hikotest/hikotest.hpp>
 
 TEST_SUITE(tokenizer_suite) 
@@ -15,44 +17,74 @@ TEST_SUITE(tokenizer_suite)
 
     static std::vector<hl::token> parse_tokens(std::string_view text)
     {
+        auto path_id = hl::make_file_buffer(text);
+        auto cursor = hl::file_cursor{path_id, path_id};
         auto delegate = delegate_type{};
-        auto module_text = hl::get_file_vector(text);
-        auto result = hl::tokenize();
-        REQUIRE(result.has_value());
-        REQUIRE(delegate.tokens.size() == 1);
-        return delegate.tokens.front();
+
+        hl::tokenize(cursor, delegate);
+        return std::move(delegate.tokens);
     }
 
-    TEST_CASE(integer)
+    TEST_CASE(integer_12)
     {
-        auto token = parse_single_token("12");
-        REQUIRE(token.kind == hl::token::integer_literal);
-        REQUIRE(token.text == "12");
+        auto tokens = parse_tokens("12");
+        REQUIRE(tokens.size() == 2);
+        REQUIRE(tokens[0].kind == hl::token::integer_literal);
+        REQUIRE(tokens[0].text == "12");
+        REQUIRE(tokens[1].kind == hl::token::end_of_file);
+    }
 
-        token = parse_single_token(" 23");
-        REQUIRE(token.kind == hl::token::integer_literal);
-        REQUIRE(token.text == "23");
+    TEST_CASE(integer_space_12)
+    {
+        auto tokens = parse_tokens(" 12");
+        REQUIRE(tokens.size() == 2);
+        REQUIRE(tokens[0].kind == hl::token::integer_literal);
+        REQUIRE(tokens[0].text == "12");
+        REQUIRE(tokens[1].kind == hl::token::end_of_file);
+    }
 
-        token = parse_single_token("34 ");
-        REQUIRE(token.kind == hl::token::integer_literal);
-        REQUIRE(token.text == "34");
+    TEST_CASE(integer_12_space)
+    {
+        auto tokens = parse_tokens("12 ");
+        REQUIRE(tokens.size() == 2);
+        REQUIRE(tokens[0].kind == hl::token::integer_literal);
+        REQUIRE(tokens[0].text == "12");
+        REQUIRE(tokens[1].kind == hl::token::end_of_file);
+    }
 
-        token = parse_single_token("0b01");
-        REQUIRE(token.kind == hl::token::integer_literal);
-        REQUIRE(token.text == "0b01");
+    TEST_CASE(integer_0b01)
+    {
+        auto tokens = parse_tokens("0b01");
+        REQUIRE(tokens.size() == 2);
+        REQUIRE(tokens[0].kind == hl::token::integer_literal);
+        REQUIRE(tokens[0].text == "0b01");
+        REQUIRE(tokens[1].kind == hl::token::end_of_file);
+    }
 
-        token = parse_single_token("0B10");
-        REQUIRE(token.kind == hl::token::integer_literal);
-        REQUIRE(token.text == "0B10");
+    TEST_CASE(integer_0B10)
+    {
+        auto tokens = parse_tokens("0B10");
+        REQUIRE(tokens.size() == 2);
+        REQUIRE(tokens[0].kind == hl::token::integer_literal);
+        REQUIRE(tokens[0].text == "0B10");
+        REQUIRE(tokens[1].kind == hl::token::end_of_file);
+    }
 
-        token = parse_single_token("0x2a");
-        REQUIRE(token.kind == hl::token::integer_literal);
-        REQUIRE(token.text == "0x2a");
+    TEST_CASE(integer_0x2a)
+    {
+        auto tokens = parse_tokens("0x2a");
+        REQUIRE(tokens.size() == 2);
+        REQUIRE(tokens[0].kind == hl::token::integer_literal);
+        REQUIRE(tokens[0].text == "0x2a");
+        REQUIRE(tokens[1].kind == hl::token::end_of_file);
+    }
 
-        token = parse_single_token("0X2A");
-        REQUIRE(token.kind == hl::token::integer_literal);
-        REQUIRE(token.text == "0X2A");
-
-
+    TEST_CASE(integer_0X2A)
+    {
+        auto tokens = parse_tokens("0X2A");
+        REQUIRE(tokens.size() == 2);
+        REQUIRE(tokens[0].kind == hl::token::integer_literal);
+        REQUIRE(tokens[0].text == "0X2A");
+        REQUIRE(tokens[1].kind == hl::token::end_of_file);
     }
 };

@@ -53,11 +53,11 @@ private:
 
     /** Open the file without locking the mutex.
      */
-    void _open();
+    std::unique_lock<std::mutex> _open(std::unique_lock<std::mutex> lock);
 
     /** Close the file without locking the mutex.
      */
-    void _close() noexcept;
+    std::unique_lock<std::mutex> _close(std::unique_lock<std::mutex> lock) noexcept;
 };
 
 } // namespace hl

@@ -1,5 +1,6 @@
 
 #include "file_ifstream.hpp"
+#include <cassert>
 
 namespace hl {
 
@@ -14,9 +15,9 @@ file_ifstream::file_ifstream(hl::path_id path_id)
         return 0; // No data to read
     }
 
-    auto const _ = std::scoped_lock(_mutex);
+    auto lock = std::unique_lock(_mutex);
 
-    _open();
+    lock = _open(std::move(lock));
 
     if (_file_stream.eof()) {
         // If the end of the file has been reached, we return 0.
@@ -28,7 +29,7 @@ file_ifstream::file_ifstream(hl::path_id path_id)
         // If the file stream is in a bad state, we close it and return 0.
         // This can happen if the file was not opened successfully or if it
         // was closed while we were trying to read from it.
-        _close();
+        lock = _close(std::move(lock));
         auto const &path = get_path(_path_id);
         throw std::runtime_error{std::format("Failed to seek in file stream: {}", path.string())};
 
@@ -43,7 +44,7 @@ file_ifstream::file_ifstream(hl::path_id path_id)
         _file_stream.seekg(0, std::ios::end);
         if (_file_stream.fail() or _file_stream.bad()) {
             // If we cannot seek to the end of the file, we close it and throw an error.
-            _close();
+            lock = _close(std::move(lock));
             auto const &path = get_path(_path_id);
             throw std::runtime_error{std::format("Failed to seek to end of file stream: {}", path.string())};
         }
@@ -52,7 +53,7 @@ file_ifstream::file_ifstream(hl::path_id path_id)
     _file_stream.read(buffer.data(), buffer.size());
     if (_file_stream.bad()) {
         // If the file stream is in a bad state, we close it and throw an error.
-        _close();
+        lock = _close(std::move(lock));
         auto const &path = get_path(_path_id);
         throw std::runtime_error{std::format("Failed to read from file stream: {}", path.string())};
 
@@ -60,7 +61,7 @@ file_ifstream::file_ifstream(hl::path_id path_id)
         return 0;
 
     } else if (_file_stream.fail()) {
-        _close();
+        lock = _close(std::move(lock));
         auto const &path = get_path(_path_id);
         throw std::runtime_error{std::format("Failed to read from file stream: {}", path.string())};
     }
@@ -68,10 +69,12 @@ file_ifstream::file_ifstream(hl::path_id path_id)
     return _file_stream.gcount();
 }
 
-void file_ifstream::_open()
+std::unique_lock<std::mutex> file_ifstream::_open(std::unique_lock<std::mutex> lock)
 {
+    assert(lock.owns_lock());
+
     if (_file_stream.is_open()) {
-        return;
+        return lock;
     }
 
     auto const &path = get_path(_path_id);
@@ -83,29 +86,31 @@ void file_ifstream::_open()
         throw std::runtime_error{std::format("Failed to open file stream: {}", path.string())};
     }
     // End-of-file is not an error, so we do not check for it here.
+    return lock;
 }
 
 void file_ifstream::open()
 {
-    auto const _ = std::scoped_lock(_mutex);
-    _open();
+    _open(std::unique_lock(_mutex));
 }
 
-void file_ifstream::_close() noexcept
+std::unique_lock<std::mutex> file_ifstream::_close(std::unique_lock<std::mutex> lock) noexcept
 {
+    assert(lock.owns_lock());
+
     if (not _file_stream.is_open()) {
-        return; // Nothing to close
+        return lock; // Nothing to close
     }
 
     _file_stream.close();
     _file_stream.clear();
     // Don't check for errors here, we can't really do anything about them.
+    return lock;
 }
 
 void file_ifstream::close() noexcept
 {
-    auto const _ = std::scoped_lock(_mutex);
-    _close();
+    _close(std::unique_lock(_mutex));
 }
 
 } // namespace hl
