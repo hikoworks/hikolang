@@ -27,6 +27,12 @@ send_error(hl::file_cursor& c, tokenize_delegate& delegate, unsigned int advance
 
 static void simple_tokenize(hl::file_cursor& c, tokenize_delegate& delegate)
 {
+    enum class state_type {
+        normal,
+        llvm_assembly,
+    };
+
+    state_type state = state_type::normal;
     while (not c.end_of_file()) {
         if (is_vertical_space(c[0], c[1])) {
             delegate.on_token(token{c.location(), '\n'});
@@ -35,7 +41,11 @@ static void simple_tokenize(hl::file_cursor& c, tokenize_delegate& delegate)
         } else if (is_horizontal_space(c[0], c[1]) or is_ignoreable(c[0])) {
             ++c;
         
-        } else if (c[0] == ';' or c[0] == ',' or c[0] == '{' or c[0] == '}' or c[0] == '[' or c[0] == ']' or c[0] == '(' or c[0] == ')') {
+        } else if (auto t = parse_bracketed_string(c, state == state_type::llvm_assembly ? '{' : '\0')) {
+            delegate.on_token(std::move(t).value());
+            state = state_type::normal;
+
+        } else if (is_separator(c[0]) or is_bracket(c[0])) {
             delegate.on_token(token{c.location(), gsl::narrow_cast<char>(c[0])});
             ++c;
 
@@ -55,11 +65,7 @@ static void simple_tokenize(hl::file_cursor& c, tokenize_delegate& delegate)
             delegate.on_token(std::move(t).value());
 
         } else if (auto t = parse_line_directive(c)) {
-            if (t->kind == token::error) {
-                // Only pass on errors from the line directive parser.
-                // As the directive is purely handled by the tokenizer.
-                delegate.on_token(std::move(t).value());
-            }
+            delegate.on_token(std::move(t).value());
 
         } else if (auto t = parse_positional_argument(c)) {
             delegate.on_token(std::move(t).value());
@@ -73,6 +79,10 @@ static void simple_tokenize(hl::file_cursor& c, tokenize_delegate& delegate)
 
         } else if (auto t = parse_identifier(c)) {
             delegate.on_token(std::move(t).value());
+
+            if (t == "llvm") {
+                state = state_type::llvm_assembly;
+            }
 
         } else if (auto t = parse_operator(c)) {
             delegate.on_token(std::move(t).value());
@@ -177,16 +187,25 @@ void tokenize(hl::file_cursor& c, tokenize_delegate& delegate)
             return false;
         }
 
-        [[nodiscard]] bool is_pass_through(token const& t) const noexcept
+        [[nodiscard]] bool forward(token const& t) const noexcept
         {
             return is_keyword(t);
+        }
+
+        [[nodiscard]] static bool ignore(token const& t) noexcept
+        {
+            return t == token::comment or t == token::line_directive;
         }
 
         void on_token(token t) override
         {
             auto doc_text = std::string{};
 
-            if (is_pass_through(t)) {
+            if (ignore(t)) {
+                // Drop tokens that we don't care about.
+                return;
+
+            } else if (forward(t)) {
                 add_token(std::move(t));
                 
             } else if (t == '{' or t == '[' or t == '(') {
@@ -203,21 +222,21 @@ void tokenize(hl::file_cursor& c, tokenize_delegate& delegate)
                 add_token(std::move(t));
                 bracket_stack.pop_back();
 
-            } else if (t.kind == token::documentation) {
+            } else if (t == token::documentation) {
                 doc_text = std::move(t.text);
                 return; // Drop the token.
 
-            } else if (t.kind == token::back_documentation) {
+            } else if (t == token::back_documentation) {
                 for (auto i = q.size(); i != 0; --i) {
                     auto & q_i = q[i - 1];
-                    if (q_i.kind == token::identifier) {
+                    if (q_i == token::identifier) {
                         q_i.doc_text = std::move(t.text);
                         return; // Drop the token.
                     }
                 }
                 add_token(t.make_error(t.last, "Back documentation token found without a preceding identifier."));
 
-            } else if (t.kind == token::identifier) {
+            } else if (t == token::identifier) {
                 t.doc_text = std::move(doc_text);
                 add_token(std::move(t));
 

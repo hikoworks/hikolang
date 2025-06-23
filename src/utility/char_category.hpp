@@ -2,6 +2,7 @@
 #pragma once
 
 #include <cassert>
+#include <stdexcept>
 
 /** @file char_category.hpp
  * 
@@ -113,7 +114,7 @@ namespace hl {
     case '(': return ')';
     case ')': return '(';
     default:
-        assert(false);
+        std::unreachable();
     }
 }
 

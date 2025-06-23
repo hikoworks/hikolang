@@ -32,6 +32,7 @@ public:
         version_literal,
         positional_argument,
         line_directive,
+        bracketed_string_literal,
     };
 
     static constexpr kind_type empty = kind_type::empty;
@@ -50,6 +51,7 @@ public:
     static constexpr kind_type version_literal = kind_type::version_literal;
     static constexpr kind_type positional_argument = kind_type::positional_argument;
     static constexpr kind_type line_directive = kind_type::line_directive;
+    static constexpr kind_type bracketed_string_literal = kind_type::bracketed_string_literal;
 
     /** The location in the file where the first character of a token is located.
      */
@@ -104,6 +106,11 @@ public:
     constexpr token(const token&) noexcept = default;
     constexpr token& operator=(token&&) noexcept = default;
     constexpr token& operator=(const token&) noexcept = default;
+
+    [[nodiscard]] constexpr bool operator==(kind_type k) const noexcept
+    {
+        return kind == k;
+    }
 
     [[nodiscard]] constexpr bool operator==(char c) const noexcept
     {
