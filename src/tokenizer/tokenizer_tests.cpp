@@ -9,7 +9,7 @@ TEST_SUITE(tokenizer_suite)
     struct delegate_type : hl::tokenize_delegate {
         std::vector<hl::token> tokens;
 
-        void on_token(hl::token const& t) override {
+        void on_token(hl::token t) override {
             tokens.push_back(t);
         }
 
@@ -31,7 +31,7 @@ TEST_SUITE(tokenizer_suite)
         REQUIRE(tokens.size() == 2);
         REQUIRE(tokens[0].kind == hl::token::integer_literal);
         REQUIRE(tokens[0].text == "12");
-        REQUIRE(tokens[1].kind == hl::token::end_of_file);
+        REQUIRE(tokens[1] == '\0');
     }
 
     TEST_CASE(integer_space_12)
@@ -40,7 +40,7 @@ TEST_SUITE(tokenizer_suite)
         REQUIRE(tokens.size() == 2);
         REQUIRE(tokens[0].kind == hl::token::integer_literal);
         REQUIRE(tokens[0].text == "12");
-        REQUIRE(tokens[1].kind == hl::token::end_of_file);
+        REQUIRE(tokens[1] == '\0');
     }
 
     TEST_CASE(integer_12_space)
@@ -49,7 +49,7 @@ TEST_SUITE(tokenizer_suite)
         REQUIRE(tokens.size() == 2);
         REQUIRE(tokens[0].kind == hl::token::integer_literal);
         REQUIRE(tokens[0].text == "12");
-        REQUIRE(tokens[1].kind == hl::token::end_of_file);
+        REQUIRE(tokens[1] == '\0');
     }
 
     TEST_CASE(integer_0b01)
@@ -58,7 +58,7 @@ TEST_SUITE(tokenizer_suite)
         REQUIRE(tokens.size() == 2);
         REQUIRE(tokens[0].kind == hl::token::integer_literal);
         REQUIRE(tokens[0].text == "0b01");
-        REQUIRE(tokens[1].kind == hl::token::end_of_file);
+        REQUIRE(tokens[1] == '\0');
     }
 
     TEST_CASE(integer_0B10)
@@ -67,7 +67,7 @@ TEST_SUITE(tokenizer_suite)
         REQUIRE(tokens.size() == 2);
         REQUIRE(tokens[0].kind == hl::token::integer_literal);
         REQUIRE(tokens[0].text == "0B10");
-        REQUIRE(tokens[1].kind == hl::token::end_of_file);
+        REQUIRE(tokens[1] == '\0');
     }
 
     TEST_CASE(integer_0x2a)
@@ -76,7 +76,7 @@ TEST_SUITE(tokenizer_suite)
         REQUIRE(tokens.size() == 2);
         REQUIRE(tokens[0].kind == hl::token::integer_literal);
         REQUIRE(tokens[0].text == "0x2a");
-        REQUIRE(tokens[1].kind == hl::token::end_of_file);
+        REQUIRE(tokens[1] == '\0');
     }
 
     TEST_CASE(integer_0X2A)
@@ -85,6 +85,6 @@ TEST_SUITE(tokenizer_suite)
         REQUIRE(tokens.size() == 2);
         REQUIRE(tokens[0].kind == hl::token::integer_literal);
         REQUIRE(tokens[0].text == "0X2A");
-        REQUIRE(tokens[1].kind == hl::token::end_of_file);
+        REQUIRE(tokens[1] == '\0');
     }
 };

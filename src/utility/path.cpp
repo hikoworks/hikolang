@@ -7,6 +7,7 @@
 #include <utility>
 #include <stdexcept>
 #include <cassert>
+#include <format>
 
 namespace hl {
 

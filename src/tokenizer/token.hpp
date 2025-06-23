@@ -15,16 +15,12 @@ namespace hl {
 
 class token {
 public:
-
     enum class kind_type {
         empty,
-        end_of_file,
         error,
+        simple,
         identifier,
         _operator,
-        bracket,
-        seperator,
-        line_feed,
         comment,
         documentation,
         back_documentation,
@@ -39,13 +35,10 @@ public:
     };
 
     static constexpr kind_type empty = kind_type::empty;
-    static constexpr kind_type end_of_file = kind_type::end_of_file;
     static constexpr kind_type error = kind_type::error;
+    static constexpr kind_type simple = kind_type::simple;
     static constexpr kind_type identifier = kind_type::identifier;
     static constexpr kind_type _operator = kind_type::_operator;
-    static constexpr kind_type bracket = kind_type::bracket;
-    static constexpr kind_type seperator = kind_type::seperator;
-    static constexpr kind_type line_feed = kind_type::line_feed;
     static constexpr kind_type comment = kind_type::comment;
     static constexpr kind_type documentation = kind_type::documentation;
     static constexpr kind_type back_documentation = kind_type::back_documentation;
@@ -72,6 +65,10 @@ public:
      */
     std::string text = {};
 
+    /** Documentation for the token.
+     */
+    std::string doc_text = {};
+
     constexpr token() noexcept = default;
 
     constexpr token(file_location const &first) noexcept :
@@ -84,48 +81,24 @@ public:
     {
     }
 
-    /** Construct a token with a single character.
+    /** Create a simple, single character, token.
      * 
-     * The character must be a valid ASCII character (0x00 to 0x7f).
-     * The `last` location will be advanced to the next position after the character.
-     * 
-     * This is used for single-character tokens like brackets, separators, and operators.
+     * This is used for single character tokens like brackets, separators, end-of-file, etc.
      * 
      * @param first The location of the first character of the token.
-     * @param kind The kind of the token.
      * @param c The character of the token.
+     * @return A token representing the single character.
      */
-    constexpr token(file_location const &first, kind_type kind, char c) noexcept :
-        first(first), last(first), kind(kind), text(1, c)
+    constexpr token(file_location const &first, char c) noexcept :
+        first(first), last(first), kind(kind_type::simple), text(1, c)
     {
-        // Ensure that the character is a valid ASCII character.
         assert(static_cast<uint8_t>(c) <= 0x7f);
-        // A token can not be a carriage return, it will properly be handled by advance.
+        assert(c != '\v');
+        assert(c != '\f');
         assert(c != '\r');
         last.advance(c, '\0');
     }
 
-    /** Construct a token with a single character.
-     * 
-     * The `last` location will be advanced to the next position after the character.
-     * 
-     * This is used for single-character tokens like brackets, separators, and operators.
-     * 
-     * @param first The location of the first character of the token.
-     * @param kind The kind of the token.
-     * @param c The character of the token.
-     */
-    constexpr token(file_location const &first, kind_type kind, char32_t c) noexcept :
-        first(first), last(first), kind(kind), text()
-    {
-        // A token can not be a carriage return, it will properly be handled by advance.
-        assert(c != '\r');
-        last.advance(c, '\0');
-        
-        auto optional_text = encode_utf8_code_point(c);
-        assert(optional_text.has_value());
-        optional_text.append_to(text);
-    }
 
     constexpr token(token&&) noexcept = default;
     constexpr token(const token&) noexcept = default;
@@ -134,12 +107,19 @@ public:
 
     [[nodiscard]] constexpr bool operator==(char c) const noexcept
     {
-        return can_simple_compare() and text.size() == 1 and text[0] == c;
+        if (kind != kind_type::simple) {
+            return false;
+        }
+        assert(text.size() == 1);
+        return text[0] == c;
     }
 
     [[nodiscard]] constexpr bool operator==(std::string_view str) const noexcept
     {
-        return can_simple_compare() and text == str;
+        if (kind != kind_type::identifier and kind != kind_type::_operator) {
+            return false;
+        }
+        return text == str;
     }
 
     constexpr void append(char c)
@@ -242,27 +222,23 @@ public:
         return kind != kind_type::empty and not text.empty();
     }
 
-    [[nodiscard]] long long integer_value() const noexcept
+    [[nodiscard]] long long integer_value() const
     {
         assert(kind == kind_type::integer_literal);
         return std::stoll(text);
     }
 
-    [[nodiscard]] semantic_version version_value() const noexcept
+    [[nodiscard]] semantic_version version_value() const
     {
         assert(kind == kind_type::version_literal);
         return semantic_version{text};
     }
 
-    
-
-    
-
-private:
-    [[nodiscard]] constexpr bool can_simple_compare() const noexcept
+    [[nodiscard]] char simple_value() const
     {
-        return kind == kind_type::identifier or kind == kind_type::_operator or kind == kind_type::bracket or
-            kind == kind_type::seperator or kind == kind_type::line_feed;
+        assert(kind == kind_type::simple);
+        assert(text.size() == 1);
+        return text[0];
     }
 };
 

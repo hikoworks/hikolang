@@ -22,7 +22,7 @@ namespace hl {
 struct tokenize_delegate {
     virtual ~tokenize_delegate() = default;
 
-    virtual void on_token(token const &t) = 0;
+    virtual void on_token(token t) = 0;
 };
 
 void tokenize(hl::file_cursor &file_cursor, tokenize_delegate &delegate);

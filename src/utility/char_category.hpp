@@ -1,6 +1,8 @@
 
 #pragma once
 
+#include <cassert>
+
 /** @file char_category.hpp
  * 
  * This file defines various character categories and utility functions
@@ -83,6 +85,36 @@ namespace hl {
 [[nodiscard]] constexpr bool is_bracket(char32_t cp) noexcept
 {
     return cp == '{' or cp == '[' or cp == '(' or cp == '}' or cp == ']' or cp == ')';
+}
+
+/** Mirror a bracket code-point.
+ * 
+ * This function returns the corresponding mirror bracket for a given bracket code-point.
+ * 
+ * - `{` becomes `}`
+ * - `}` becomes `{`
+ * - `[` becomes `]`
+ * - `]` becomes `[`
+ * - `(` becomes `)`
+ * - `)` becomes `(`
+ * 
+ * @note It is UNDEFINED BEHAVIOR to call this function with a code-point that is not a bracket.
+ * @param cp The code-point to mirror.
+ * @retval The mirrored code-point.
+ */
+[[nodiscard]] constexpr char32_t mirror_bracket(char32_t cp)
+{
+    // clang-format off
+    switch (cp) {
+    case '{': return '}';
+    case '}': return '{';
+    case '[': return ']';
+    case ']': return '[';
+    case '(': return ')';
+    case ')': return '(';
+    default:
+        assert(false);
+    }
 }
 
 /** Is a code-point a separator.

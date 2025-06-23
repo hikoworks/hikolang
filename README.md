@@ -6,7 +6,7 @@
  * inline assembler
  * compile time reflection, types are values.
  * hidden dependency injection, both functions and structs.
- * ranged integer types.
+ * native ranged arbitrary sized integer type.
  * enum only has named-values, it is not an integer.
  * function overloading, on both arguments (type and non-type) and return type.
  * universal call syntax.
@@ -30,62 +30,109 @@ Note: full constant folding allows generic/templated functions without a special
 Note: since low level functions are written as inline-assembly, inline-assembly must be
       executable during compile time, possibly using an interpreter/JIT.
 
-## Hidden dependency injection
-### Function calls
-On top of normal arguments, functions also include hidden arguments called dependencies,
-which are accessed through the `deps` object. The type of the `deps` object is implementation defined.
-The `deps` object is a struct-like object containing named-dependencies. Each named-dependency is a
-reference to an object in memory.
+## Extensible syntax
+### Custom operators
+The language allows you to define custom operators. This is done by registering a
+a keyword or pattern-syntax, arity, precedence and associativity, and a function that
+will be called when the operator is used.
 
-When calling a function, the named dependencies in the `deps` object of the current function are copied
-automatically into the `deps` object of the called function. There is a special syntax to explicitly pass
-dependencies in a function call. It is a reportable error when one or more dependencies that a function
-requires is not passed.
+### Custom literals
+The language allows you to define custom literals. This is done by registering a
+suffix-keyword and a function that will be called when the suffix is used with a literal.
 
-The compiler will automatically track which dependencies a function requires based on:
- * The names that are accessed through the `deps` object.
- * Recursively the names that are used by other functions that are called.
- * Excluding the names that are explicitly passed to another function.
-
-It is a reportable error if the type of a named-dependency is different between the caller and callee, when
-this named-dependency is automatically copied.
-
-### Structs
-Structs may also have hidden dependencies. The reference to the 'vtable' for example is implemented as a
-hidden dependency. Another idea is to add a reference to an 'allocator' an allocator that is passed through
-`deps` would allow child objects to be automatically allocated with the same allocator.
-
-A constructor would explicitly, but hiddenly, set the 'vtable' hidden dependency of an object, it will not
-be automatically copied from `deps` of the constructor. However the 'allocator' would be copied from `deps`
-to `deps` into the object automatically.
+The literal is passed to the function as a string, and the function determines the
+returned value and type. Since the function is called at compile time, it can
+dynamically create both the value and the type.
 
 ## Inline assembly
-You can create functions with inline assembly using the `asmfunc` keyword. The syntax within the
-braces are compatible with the assembly of the host compiler. Here is an example when using
-LLVM as a host compiler.
+Inline assembly is supported through the `llvm` directive. This allows you to write low-level
+LLVM assembly code directly in your source code. The inline assembly may even be executed during
+the elaboration phase.
 
 ```
-asmfunc mul(arg1 : double, arg2 : double) -> double
+function foo(a : __i32__, b : __i32__) -> __i32__
 {
-    %tmp = fadd double %arg1, %arg2
-    ret double %tmp
+    var c = a &+ b
+    var r = 0 : __i32__
+
+    llvm {
+        %tmp = mul i32 %c, %a
+        store i32 %tmp, i32* %r.addr
+    }
+
+    return r
 }
 ```
 
-Low level types can also be made in assembly:
+## Compile time reflection
+The language treats types as if they are first-class values.
+This means types themselves are of a meta-type, recursively.
+
+Since types are values, you can interrigate and manipulate types at compile time.
+This allows you to write generic code that can work with any type, and even
+create new types at compile time.
+
+Meta-types are defined as built-in, by the standard library, and can be extended
+by the user.
+
+
+## Hidden dependency injection
+### Function calls
+On top of normal arguments, functions also include hidden arguments called dependencies.
+Dependencies are identifiers prefixed with `$`, such as `$foo`. A function that uses
+a dependency automatically declares that dependency as a hidden argument recursively through
+the function call chain.
+
+Explicitly a function may be called with a dependency by using the syntax `$foo = variable`. This
+dependency is then passed to each function in the call chain that requires this dependency. It
+also breaks the requirement for this dependency toward the caller. A dependency is always a
+reference to a variable, it is not possible to pass a value as a dependency.
 
 ```
-asmtype complex {
-    double r
-    double i
+function foo(a)
+{
+    return a + $injected_variable
+}
+
+function bar(a)
+{
+    return foo(a)
+}
+
+function main()
+{
+    var b = 10;
+    return bar(42, $injected_variable = b)
 }
 ```
 
-note: Extensible syntax allows the syntax be different from assembly and other parts.
+### Structs
+I am hoping to implement vtable and allocator, and possible other special pointers as
+hidden depedencies as well. This would allow an `$allocator` to be implicitly passed to
+constructors called from a member-function. `$this` could be used as pointer to
+object/vtable.
+
+I am not done thinking about this yet.
+
+## Ranged arbitrary sized integers
+The language and standard library natively supports ranged arbitrary sized integers.
+
+Using type inference, the compiler will automatically select the appropriate integer type
+for the range of the value. For most operations this will mean that it will
+not be possible to overflow the value. Certain operations like AND and modulo operations
+allows wrapping behavior to reduce the range of the value.
+
+Long integers are stored in the native endianness of the target architecture. Integers
+can be both unsigned or 2's complement signed. Small integers are stored in the smallest
+possible type, including, 64, 32, 16, 8 and 1 bit (CPU flag) integers. This means that
+they can be used predictably in FFI calls.
+
+Most of the functionality is implemented in the standard library, except that the default
+integer literal returns a ranged integer, through the standard library.
 
 ## Universal call syntax
 
-Functions may be called in two different ways:
+Functions and member functions may be called in two different ways:
  * `foo(a, b)`
  * `a.foo(b)`
 

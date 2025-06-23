@@ -193,6 +193,9 @@ The following rules apply to semicolons and commas:
  - Any semicolon directly following a open-bracket `{`, `[` or `(` is removed.
  - A comma directly following a open-bracket `{`, `[` or `(` is reported as an
    error by the tokenizer.
+ - A comman `,` or semicolon `;` that directly preceding a closing bracket
+   `}`, `]`, `)` or end-of-file is removed.
+
 
 ### Errors
 
