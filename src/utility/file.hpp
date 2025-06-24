@@ -37,7 +37,13 @@ public:
         throw std::runtime_error{"Read operation not supported on this file type."};
     }
 
-    [[nodiscard]] virtual std::size_t write(std::size_t position, std::span<char const> buffer)
+    /** Write the file content from a buffer.
+     *
+     * @param position The position in the file to start writing to.
+     * @param buffer The buffer to write the content from.
+     * @return The number of bytes written.
+     */
+    virtual std::size_t write(std::size_t position, std::span<char const> buffer)
     {
         throw std::runtime_error{"Write operation not supported on this file type."};
     }

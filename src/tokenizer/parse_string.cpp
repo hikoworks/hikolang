@@ -139,8 +139,8 @@ namespace hl {
                     return r.make_error(c.location(), "Empty name in \\N escape sequence.");
                 }
 
-                if (auto new_cp = unicode_name_to_code_point(name); new_cp != std::to_underlying(unicode_error::name_not_found)) {
-                    r.append(new_cp);
+                if (auto new_cp = unicode_name_to_code_point(name)) {
+                    r.append(*new_cp);
                 } else {
                     return r.make_error(c.location(), "Could not find unicode name '{}'", name);
                 }

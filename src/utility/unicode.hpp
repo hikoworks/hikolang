@@ -128,14 +128,14 @@ private:
 
 
 
-enum class utf8_normalization_error : char32_t {
+enum class utf8_normalization_error {
     /// NFC instance is missing.
     nfc_instance_missing,
     /// Normalization failed.
     normalization_failed,
 };
 
-enum class utf8_security_error : char32_t {
+enum class utf8_security_error {
     /// Invalid UTF-8 sequence found.
     invalid_utf8_sequence,
     /// The string is too long to check.
@@ -182,12 +182,63 @@ enum class unicode_name_error {
 
 [[nodiscard]] std::string display_utf8_sequence(char const* start, char const* end);
 
+/** Normalize a UTF-8 string to NFC (Normalization Form C).
+ * 
+ * This function will normalize the string to NFC, which is a canonical composition of characters.
+ * 
+ * @param s The UTF-8 string to normalize.
+ * @return A normalized UTF-8 string.
+ * @retval utf8_normalization_error::nfc_instance_missing If the NFC instance is missing.
+ * @retval utf8_normalization_error::normalization_failed If the normalization failed.
+ */
 [[nodiscard]] std::expected<std::string, utf8_normalization_error> normalize_utf8_string(std::string s);
 
+/** Security check a UTF-8 string for invalid characters.
+ * 
+ * This function will check the string for invalid characters, such as:
+ * - Invalid UTF-8 sequences
+ * - Restricted characters
+ * - Invisible characters
+ * - Mixed numbers
+ * - Hidden overlays
+ * 
+ * @param s The UTF-8 string to check.
+ * @return An expected value indicating success or an error.
+ * @retval utf8_security_error::invalid_utf8_sequence If an invalid UTF-8 sequence was found.
+ * @retval utf8_security_error::string_to_long If the string is too long to check.
+ * @retval utf8_security_error::restriction_level If a restricted character was found.
+ * @retval utf8_security_error::invisible If an invisible character was found.
+ * @retval utf8_security_error::mixed_numbers If mixed numbers were found.
+ * @retval utf8_security_error::hidden_overlay If a hidden overlay was found.
+ * @retval utf8_security_error::unknown_error If an unknown error occurred.
+ */
 [[nodiscard]] std::expected<void, utf8_security_error> security_check_utf8_string(std::string_view s);
 
+/** Security check a UTF-8 string for invalid characters, splitting an identifier first.
+ * 
+ * This function first splits the string on underscores and then checks each part for invalid characters.
+ * 
+ * @see security_check_utf8_string()
+ * @param s The UTF-8 string to check.
+ * @return An expected value indicating success or an error.
+ * @retval utf8_security_error::invalid_utf8_sequence If an invalid UTF-8 sequence was found.
+ * @retval utf8_security_error::string_to_long If the string is too long to check.
+ * @retval utf8_security_error::restriction_level If a restricted character was found.
+ * @retval utf8_security_error::invisible If an invisible character was found.
+ * @retval utf8_security_error::mixed_numbers If mixed numbers were found.
+ * @retval utf8_security_error::hidden_overlay If a hidden overlay was found.
+ * @retval utf8_security_error::unknown_error If an unknown error occurred.
+ */
 [[nodiscard]] std::expected<void, utf8_security_error> security_check_utf8_string_split_underscore(std::string_view s);
 
-[[nodiscard]] char32_t unicode_name_to_code_point(std::string name);
+/** Convert a Unicode name to a code-point.
+ * 
+ * This function will convert a Unicode name to its corresponding code-point.
+ * 
+ * @param name The Unicode name to convert.
+ * @return The corresponding code-point.
+ * @retval unicode_name_error::could_not_find_name If the name could not be found.
+ */
+[[nodiscard]] std::expected<char32_t, unicode_name_error> unicode_name_to_code_point(std::string name);
 
 } // namespace hl

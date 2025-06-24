@@ -7,6 +7,9 @@
 
 namespace hl {
 
+/** A module represents a compilation unit in the Hiko language.
+ * 
+ */
 class module {
 public:
     module() noexcept = default;

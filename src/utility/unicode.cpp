@@ -267,7 +267,7 @@ static auto spoof_checker = spoof_checker_type{};
     return {};
 }
 
-[[nodiscard]] char32_t unicode_name_to_code_point(std::string name)
+[[nodiscard]] std::expected<char32_t, unicode_name_error> unicode_name_to_code_point(std::string name)
 {
     UErrorCode error_code = U_ZERO_ERROR;
     auto cp = u_charFromName(U_UNICODE_CHAR_NAME, name.c_str(), &error_code);
@@ -283,7 +283,7 @@ static auto spoof_checker = spoof_checker_type{};
         return cp;
     }
     
-    return static_cast<char32_t>(std::to_underlying(unicode_error::name_not_found));
+    return std::unexpected{unicode_name_error::could_not_find_name};
 }
 
 }

@@ -6,6 +6,8 @@
 
 namespace hl {
 
+/** A file object that is a memory buffer instead of a file on disk.
+ */
 class file_buffer : public file {
 public:
     /** Create a file object with the given path.
@@ -22,7 +24,7 @@ public:
      */
     [[nodiscard]] std::size_t read(std::size_t position, std::span<char> buffer) override;
 
-    [[nodiscard]] std::size_t write(std::size_t position, std::span<char const> buffer) override;
+    std::size_t write(std::size_t position, std::span<char const> buffer) override;
 
 private:
     /** The file content stored in a vector.

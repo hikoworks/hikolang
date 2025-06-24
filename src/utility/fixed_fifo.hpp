@@ -230,6 +230,8 @@ public:
 
     /** Pop an element from the queue.
      * 
+     * @note It is UNDEFINED BEHAVIOR to call this function if the queue is empty.
+     * @note It is UNDEFINED BEHAVIOR to call this function with an index that is out of bounds.
      * @param i The index of the element to pop/remove, defaults to 0 (the front).
      * @return The element at the front of the queue.
      */
@@ -246,11 +248,25 @@ public:
         return tmp;
     }
 
+    /** Pop the first element from the queue.
+     * 
+     * This is equivalent to calling remove(0).
+     * 
+     * @note It is UNDEFINED BEHAVIOR to call this function if the queue is empty.
+     * @return The first element in the queue.
+     */
     constexpr value_type pop_front()
     {
         return remove(0);
     }
 
+    /** Pop the last element from the queue.
+     * 
+     * This is equivalent to calling remove(size() - 1).
+     * 
+     * @note It is UNDEFINED BEHAVIOR to call this function if the queue is empty.
+     * @return The last element in the queue.
+     */
     constexpr value_type pop_back()
     {
         return remove(_size - 1);

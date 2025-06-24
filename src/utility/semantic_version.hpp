@@ -10,6 +10,12 @@
 
 namespace hl {
 
+/** A semantic versioning structure.
+ * 
+ * This structure represents a semantic version in the format "major.minor.patch".
+ * The minor and patch versions can be set to `std::numeric_limits<std::size_t>::max()`
+ * to indicate that they are wild cards.
+ */
 struct semantic_version {
     std::size_t major = 0;
     std::size_t minor = std::numeric_limits<std::size_t>::max();
@@ -21,36 +27,92 @@ struct semantic_version {
     constexpr semantic_version& operator=(semantic_version&&) noexcept = default;
     constexpr semantic_version& operator=(const semantic_version&) noexcept = default;
 
+    /** Create a semantic version with the given major, minor and patch versions.
+     * 
+     * The minor and patch versions can be set to `std::numeric_limits<std::size_t>::max()`
+     * to indicate that they are wild cards.
+     * 
+     * @param major The major version.
+     * @param minor The minor version, defaults to `std::numeric_limits<std::size_t>::max()`.
+     * @param patch The patch version, defaults to `std::numeric_limits<std::size_t>::max()`.
+     */
     constexpr semantic_version(
         std::size_t major,
         std::size_t minor = std::numeric_limits<std::size_t>::max(),
         std::size_t patch = std::numeric_limits<std::size_t>::max()) noexcept
         : major(major), minor(minor), patch(patch) {}
 
+    /** Create a semantic version from a string.
+     * 
+     * The string should be in the format "major.minor.patch", where minor and patch can be
+     * replaced with `*` to indicate that they are wild cards.
+     * 
+     * @param version The version string to parse.
+     * @throws std::invalid_argument if the version string is not in the correct format.
+     */
     semantic_version(std::string_view version);
 
+    /** Check if the minor version is a wild card.
+     * 
+     * A wild card is represented by `std::numeric_limits<std::size_t>::max()`.
+     * 
+     * @return true if the minor version is a wild card, false otherwise.
+     */
+    [[nodiscard]] constexpr bool minor_is_wildcard() const noexcept
+    {
+        return minor == std::numeric_limits<std::size_t>::max();
+    }
+
+    /** Check if the patch version is a wild card.
+     * 
+     * A wild card is represented by `std::numeric_limits<std::size_t>::max()`.
+     * 
+     * @return true if the patch version is a wild card, false otherwise.
+     */
+    [[nodiscard]] constexpr bool patch_is_wildcard() const noexcept
+    {
+        return patch == std::numeric_limits<std::size_t>::max();
+    }
+
+    /** Check if this semantic version is equal to another semantic version.
+     * 
+     * Two semantic versions are equal if their major, minor and patch versions are equal,
+     * or if the minor or patch version is a wild card.
+     * 
+     * @param other The other semantic version to compare with.
+     * @return true if the two semantic versions are equal, false otherwise.
+     */
     [[nodiscard]] constexpr friend bool operator==(semantic_version const& lhs, semantic_version const& rhs) noexcept
     {
         return (lhs <=> rhs) == std::strong_ordering::equal;
     }
 
+    /** Compare this semantic version with another semantic version.
+     * 
+     * The comparison is done based on the major, minor and patch versions.
+     * If the minor or patch version is a wild card, it is considered equal to any other wild card.
+     * 
+     * @param other The other semantic version to compare with.
+     * @return A strong ordering indicating the result of the comparison.
+     */
     [[nodiscard]] constexpr friend std::strong_ordering operator<=>(semantic_version const& lhs, semantic_version const& rhs) noexcept
     {
         if (lhs.major != rhs.major) {
             return lhs.major <=> rhs.major;
         }
 
-        if (lhs.minor == std::numeric_limits<std::size_t>::max() or rhs.minor == std::numeric_limits<std::size_t>::max()) {
+        if (lhs.minor_is_wildcard() or rhs.minor_is_wildcard()) {
             return std::strong_ordering::equal;
         } else if (lhs.minor != rhs.minor) {
             return lhs.minor <=> rhs.minor;
         }
 
-        if (lhs.patch == std::numeric_limits<std::size_t>::max() or rhs.patch == std::numeric_limits<std::size_t>::max()) {
+        if (lhs.patch_is_wildcard() or rhs.patch_is_wildcard()) {
             return std::strong_ordering::equal;
         } else {
             return lhs.patch <=> rhs.patch;
         }
+
         return std::strong_ordering::equal;
     }
 

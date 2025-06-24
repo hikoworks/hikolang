@@ -2,7 +2,7 @@
 #pragma once
 
 #include <cassert>
-#include <stdexcept>
+#include <utility>
 
 /** @file char_category.hpp
  * 
