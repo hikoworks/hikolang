@@ -40,7 +40,7 @@ static void simple_tokenize(hl::file_cursor& c, tokenize_delegate& delegate)
 
         } else if (is_horizontal_space(c[0], c[1]) or is_ignoreable(c[0])) {
             ++c;
-        
+
         } else if (auto t = parse_bracketed_string(c, state == state_type::llvm_assembly ? '{' : '\0')) {
             delegate.on_token(std::move(t).value());
             state = state_type::normal;
@@ -104,7 +104,6 @@ static void simple_tokenize(hl::file_cursor& c, tokenize_delegate& delegate)
     delegate.on_token(token{c.location(), '\0'});
 }
 
-
 void tokenize(hl::file_cursor& c, tokenize_delegate& delegate)
 {
     struct delegate_type : tokenize_delegate {
@@ -115,65 +114,45 @@ void tokenize(hl::file_cursor& c, tokenize_delegate& delegate)
 
         explicit delegate_type(tokenize_delegate& delegate) noexcept : delegate(delegate) {}
 
-        void handle_one_token()
-        {
-            assert(not q.empty());
-
-            auto t = q.pop_front();
-            delegate.on_token(std::move(t));
-        }
-
-        void handle_all_tokens()
+        /** Send all tokens in the queue to the delegate.
+         */
+        void flush_tokens()
         {
             while (not q.empty()) {
-                handle_one_token();
+                delegate.on_token(q.pop_front());
             }
         }
 
+        /** Add token to the queue and send it to the delegate if the queue is full.
+         * 
+         * @param t The token to add to the queue.
+         */
         void add_token(token t)
         {
             if (q.full()) {
-                handle_one_token();
+                delegate.on_token(q.pop_front());
             }
             assert(not q.full());
-
-            if (t == ';') {
-                if (q.back() == ';') {
-                    // Don't add duplicate semicolons.
-                    return;
-                
-                } else if (q.back() == '{' or q.back() == '[' or q.back() == '(') {
-                    // Don't add a semicolon after an opening bracket.
-                    return;
-                }
-
-            } else if (t == ',') {
-                if (q.back() == ',') {
-                    q.push_back(t.make_error(t.last, "Unexpected duplicate comma ',' found."));
-                    return;
-
-                } else if (q.back() == '{' or q.back() == '[' or q.back() == '(') {
-                    q.push_back(t.make_error(t.last, "Unexpected comma ',' found after an opening bracket."));
-                    return;
-                }
-
-            } else if (t == '}' or t == ']' or t == ')' or t == '\0') {
-                if (q.back() == ';' or q.back() == ',') {
-                    // Remove trailing semicolons or commas before closing brackets.
-                    q.pop_back();
-                } 
-            }
 
             q.push_back(std::move(t));
         }
 
-        [[nodiscard]] bool is_keyword(token const& t) const noexcept
+        /** Check if an identifier is a keyword. 
+         * 
+         * This checks if an identifier is a well-known keyword in the language.
+         * This is specifically so that documentation-comments will be associated
+         * with non-keyword identifiers.
+         * 
+         * @param t The token to check.
+         * @return true if the token is a keyword, false otherwise.
+         */
+        [[nodiscard]] static bool is_keyword(token const& t) noexcept
         {
             using namespace std::literals;
 
-            constexpr std::array keywords = std::array{
-                "struct"sv, "class"sv, "union"sv, "enum"sv, "function"sv
-            };
+            /** Well-known keywords in the language.
+            */
+            constexpr std::array keywords = std::array{"struct"sv, "class"sv, "union"sv, "enum"sv, "function"sv};
 
             if (t.kind != token::identifier) {
                 return false;
@@ -187,36 +166,92 @@ void tokenize(hl::file_cursor& c, tokenize_delegate& delegate)
             return false;
         }
 
-        [[nodiscard]] bool forward(token const& t) const noexcept
-        {
-            return is_keyword(t);
-        }
-
-        [[nodiscard]] static bool ignore(token const& t) noexcept
+        /** Drop tokens that are only used within the tokenizer and not in the parser.
+         * 
+         * @param t The token to check.
+         * @return true if the token should be dropped, false otherwise.
+         */
+        [[nodiscard]] static bool should_drop_token(token const& t) noexcept
         {
             return t == token::comment or t == token::line_directive;
+        }
+
+        /** Check if a semicolon should be dropped.
+         *
+         * A new semicolon is dropped in the following cases:
+         *  - If the last token is a semicolon ';'.
+         *  - If the last token is an opening bracket '{', '[', or '('.
+         * 
+         * @return true if the semicolon should be dropped, false otherwise.
+         */
+        [[nodiscard]] bool should_drop_semicolon() const noexcept
+        {
+            if (q.empty()) {
+                // Technically, a semicolon is not allowed at the start of the
+                // text, but handle this in the parser instead.
+                return false;
+
+            } else if (q.back() == ';') {
+                // Double semicolons are dropped.
+                return true;
+
+            } else if (q.back() == '{' or q.back() == '[' or q.back() == '(') {
+                // Semicolons directly after an opening bracket are dropped.
+                return true;
+
+            } else {
+                return false;
+            }
         }
 
         void on_token(token t) override
         {
             auto doc_text = std::string{};
 
-            if (ignore(t)) {
+            if (should_drop_token(t)) {
                 // Drop tokens that we don't care about.
                 return;
 
-            } else if (forward(t)) {
+            } else if (is_keyword(t)) {
+                // Keywords should not get documentation, so we handle this
+                // earlier than other identifiers.
                 add_token(std::move(t));
-                
+
+            } else if (t == ';') {
+                if (should_drop_semicolon()) {
+                    // Drop semicolons that are not needed.
+                    return;
+                }
+                add_token(std::move(t));
+
+            } else if (t == ',') {
+                if (q.back() == ',') {
+                    add_token(t.make_error(t.last, "Unexpected duplicate comma ',' found."));
+                    return;
+
+                } else if (q.back() == '{' or q.back() == '[' or q.back() == '(') {
+                    add_token(t.make_error(t.last, "Unexpected comma ',' found after an opening bracket."));
+                    return;
+                }
+
             } else if (t == '{' or t == '[' or t == '(') {
                 add_token(std::move(t));
                 bracket_stack.push_back(t.simple_value());
 
             } else if (t == '}' or t == ']' or t == ')') {
-                auto open_bracket = mirror_bracket(t.simple_value());
+                auto const open_bracket = mirror_bracket(t.simple_value());
+
+                if (q.back() == ';' or q.back() == ',') {
+                    // Remove trailing semicolons or commas before closing brackets.
+                    q.pop_back();
+                }
 
                 if (bracket_stack.empty() or bracket_stack.back() != open_bracket) {
-                    add_token(t.make_error(t.last, "Unmatched '}}' found; expected '{{'."));
+                    add_token(t.make_error(
+                        t.last,
+                        "Unexpected '{}', missing open bracket '{}'.",
+                        t.simple_value(),
+                        gsl::narrow_cast<char>(open_bracket)));
                     return;
                 }
                 add_token(std::move(t));
@@ -228,7 +263,7 @@ void tokenize(hl::file_cursor& c, tokenize_delegate& delegate)
 
             } else if (t == token::back_documentation) {
                 for (auto i = q.size(); i != 0; --i) {
-                    auto & q_i = q[i - 1];
+                    auto& q_i = q[i - 1];
                     if (q_i == token::identifier) {
                         q_i.doc_text = std::move(t.text);
                         return; // Drop the token.
@@ -241,7 +276,7 @@ void tokenize(hl::file_cursor& c, tokenize_delegate& delegate)
                 add_token(std::move(t));
 
             } else if (t == '\n') {
-                if (bracket_stack.empty() or bracket_stack.back() == '{') {
+                if ((bracket_stack.empty() or bracket_stack.back() == '{') and not should_drop_semicolon()) {
                     // Insert a semicolon at each line feed, when we are inside a block or at top-level.
                     add_token(token{t.first, ';'});
                 }
@@ -251,11 +286,12 @@ void tokenize(hl::file_cursor& c, tokenize_delegate& delegate)
                 if (not bracket_stack.empty()) {
                     auto unmatched_bracket = bracket_stack.back();
                     bracket_stack.clear();
-                    add_token(t.make_error(t.last, "Unmatched '{}' found; expected matching closing bracket.", unmatched_bracket));
+                    add_token(
+                        t.make_error(t.last, "Unmatched '{}' found; expected matching closing bracket.", unmatched_bracket));
                 }
 
                 add_token(std::move(t));
-                handle_all_tokens();
+                flush_tokens();
 
             } else {
                 // For all other tokens, just add them to the queue.
