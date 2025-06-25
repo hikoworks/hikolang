@@ -27,7 +27,7 @@ struct tokenize_delegate {
 
     /** Called when a token is produced by the tokenizer.
      * 
-     * The last token will always be the end-of-file token (`'\0'`).
+     * The last token will always be the end-of-file token '\0'.
      * 
      * @param t The token that was produced.
      */

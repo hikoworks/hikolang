@@ -115,8 +115,7 @@ public:
      */
     [[nodiscard]] constexpr value_type const& front() const
     {
-        assert(not empty());
-        return _data[0].value;
+        return _data.front();
     }
 
     /** Get the first element in the fifo.
@@ -126,42 +125,45 @@ public:
      */
     [[nodiscard]] constexpr value_type& front()
     {
-        assert(not empty());
-        return _data[0].value;
+        return _data.front();
     }
 
-    /** Get the last element in the fifo.
+    /** Get the first element in the fifo.
      * 
      * @note It is UNDEFINED BEHAVIOR to call this function if the queue is empty.
-     * @return A const reference to the last element in the queue.
+     * @return A const reference to the first element in the queue.
      */
     [[nodiscard]] constexpr value_type const& back() const
     {
         assert(not empty());
-        return _data[_size - 1].value;
+        return _data[size() - 1];
     }
 
-    /** Get the last element in the fifo.
+    /** Get the first element in the fifo.
      * 
      * @note It is UNDEFINED BEHAVIOR to call this function if the queue is empty.
-     * @return A reference to the last element in the queue.
+     * @return A reference to the first element in the queue.
      */
     [[nodiscard]] constexpr value_type& back()
     {
         assert(not empty());
-        return _data[_size - 1].value;
+        return _data[size() - 1];
     }
 
     /** Access an element at a specific index in the fifo.
      * 
-     * @note It is UNDEFINED BEHAVIOR to call this function with an index that is out of bounds.
+     * You are allowed to access elements in the fifo beyond the current size, up to the maximum size.
+     * This would return a reference to the element with the default constructed value type.
+     * 
+     * @note It is UNDEFINED BEHAVIOR to call this function with an index that is out of bounds of the
+     *       of the internal array.
      * @param i The index of the element to access.
      * @return A const reference to the element at the specified index.
      */
     [[nodiscard]] constexpr value_type const& operator[](size_type i) const
     {
-        assert(i < size());
-        return _data[i].value;
+        assert(i < max_size());
+        return _data[i];
     }
 
     /** Access an element at a specific index in the fifo.
@@ -172,8 +174,8 @@ public:
      */
     [[nodiscard]] constexpr value_type& operator[](size_type i)
     {
-        assert(i < size());
-        return _data[i].value;
+        assert(i < max_size());
+        return _data[i];
     }
 
     /** Clear the fifo, removing all elements.
@@ -183,7 +185,7 @@ public:
     constexpr void clear() noexcept
     {
         for (auto i = 0uz; i != _size; ++i) {
-            std::destroy_at(std::addressof(_data[i].value));
+            _data[i] = value_type{};
         }
         _size = 0;
     }
@@ -198,8 +200,8 @@ public:
     constexpr value_type& emplace(Args&&... args)
     {
         assert(not full());
-        std::construct_at(std::addressof(_data[_size].value), std::forward<Args>(args)...);
-        return _data[_size++].value;
+        _data[_size] = value_type{std::forward<Args>(args)...};
+        return _data[_size++];
     }
 
     /** Push an element to the back of the queue.
@@ -211,8 +213,8 @@ public:
     constexpr value_type& push_back(value_type const& value)
     {
         assert(not full());
-        std::construct_at(std::addressof(_data[_size].value), value);
-        return _data[_size++].value;
+        _data[_size] = value;
+        return _data[_size++];
     }
 
     /** Push an element to the back of the queue.
@@ -224,8 +226,8 @@ public:
     constexpr value_type& push_back(value_type&& value)
     {
         assert(not full());
-        std::construct_at(std::addressof(_data[_size].value), std::move(value));
-        return _data[_size++].value;
+        _data[_size] = std::move(value);
+        return _data[_size++];
     }
 
     /** Pop an element from the queue.
@@ -240,11 +242,11 @@ public:
         assert(not empty());
         assert(i < size());
 
-        auto tmp = std::move(_data[i].value);
+        auto tmp = std::move(_data[i]);
         for (; i != _size - 1; ++i) {
-            _data[i].value = std::move(_data[i + 1].value);
+            _data[i] = std::move(_data[i + 1]);
         }
-        std::destroy_at(std::addressof(_data[--_size].value));
+        _data[--_size] = value_type{};
         return tmp;
     }
 
@@ -273,16 +275,8 @@ public:
     }
 
 private:
-    union element_type {
-        constexpr element_type() : monostate{} {}
-        constexpr ~element_type() {}
-
-        std::monostate monostate;
-        value_type value;
-    };
-
     size_type _size = 0;
-    element_type _data[Size];
+    std::array<value_type, Size> _data = {};
 };
 
 } // namespace hl

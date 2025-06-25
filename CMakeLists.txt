@@ -39,6 +39,9 @@ find_package(Microsoft.GSL CONFIG REQUIRED)
 
 
 add_library(hic_objects OBJECT
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/ast/node.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/parser.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/parser.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer/parse_block_comment.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer/parse_bracketed_string.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer/parse_identifier.cpp"
