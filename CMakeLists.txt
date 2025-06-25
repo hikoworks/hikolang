@@ -40,8 +40,13 @@ find_package(Microsoft.GSL CONFIG REQUIRED)
 
 add_library(hic_objects OBJECT
     "${CMAKE_CURRENT_SOURCE_DIR}/src/ast/node.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/parse_error.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/parse_module_declaration.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/parse_module.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/parse_result.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/parser.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/parser.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/parsers.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer/parse_block_comment.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer/parse_bracketed_string.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer/parse_identifier.cpp"
@@ -67,6 +72,8 @@ add_library(hic_objects OBJECT
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/file_location.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/file.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/file.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/fixed_fifo.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/fqname.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/maybe_expected.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/module.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/module.hpp"

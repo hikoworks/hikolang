@@ -3,7 +3,7 @@
 
 namespace hl {
 
-[[nodiscard]] std::unique_ptr<ast::module_node> parse_module(token_iterator& it, token_iterator it_end)
+[[nodiscard]] parse_result<ast::module_node> parse_module(token_iterator& it, token_iterator it_end)
 {
     auto module_node = std::make_unique<ast::module_node>();
 
