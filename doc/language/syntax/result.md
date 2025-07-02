@@ -2,7 +2,7 @@
 
 ## Syntax
 
-`result` [_expression_](expression.md)
+`result` [_expression_](expression.md) `;`
 
 ## Semantics
 The `result` statement is used to return or yield a value from the first

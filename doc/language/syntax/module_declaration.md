@@ -2,7 +2,8 @@
 
 ## Syntax
 
-`module` [_module_name_](module_name.md) __(__ `if` [_compile_condition_](compile_condition.md) __|__ `fallback` __)?__
+`module` [_module_name_](module_name.md)
+__(__ `if` [_compile_condition_](compile_condition.md) __|__ `fallback` __)?__ `;`
 
 ## Semantics
 

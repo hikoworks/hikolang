@@ -3,8 +3,10 @@
 
 namespace hl {
 
-[[nodiscard]] std::unique_ptr<ast::module_declaration_node> parse_module_declaration(token_iterator& it, token_iterator it_end)
+[[nodiscard]] std::unique_ptr<ast::module_declaration_node> parse_module_declaration(token_iterator& it, error_list& e)
 {
+    auto const first = it[0].first;
+
     if (it[0] == "module") {
         ++it;
     } else {
@@ -16,7 +18,7 @@ namespace hl {
     if (auto node = parse_fqname(it, it_end)) {
         r->name = std::move(node);
     } else {
-        return errors.add(it, "Expected fully qualified name after 'module' keyword");
+        return e.add<"E0001: Expected fully qualified name after 'module' keyword">(first, it->last);
     }
 
     if (it[0] == "fallback") {

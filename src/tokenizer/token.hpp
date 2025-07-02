@@ -32,6 +32,7 @@ public:
         version_literal,
         positional_argument,
         line_directive,
+        scram_directive,
         bracketed_string_literal,
     };
 
@@ -51,6 +52,7 @@ public:
     static constexpr kind_type version_literal = kind_type::version_literal;
     static constexpr kind_type positional_argument = kind_type::positional_argument;
     static constexpr kind_type line_directive = kind_type::line_directive;
+    static constexpr kind_type scram_directive = kind_type::scram_directive;
     static constexpr kind_type bracketed_string_literal = kind_type::bracketed_string_literal;
 
     /** The location in the file where the first character of a token is located.

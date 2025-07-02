@@ -1,24 +1,25 @@
 
 #include "parser.hpp"
+#include "parsers.hpp"
 #include "tokenizer/tokenizer.hpp"
 #include "utility/fixed_fifo.hpp"
 
 namespace hl {
 
 
-[[nodiscard]] std::unique_ptr<ast::node> parse(token_iterator& it, token_iterator it_end)
+[[nodiscard]] parse_result<ast::node> parse(token_iterator& it, error_list& errors)
 {
-    if (auto root_node = parse_module(it, it_end)) {
-        return root_node;
-    } else if (auto root_node = parse_package(it, it_end)) {
-        return root_node;
+    if (it[0] == "module") {
+        return parse_module(it, errors);
+    } else if (it[0] == "package") {
+        return parse_package(it, errors);
+    } else {
+        return errors.add(it[0].first, it[0].last, error_code::module, "Expected 'module' or 'package' keyword");
     }
-
-    return nullptr;
 }
 
 
-[[nodiscard]] std::unique_ptr<ast::node> parse(hl::file_cursor& c)
+[[nodiscard]] parse_result<ast::node> parse(hl::file_cursor& c)
 {
     class delegate_type : public tokenize_delegate {
     public:
@@ -46,8 +47,8 @@ namespace hl {
     hl::tokenize(c, delegate);
 
     auto it = tokens.cbegin();
-    auto it_end = tokens.cend();
-    return parse(it, it_end);
+    auto errors = error_list{};
+    return parse(it, errors);
 }
 
 }

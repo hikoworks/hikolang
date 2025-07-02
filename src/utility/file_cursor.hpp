@@ -66,6 +66,14 @@ public:
         return _location.set_line(file_name, line);
     }
 
+    /** Set the key used for the #scram directive.
+     * 
+     * This key is used to scramble the file contents.
+     * 
+     * @param key The key to set.
+     */
+    void set_scram_key(uint32_t key) noexcept;
+
     /** Advance the file_cursor to the next code-point in the file.
      */
     void advance();
@@ -165,6 +173,12 @@ private:
      */
     file_location _location = {};
 
+    /** The key used for the #scram directive.
+     * 
+     * The key is set by the #scram directive and is used to scramble the file contents.
+     */
+    uint32_t _scram_key = 0;
+
     /** Fill the buffer with the next chunk of the file.
      * 
      * When the file does not have enough data to fill the buffer,
@@ -177,6 +191,17 @@ private:
      * This will call fill_buffer() automatically when it will need more bytes to read.
      */
     void fill_lookahead();
+
+    /** Scramble a code-point using the #scram directive key.
+     * 
+     * If the key is zero, this function will return the code-point unchanged.
+     * And it will not advance the key. However it is recommended to skip
+     * the scram function of the key is zero for performance reasons.
+     * 
+     * @param cp The code-point to scramble.
+     * @return The scrambled code-point.
+     */
+    [[nodiscard]] char32_t scram(char32_t cp) noexcept;
 };
 
 }

@@ -17,6 +17,54 @@ file name and line number. This is done through the use of a line directive.
 This line directive must be located at the start of the line. The line directive is used to set the path,
 file name, line number of the next line.
 
+## scramble directive
+The tokenizer supports a scramble directive that can be used to scramble the source code.
+
+`#scramble` [_integer_literal_](syntax/integer_literal.md)
+
+This scramble directive must be located at the start of the line. The scramble directive is used to
+set the _key_ used for scrambling the source code from the next line onwards.
+
+The scramble directive must appear after the prologue. The tool that scrambles the source code
+will place the `#scramble` directive directly after the prologue, and before the first line of code.
+
+> [INFO]
+> The prologue is the part of the file that contains the `module` and `import` directives.
+
+### Scramble algorithm
+The scamble algorithm is handled by the tokenizer. Since the tokenizer works on a stream of
+unicode code-points, the scramble algorithm will scramble the codepoints in the stream.
+
+To allow scrambled source code to be loaded in an editor, the UTF-8 encoding should remain valid,
+and the characters should remain visible characters. Therefor we only scramble the ASCII visible
+characters in range U+0021 to U+007E.
+
+The following algorithm is used to scramble each characters after the vertical-space character
+after the `#scramble` directive:
+
+```cpp
+char32_t scramble(char32_t c, uint32_t &key) {
+    if (key != 0) {
+        if (c >= '!' and c <= '~') {
+            // Basically a caesar cipher with a rotating key.
+            c -= '!';
+            c += key & 0xff;
+            c %= '~' - '!' + 1;
+            c += '!';
+        }
+
+        // Use xorshift32 to schedule the key.
+        // This algorithm ensures that the key will not become zero.
+        key ^= key << 13;
+        key ^= key >> 17;
+        key ^= key << 5;
+    }
+
+    return c;
+}
+```
+
+
 ## Tokens
 The following is a list of all the tokens that are used in the language:
  - *identifier* - A name that is used to identify a variable, function, namespace, type or keyword.
@@ -170,6 +218,18 @@ Whitespace is used to separate tokens. Whitespace is not considered a token.
 
 Whitespace characters are defined by Pattern_White_Space from Unicode UAX #31
 (Unicode Identifier and Syntax).
+
+### Semicolon
+Each statement in the source code is ended by a semicolon `;`.
+
+Modern languages have mostly eliminated the need for semicolons at the end
+of a line, including this language. This is handled by automatically inserting
+semicolons at the end of each line after a statement.
+
+The following rules are used to handle semicolons `;`:
+ - At end-of-line, the tokenizer will insert a semicolon `;` if:
+   * there are tokens on the line that are not terminated with a semicolon `;`, and
+   * the bracket stack is empty or its top is a brace `{`.
 
 ### Semicolon and comma handling
 The semicolon `;` and `,` are used to separate statements, expressions and

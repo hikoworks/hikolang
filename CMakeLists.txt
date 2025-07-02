@@ -55,6 +55,7 @@ add_library(hic_objects OBJECT
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer/parse_number.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer/parse_operator.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer/parse_positional_argument.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer/parse_scram_directive.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer/parse_string.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer/token.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer/token.hpp"

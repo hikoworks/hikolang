@@ -12,6 +12,36 @@ file_cursor::file_cursor(hl::path_id base_path_id, hl::path_id path_id) noexcept
     fill_lookahead();
 }
 
+void file_cursor::set_scram_key(uint32_t key) noexcept
+{
+    _scram_key = key;
+
+    // Even with the scram key set to zero this will work correctly
+    // and will not actually scramble the code points.
+    for (auto i = 0uz; i != _lookahead_size; ++i) {
+        _lookahead[i] = scram(_lookahead[i]);
+    }
+}
+
+[[nodiscard]] char32_t file_cursor::scram(char32_t cp) noexcept
+{
+    if (cp >= '!' and cp <= '~') [[likely]] {
+        // Basically a caesar cipher with a rotating key.
+        cp -= '!';
+        cp += _scram_key & 0xff;
+        cp %= '~' - '!' + 1;
+        cp += '!';
+    }
+
+    // Use xorshift32 to schedule the key.
+    // This algorithm ensures that the key will not become zero.
+    _scram_key ^= _scram_key << 13;
+    _scram_key ^= _scram_key >> 17;
+    _scram_key ^= _scram_key << 5;
+    return cp;
+}
+
+
 void file_cursor::advance()
 {
     auto const cp = _lookahead[0];
@@ -55,7 +85,11 @@ void file_cursor::fill_lookahead()
         auto c = static_cast<uint8_t>(_buffer[buffer_offset]);
         if (c < 0x80) [[likely]] {
             // Fast path for ASCII characters
-            _lookahead[_lookahead_size++] = static_cast<char32_t>(c);
+            auto cp = static_cast<char32_t>(c);
+            if (_scram_key != 0) {
+                cp = scram(cp);
+            }
+            _lookahead[_lookahead_size++] = cp;
 
         } else if ((c & 0xc0) == 0x80 and code_units_left != 0) {
             // Valid continuation byte.

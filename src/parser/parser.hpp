@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include "parse_result.hpp"
 #include "ast/node.hpp"
 #include "utility/file_cursor.hpp"
 

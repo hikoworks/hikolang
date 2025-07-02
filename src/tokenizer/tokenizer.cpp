@@ -67,6 +67,9 @@ static void simple_tokenize(hl::file_cursor& c, tokenize_delegate& delegate)
         } else if (auto t = parse_line_directive(c)) {
             delegate.on_token(std::move(t).value());
 
+        } else if (auto t = parse_scram_directive(c)) {
+            delegate.on_token(std::move(t).value());
+
         } else if (auto t = parse_positional_argument(c)) {
             delegate.on_token(std::move(t).value());
 
@@ -138,6 +141,27 @@ struct tokenize_delegate_helper : tokenize_delegate {
         q.push_back(std::move(t));
     }
 
+    /** Line-feeds are replaced with semicolon, or nothing.
+     * 
+     * @param t The token that was a line-feed.
+     */
+    void replace_line_feed_with_semicolon(token const& t)
+    {
+        if (not bracket_stack.empty() and bracket_stack.back() != '{') {
+            // Insert a semicolon only if we are directly inside a block., or at top level.
+            return;
+        }
+
+        if (not q.empty() and (q.back() == ';' or q.back() == '{')) {
+            // Don't insert a semicolon where one should not be.
+            return;
+        }
+
+        auto semicolon = token{t.first, ';'};
+        semicolon.last = t.last;
+        add_token(std::move(semicolon));
+    }
+
     /** Check if an identifier is a keyword. 
      * 
      * This checks if an identifier is a well-known keyword in the language.
@@ -167,49 +191,11 @@ struct tokenize_delegate_helper : tokenize_delegate {
         return false;
     }
 
-    /** Drop tokens that are only used within the tokenizer and not in the parser.
-     * 
-     * @param t The token to check.
-     * @return true if the token should be dropped, false otherwise.
-     */
-    [[nodiscard]] static bool should_drop_token(token const& t) noexcept
-    {
-        return t == token::comment or t == token::line_directive;
-    }
-
-    /** Check if a semicolon should be dropped.
-     *
-     * A new semicolon is dropped in the following cases:
-     *  - If the last token is a semicolon ';'.
-     *  - If the last token is an opening bracket '{', '[', or '('.
-     * 
-     * @return true if the semicolon should be dropped, false otherwise.
-     */
-    [[nodiscard]] bool should_drop_semicolon() const noexcept
-    {
-        if (q.empty()) {
-            // Technically, a semicolon is not allowed at the start of the
-            // text, but handle this in the parser instead.
-            return false;
-
-        } else if (q.back() == ';') {
-            // Double semicolons are dropped.
-            return true;
-
-        } else if (q.back() == '{' or q.back() == '[' or q.back() == '(') {
-            // Semicolons directly after an opening bracket are dropped.
-            return true;
-
-        } else {
-            return false;
-        }
-    }
-
     void on_token(token t) override
     {
         auto doc_text = std::string{};
 
-        if (should_drop_token(t)) {
+        if (t == token::comment or t == token::line_directive) {
             // Drop tokens that we don't care about.
             return;
 
@@ -218,34 +204,12 @@ struct tokenize_delegate_helper : tokenize_delegate {
             // earlier than other identifiers.
             add_token(std::move(t));
 
-        } else if (t == ';') {
-            if (should_drop_semicolon()) {
-                // Drop semicolons that are not needed.
-                return;
-            }
-            add_token(std::move(t));
-
-        } else if (t == ',') {
-            if (q.back() == ',') {
-                add_token(t.make_error(t.last, "Unexpected duplicate comma ',' found."));
-                return;
-
-            } else if (q.back() == '{' or q.back() == '[' or q.back() == '(') {
-                add_token(t.make_error(t.last, "Unexpected comma ',' found after an opening bracket."));
-                return;
-            }
-
         } else if (t == '{' or t == '[' or t == '(') {
             add_token(std::move(t));
             bracket_stack.push_back(t.simple_value());
 
         } else if (t == '}' or t == ']' or t == ')') {
             auto const open_bracket = mirror_bracket(t.simple_value());
-
-            if (q.back() == ';' or q.back() == ',') {
-                // Remove trailing semicolons or commas before closing brackets.
-                q.pop_back();
-            }
 
             if (bracket_stack.empty() or bracket_stack.back() != open_bracket) {
                 add_token(t.make_error(
@@ -273,23 +237,31 @@ struct tokenize_delegate_helper : tokenize_delegate {
             add_token(t.make_error(t.last, "Back documentation token found without a preceding identifier."));
 
         } else if (t == token::identifier) {
-            t.doc_text = std::move(doc_text);
+            if (not doc_text.empty()) {
+                // If we have documentation text, associate it with the identifier.
+                t.doc_text = std::move(doc_text);
+                doc_text.clear();
+            }
             add_token(std::move(t));
 
         } else if (t == '\n') {
-            if ((bracket_stack.empty() or bracket_stack.back() == '{') and not should_drop_semicolon()) {
-                // Insert a semicolon at each line feed, when we are inside a block or at top-level.
-                add_token(token{t.first, ';'});
-            }
+            replace_line_feed_with_semicolon(t);
             return; // Drop the token.
 
         } else if (t == '\0') {
-            if (not bracket_stack.empty()) {
-                auto unmatched_bracket = bracket_stack.back();
-                bracket_stack.clear();
+            while (not bracket_stack.empty()) {
+                auto const unmatched_bracket = bracket_stack.back();
                 add_token(
                     t.make_error(t.last, "Unmatched '{}' found; expected matching closing bracket.", unmatched_bracket));
+
+                // Insert a matched closing bracket for each unmatched opening bracket.
+                // So that the parser can continue longer during error recovery.
+                auto const closing_bracket = mirror_bracket(unmatched_bracket);
+                add_token(token{t.first, closing_bracket});
             }
+
+            // Treat end-of-file as a possible line feed.
+            replace_line_feed_with_semicolon(t);
 
             add_token(std::move(t));
             flush_tokens();
