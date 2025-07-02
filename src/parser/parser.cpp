@@ -1,5 +1,4 @@
 
-#include "parser.hpp"
 #include "parsers.hpp"
 #include "tokenizer/tokenizer.hpp"
 #include "utility/fixed_fifo.hpp"
@@ -7,19 +6,19 @@
 namespace hl {
 
 
-[[nodiscard]] parse_result<ast::node> parse(token_iterator& it, error_list& errors)
+[[nodiscard]] parse_result_ptr<ast::node> parse(token_iterator& it, error_list& e)
 {
     if (it[0] == "module") {
-        return parse_module(it, errors);
-    } else if (it[0] == "package") {
-        return parse_package(it, errors);
+        return parse_module(it, e);
+   // } else if (it[0] == "package") {
+   //     return parse_package(it, e);
     } else {
-        return errors.add(it[0].first, it[0].last, error_code::module, "Expected 'module' or 'package' keyword");
+        return e.add<"E0006: Expected 'module' or 'package' keyword">(it->first, it->last);
     }
 }
 
 
-[[nodiscard]] parse_result<ast::node> parse(hl::file_cursor& c)
+[[nodiscard]] parse_result_ptr<ast::node> parse(hl::file_cursor& c)
 {
     class delegate_type : public tokenize_delegate {
     public:

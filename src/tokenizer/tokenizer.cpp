@@ -257,7 +257,7 @@ struct tokenize_delegate_helper : tokenize_delegate {
                 // Insert a matched closing bracket for each unmatched opening bracket.
                 // So that the parser can continue longer during error recovery.
                 auto const closing_bracket = mirror_bracket(unmatched_bracket);
-                add_token(token{t.first, closing_bracket});
+                add_token(token{t.first, gsl::narrow_cast<char>(closing_bracket)});
             }
 
             // Treat end-of-file as a possible line feed.

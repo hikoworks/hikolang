@@ -3,6 +3,12 @@
 
 #include "utility/fixed_string.hpp"
 #include "utility/char_category.hpp"
+#include <stdexcept>
+#include <cstdint>
+#include <string_view>
+#include <set>
+#include <cassert>
+#include <format>
 
 namespace hl {
 
@@ -20,7 +26,7 @@ struct error_code {
 
     constexpr error_code(uint16_t code, char kind) noexcept : code(code), kind(kind) {}
 
-    constexpr error_code(std::string_view str) noexcept
+    constexpr error_code(std::string_view str)
     {
         auto it = str.begin();
         if (it == str.end()) {
@@ -43,21 +49,33 @@ struct error_code {
 
         throw std::invalid_argument("Error code string must contain a colon ':' after the numeric part");
     }
+
+    [[nodiscard]] constexpr bool has_value() const noexcept
+    {
+        return code != 0 or kind != '\0';
+    }
+
+    constexpr explicit operator bool() const noexcept
+    {
+        return has_value();
+    }
 };
 
-inline std::set<error_code> all_error_codes = {};
+inline std::set<error_code> all_unique_error_codes = {};
 
 template<fixed_string Fmt>
-struct error_message_helper {
-    error_message_helper() {
-        auto const code = error_code{Fmt};
-        auto const [_, inserted] = error_messages.insert(code);
+struct unique_error_code_helper {
+    error_code code;
+
+    unique_error_code_helper() {
+        code = error_code{Fmt};
+        auto const [_, inserted] = all_unique_error_codes.insert(code);
 
         assert(inserted);
     }
 };
 
 template<fixed_string Fmt>
-inline error_message_helper<Fmt> error_message = {};
+inline unique_error_code_helper<Fmt> unique_error_code = {};
 
 }

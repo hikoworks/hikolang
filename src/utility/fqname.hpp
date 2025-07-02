@@ -11,10 +11,11 @@ namespace hl {
 class fqname {
 public:
     class const_iterator {
+    public:
         struct proxy_type {
             std::string_view _s;
 
-            std::string_view *operator->() const noexcept
+            constexpr std::string_view const *operator->() const noexcept
             {
                 return std::addressof(_s);
             }
@@ -26,10 +27,10 @@ public:
         using pointer = const char*;
         using reference = const char&;
 
-        const_iterator(const_iterator&) noexcept = default;
-        const_iterator(const_iterator&&) noexcept = default;
-        const_iterator& operator=(const_iterator&) noexcept = default;
-        const_iterator& operator=(const_iterator&&) noexcept = default;
+        constexpr const_iterator(const_iterator&) noexcept = default;
+        constexpr const_iterator(const_iterator&&) noexcept = default;
+        constexpr const_iterator& operator=(const_iterator&) noexcept = default;
+        constexpr const_iterator& operator=(const_iterator&&) noexcept = default;
 
         /** Compares two iterators for equality.
          * 
@@ -40,7 +41,7 @@ public:
          * @param rhs The second iterator to compare.
          * @return true if the iterators are equal, false otherwise.
          */
-        [[nodiscard]] friend bool operator==(const_iterator const& lhs, const_iterator const& rhs) noexcept
+        [[nodiscard]] constexpr friend bool operator==(const_iterator const& lhs, const_iterator const& rhs) noexcept
         {
             assert(lhs._fq == rhs._fq);
             if (lhs._s.data() == rhs._s.data()) {
@@ -59,9 +60,9 @@ public:
          * @param rhs The default sentinel.
          * @return true if the iterator is equal to the default sentinel, false otherwise.
          */
-        [[nodiscard]] friend bool operator==(const_iterator const& lhs, std::default_sentinel_t) noexcept
+        [[nodiscard]] constexpr friend bool operator==(const_iterator const& lhs, std::default_sentinel_t) noexcept
         {
-            return lhs.pos() == lhs._fq->_name.size();
+            return lhs.pos() == lhs._fq->name().size();
         }
 
         /** Increment the iterator to point to the next component of the fully qualified name.
@@ -69,7 +70,7 @@ public:
          * @note It is UNDEFINED BEHAVIOR to increment an iterator that is already at the end of the fully qualified name.
          * @return A reference to the incremented iterator.
          */
-        const_iterator& operator++()
+        constexpr const_iterator& operator++()
         {
             // Iterator can only be incremented if it is not at the end.
             assert(pos() < _fq->_name.size());
@@ -83,12 +84,12 @@ public:
          * @note It is UNDEFINED BEHAVIOR to decrement an iterator that is already at the beginning of the fully qualified name.
          * @return A reference to the decremented iterator.
          */
-        const_iterator& operator--()
+        constexpr const_iterator& operator--()
         {
             // Iterator can only be decremented if it is not at the beginning.
-            assert(_pos > 0);
+            assert(pos() > 0);
 
-            auto const dot_pos = _fq->_name.rfind('.', _pos - 1);
+            auto const dot_pos = _fq->_name.rfind('.', pos() - 1);
             auto const new_pos = dot_pos != std::string::npos ? dot_pos + 1 : 0;
             fix_string_view(new_pos);
             return *this;
@@ -101,7 +102,7 @@ public:
          * @note It is UNDEFINED BEHAVIOR to increment an iterator that is already at the end of the fully qualified name.
          * @return A copy of the iterator before incrementing.
          */
-        [[nodiscard]] const_iterator operator++(int)
+        [[nodiscard]] constexpr const_iterator operator++(int)
         {
             auto tmp = *this;
             ++*this;
@@ -115,7 +116,7 @@ public:
          * @note It is UNDEFINED BEHAVIOR to decrement an iterator that is already at the beginning of the fully qualified name.
          * @return A copy of the iterator before decrementing.
          */
-        [[nodiscard]] const_iterator operator--(int)
+        [[nodiscard]] constexpr const_iterator operator--(int)
         {
             auto tmp = *this;
             --*this;
@@ -127,7 +128,7 @@ public:
          * @note It is UNDEFINED BEHAVIOR to dereference an iterator that is at the end of the fully qualified name.
          * @return A reference to the current component of the fully qualified name.
          */
-        [[nodiscard]] value_type operator*() const
+        [[nodiscard]] constexpr value_type operator*() const
         {
             assert(*this != std::default_sentinel);
             return _s;
@@ -138,7 +139,7 @@ public:
          * @note It is UNDEFINED BEHAVIOR to dereference an iterator that is at the end of the fully qualified name.
          * @return A pointer to the current component of the fully qualified name.
          */
-        [[nodiscard]] proxy_type operator->() const
+        [[nodiscard]] constexpr proxy_type operator->() const
         {
             assert(*this != std::default_sentinel);
             return proxy_type{_s};
@@ -148,7 +149,7 @@ public:
         fqname const* _fq = nullptr;
         value_type _s;
 
-        const_iterator(fqname const &fq) noexcept
+        constexpr const_iterator(fqname const &fq) noexcept
             : _fq(std::addressof(fq))
         {
             fix_string_view(0);
@@ -171,6 +172,8 @@ public:
 
             _s = value_type{_fq->_name.data() + new_pos, new_len};
         }
+
+        friend class fqname;
     };
 
     /** Construct an empty fully qualified name.
@@ -224,6 +227,19 @@ public:
         }
     }
 
+    /** Get the fully qualified name as a string view. 
+     * 
+     */
+    [[nodiscard]] constexpr std::string_view name() const noexcept
+    {
+        return _name;
+    }
+
+    constexpr operator std::string_view() const noexcept
+    {
+        return name();
+    }
+
     /** Checks if this fully qualified name is a subname of another.
      * 
      *  A fully qualified name is a subname of another if:
@@ -235,10 +251,10 @@ public:
      */
     [[nodiscard]] constexpr bool is_subname_of(fqname const& other) const noexcept
     {
-        auto it = lhs.begin();
-        auto jt = rhs.begin();
+        auto it = this->begin();
+        auto jt = other.begin();
 
-        while (it != lhs.end() and jt != rhs.end()) {
+        while (it != this->end() and jt != other.end()) {
             if (*it != *jt) {
                 return false;
             }
@@ -246,7 +262,7 @@ public:
             ++jt;
         }
 
-        return it == lhs.end();
+        return it == this->end();
     }
 
     /** Get an iterator to the first component of the fully qualified name.
@@ -312,6 +328,22 @@ public:
         }
         assert(it != end());
         return *it;
+    }
+
+    /** Append a component to the fully qualified name.
+     * 
+     * @note It is UNDEFINED BEHAVIOR to append an empty component or a component that contains a dot '.'.
+     * @param component The component to append to the fully qualified name.
+     */
+    constexpr void operator+=(std::string_view component)
+    {
+        assert(not component.empty());
+        assert(component.find('.') == std::string_view::npos);
+
+        if (not _name.empty()) {
+            _name += '.';
+        }
+        _name += component;
     }
 
 private:

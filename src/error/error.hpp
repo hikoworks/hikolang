@@ -1,6 +1,6 @@
 #pragma once
 
-#include "error_codes.hpp"
+#include "error_code.hpp"
 #include "utility/file_location.hpp"
 #include <string>
 #include <format>
@@ -20,17 +20,29 @@ private:
 
 class error {
 public:
+    constexpr error() noexcept = default;
+    error(error const&) = default;
+    error(error&&) = default;
+    error& operator=(error const&) = default;
+    error& operator=(error&&) = default;
+
     template<typename... Args>
-    error(file_location first, file_location last, std::format_string<Args...> fmt, Args&&... args)
-        : _first(first), _last(last), _message(std::format(std::move(fmt), std::forward<Args>(args)...))
+    error(file_location first, file_location last, error_code code, std::format_string<Args...> fmt, Args&&... args)
+        : _first(first), _last(last), _code(code), _message(std::format(std::move(fmt), std::forward<Args>(args)...))
     {
-        _code = parse_code_from_message(_message);
+        assert(_code.has_value());
     }
 
     template<typename... Args>
     void add_cause(file_location first, file_location last, std::format_string<Args...> fmt, Args&&... args)
     {
         _causes.emplace_back(first, last, std::format(std::move(fmt), std::forward<Args>(args)...));
+    }
+
+    operator std::unexpected<error_code>() const
+    {
+        assert(_code.has_value());
+        return std::unexpected{_code};
     }
 
     [[nodiscard]] constexpr file_location first() const noexcept { return _first; }
@@ -40,38 +52,11 @@ public:
     [[nodiscard]] constexpr auto const& causes() const noexcept { return _causes; }
 
 private:
-    file_location _first;
-    file_location _last;
-    error_code _code = error_code::none;
-    std::string _message;
-    std::vector<cause> _causes;
-
-    static error_code parse_code_from_message(const std::string& msg) {
-        // Assume pattern: [E|W][0-9][0-9][0-9][0-9]: at the start of msg
-        if (msg.size() >= 6) {
-            char c = msg[0];
-            if ((c == 'E' || c == 'W') &&
-                std::isdigit(msg[1]) &&
-                std::isdigit(msg[2]) &&
-                std::isdigit(msg[3]) &&
-                std::isdigit(msg[4]) &&
-                msg[5] == ':')
-            {
-                int code_num = (msg[1] - '0') * 1000 +
-                               (msg[2] - '0') * 100 +
-                               (msg[3] - '0') * 10 +
-                               (msg[4] - '0');
-                if (c == 'W') {
-                    if (code_num >= 0 && code_num <= 9999)
-                        return static_cast<error_code>(code_num);
-                } else if (c == 'E') {
-                    if (code_num >= 0 && code_num <= 9999)
-                        return static_cast<error_code>(10000 + code_num);
-                }
-            }
-        }
-        throw std::invalid_argument("Could not parse error code from message: " + msg);
-    }
+    file_location _first = {};
+    file_location _last = {};
+    error_code _code = {};
+    std::string _message = {};
+    std::vector<cause> _causes = {};
 };
 
 }

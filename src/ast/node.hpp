@@ -16,8 +16,8 @@ public:
     file_location last = {};
 
     virtual ~node() = default;
-    constexpr node() noexcept = default;
-
+    constexpr node(file_location first) noexcept : first(first), last(first) {}
+    constexpr node(file_location first, file_location last) noexcept : first(first), last(last) {}
 
 };
 

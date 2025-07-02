@@ -4,7 +4,7 @@
 
 namespace hl {
 
-[[nodiscard]] std::optional<token> parse_scramble_directive(file_cursor& c)
+[[nodiscard]] std::optional<token> parse_scram_directive(file_cursor& c)
 {
     if (c.location().column != 0) {
         // The line directive must be at the start of the line.

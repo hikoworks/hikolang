@@ -1,34 +1,40 @@
 
 #include "parsers.hpp"
 #include "consume.hpp"
+#include "ast/nodes.hpp"
+
 
 namespace hl {
 
 
-[[nodiscard]] parse_result<ast::module_node> parse_module(token_iterator& it, error_list& errors)
+[[nodiscard]] parse_result_ptr<ast::module_node> parse_module(token_iterator& it, error_list& errors)
 {
-    auto module_node = std::make_unique<ast::module_node>();
+    auto const first = it->first;
+    auto r = std::make_unique<ast::module_node>(first);
 
     if (auto node = parse_module_declaration(it, errors)) {
-        module_node->declaration = std::move(node).value();
-    } else if (node.has_error()) {
-        return node.error();
+        r->declaration = std::move(node).value();
+    } else if (node.error()) {
+        return std::unexpected{node.error()};
     } else {
-        return nullptr;
+        return tokens_did_not_match;
     }
 
     while (true) {
         if (auto node = parse_import_declaration(it, errors)) {
-            module_node->imports.push_back(std::move(node).value());
-        } else if (node.has_error()) {
+            r->imports.push_back(std::move(node).value());
+        } else if (node.error()) {
             // Parsing can continue on failure.
             consume_rest_of_statement(it);
         } else {
+            // Something else than a `import` declaration was found.
             break;
         }
     }
 
-    return module_node;
+    auto const last = it->first;
+    r->last = last;
+    return r;
 }
 
 } // namespace hl

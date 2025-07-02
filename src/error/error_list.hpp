@@ -2,7 +2,7 @@
 #pragma once
 
 #include "error.hpp"
-#include "error_codes.hpp"
+#include "error_code.hpp"
 #include "utility/file_location.hpp"
 #include "utility/fixed_string.hpp"
 #include <vector>
@@ -21,13 +21,17 @@ public:
      *  @param code The error code.
      *  @param fmt The format string for the error message.
      *  @param args The arguments to format the error message.
-     *  @return A reference to the newly added error.
+     *  @return A unexpected error containing the error code.
      */
     template<fixed_string Fmt, typename... Args>
-    error &add(file_location first, file_location last, Args&&... args)
+    std::unexpected<error_code> add(file_location first, file_location last, Args&&... args)
     {
-        auto message = std::format(std::move(fmt), std::forward<Args>(Fmt)...);
-        return emplace_back(first, last, code, std::move(message));
+        auto const code = unique_error_code<Fmt>.code;
+        assert(code.has_value());
+
+        auto e = error{first, last, code, Fmt, std::forward<Args>(args)...};
+        this->push_back(std::move(e));
+        return std::unexpected{code};
     }
 
 private:
