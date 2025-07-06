@@ -8,22 +8,18 @@ The search paths for a project are as follows and in this order:
  - The current directory, or the directory passed as the non-option argument to
    the compiler.
  - The paths specified in the `--search-path=<paths>` options.
- - The paths created by downloading packages specified in the `hic.toml`
-   file, recursively.
+ - The paths created by downloading packages specified in the `.hkp`
+   files, recursively.
 
 The search path is a `;` separated list of:
  - directories,
  - .zip files,
  - git repository URLs
 
-The `hic.toml` file includes the `[dependencies]` section
-which specifies the packages to be downloaded and their versions.
-Here is an example of a dependencies section:
+The `.hkp` file includes the `import package` declaration which specifies the
+packages to be downloaded and their versions. The compiler will download the
+packages and add them to the search path.
 
-```toml
-[dependencies]
-foo = { url = "https://github.com/example/foo.git", branch = "v1.0" }
-```
 
 > [!NOTE]
 > It is a reportable error if a repository URL is used more than once from
@@ -34,23 +30,23 @@ foo = { url = "https://github.com/example/foo.git", branch = "v1.0" }
 
 ## File Structure
 The file structure of a project or package is completely arbitrary. Each
-.hic file in the directory hierarchy is read by the compiler to determine
+.hkm file in the directory hierarchy is read by the compiler to determine
 its module name and what modules it imports.
 
 Directories and files that have a dot `.` prefix are ignored by the compiler.
-The compiler uses this to place downloaded packages in a `.hic/packages`
+The compiler uses this to place downloaded packages in a `.hkm/packages`
 directory.
 
-## A .hic source file
-A .hic file is a source file that contains code that implements a module or
+## A .hkm source file
+A .hkm file is a source file that contains code that implements a module or
 application.
 
-The first statement in a .hic file is either a `module` or `application`
+The first statement in a .hkm file is either a `module` or `application`
 statement. This is followed by zero or more `import` statements. This forms
 the prologue of the file. Any other statements in the file terminates the
 prologue and starts the body of the file.
 
-The compiler will read the prologue of each .hic file in the directory hierarchy
+The compiler will read the prologue of each .hkm file in the directory hierarchy
 for each package listed in the search path. From this it will determine
 which files need to be compiled and in which order.
 
@@ -60,13 +56,13 @@ file should be compiled for the current platform, architecture, build-phase, or
 other conditions.
 
 > [!NOTE]
-> It is a reportable error if two .hic files have the same module or
+> It is a reportable error if two .hkm files have the same module or
 > application name after evaluation of the conditional compilation expression.
 
 ## Application executable
-An application executable is created by compiling a .hic file that contains an
+An application executable is created by compiling a .hkm file that contains an
 `application` statement. The executable is named with the name specified in the
-`application` statement and is placed next to the .hic file.
+`application` statement and is placed next to the .hkm file.
 
 Like the `module` statement, the `application` statement may include an
 expression for conditional compilation which will be evaluated during the
@@ -83,10 +79,10 @@ phase. These conditions are:
 ## Build Phases
 
  1. **Package Download Phase**: The compiler will download the packages
-    specified in the `hic.toml` file, recursively. This includes downloading
+    specified in the `.hkp` file, recursively. This includes downloading
     the source code from the specified URLs, and .zip files and adding them
     to the search path. Each package will be placed in a
-    `.hic/packages/<package_name>` directory of the current package being
+    `.hkm/packages/<package_name>` directory of the current package being
     compiled. The package name is derived from the URL or .zip file name.
  2. **Per Package**: For each package in depth-first order:
     - Compile the package with the `download` build phase, any application with

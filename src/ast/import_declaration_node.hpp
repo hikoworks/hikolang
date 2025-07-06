@@ -5,7 +5,7 @@
 #include "utility/fqname.hpp"
 
 
-namespace hl::ast {
+namespace hk::ast {
 
 class import_declaration_node : public node {
 public:

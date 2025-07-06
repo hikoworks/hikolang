@@ -3,7 +3,7 @@
 
 #include "node.hpp"
 
-namespace hl::ast {
+namespace hk::ast {
 
 class condition_expression_node : public node {
 public:

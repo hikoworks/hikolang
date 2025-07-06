@@ -5,7 +5,7 @@
 #include <cassert>
 #include <utility>
 
-namespace hl {
+namespace hk {
 
 [[nodiscard]] std::optional<token> parse_block_comment(file_cursor& c)
 {

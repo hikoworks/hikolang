@@ -3,7 +3,7 @@
 
 #include "parsers.hpp"
 
-namespace hl {
+namespace hk {
 
 /** Consume the rest of the current statement at the token iterator. 
  * 

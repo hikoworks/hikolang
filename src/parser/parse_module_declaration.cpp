@@ -1,7 +1,7 @@
 
 #include "parsers.hpp"
 
-namespace hl {
+namespace hk {
 
 [[nodiscard]] parse_result_ptr<ast::module_declaration_node> parse_module_declaration(token_iterator& it, error_list& e)
 {
@@ -48,4 +48,4 @@ namespace hl {
     return r;
 }
 
-} // namespace hl
+} // namespace hk

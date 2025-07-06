@@ -10,7 +10,7 @@
 #include <cassert>
 #include <format>
 
-namespace hl {
+namespace hk {
 
 struct error_code {
     char kind = '\0';

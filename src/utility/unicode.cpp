@@ -18,7 +18,7 @@
 #include <unicode/unistr.h>
 #include <unicode/uniset.h>
 
-namespace hl {
+namespace hk {
 
 [[nodiscard]] char32_t decode_utf8_code_point(char const*& ptr, char const* const end)
 {

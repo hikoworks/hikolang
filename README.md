@@ -112,6 +112,12 @@ hidden depedencies as well. This would allow an `$allocator` to be implicitly pa
 constructors called from a member-function. `$this` could be used as pointer to
 object/vtable.
 
+Another one of those hidden dependencies could be a mutex, maybe even passed to child
+objects like the allocator. I would also like a synchronize attribute on methods so
+that the mutex is automatically acquired and released when the method is called.
+But I want this synchronize attribute to be generic also for other things that
+can be acquired and released.
+
 I am not done thinking about this yet.
 
 ## Ranged arbitrary sized integers

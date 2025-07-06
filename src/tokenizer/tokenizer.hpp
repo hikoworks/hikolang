@@ -16,7 +16,7 @@
 #include <format>
 #include <cassert>
 
-namespace hl {
+namespace hk {
 
 /** A delegate interface for tokenization.
  * 
@@ -41,7 +41,7 @@ struct tokenize_delegate {
  * @param file_cursor The file cursor pointing to the text to tokenize.
  * @param delegate The delegate to call for each token produced.
  */
-void tokenize(hl::file_cursor &file_cursor, tokenize_delegate &delegate);
+void tokenize(hk::file_cursor &file_cursor, tokenize_delegate &delegate);
 
 
-} // namespace hl
+} // namespace hk

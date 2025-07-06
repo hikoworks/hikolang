@@ -5,7 +5,7 @@
 #include "utility/fqname.hpp"
 #include "utility/semantic_version.hpp"
 
-namespace hl::ast {
+namespace hk::ast {
 
 class package_node : public node {
 public:

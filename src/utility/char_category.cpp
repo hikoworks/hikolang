@@ -5,7 +5,7 @@ extern "C" {
 #include <unicode/uchar.h>
 }
 
-namespace hl {
+namespace hk {
 
 [[nodiscard]] bool is_identifier_start(char32_t cp) noexcept
 {
@@ -22,4 +22,4 @@ namespace hl {
     return ::u_hasBinaryProperty(static_cast<UChar32>(cp), UCHAR_PATTERN_SYNTAX);
 }
 
-} // namespace hl
+} // namespace hk

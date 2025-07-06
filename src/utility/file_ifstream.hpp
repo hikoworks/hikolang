@@ -4,7 +4,7 @@
 #include "file.hpp"
 #include <fstream>
 
-namespace hl {
+namespace hk {
 
 /** A file object representing a file in the filesystem.
  * 
@@ -20,7 +20,7 @@ public:
      *
      * @param path The absolute normalized path to the file.
      */
-    explicit file_ifstream(hl::path_id path_id);
+    explicit file_ifstream(hk::path_id path_id);
 
     /** Read the file content into a buffer.
      *
@@ -60,4 +60,4 @@ private:
     std::unique_lock<std::mutex> _close(std::unique_lock<std::mutex> lock) noexcept;
 };
 
-} // namespace hl
+} // namespace hk

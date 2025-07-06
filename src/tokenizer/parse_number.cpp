@@ -3,7 +3,7 @@
 #include "token_parsers.hpp"
 
 
-namespace hl {
+namespace hk {
 
 [[nodiscard]] std::optional<token> parse_number(file_cursor& c)
 {

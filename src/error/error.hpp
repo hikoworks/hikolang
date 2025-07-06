@@ -7,7 +7,7 @@
 #include <vector>
 #include <cassert>
 
-namespace hl {
+namespace hk {
 
 class cause {
 public:

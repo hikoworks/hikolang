@@ -9,7 +9,7 @@
 #include <expected>
 #include <utility>
 
-namespace hl {
+namespace hk {
 
 [[nodiscard]] std::optional<token> parse_operator(file_cursor& c)
 {
@@ -34,4 +34,4 @@ namespace hl {
     }
 }
 
-} // namespace hl
+} // namespace hk

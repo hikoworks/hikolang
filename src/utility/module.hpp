@@ -5,7 +5,7 @@
 #include <string>
 #include <cstddef>
 
-namespace hl {
+namespace hk {
 
 /** A module represents a compilation unit in the Hiko language.
  * 

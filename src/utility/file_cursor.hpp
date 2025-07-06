@@ -18,7 +18,7 @@
 #include <algorithm>
 #include <filesystem>
 
-namespace hl {
+namespace hk {
 
 /** A cursor pointing into a file, being able to read linearly from the file.
  * 
@@ -34,7 +34,7 @@ public:
      * @param base_path_id The path where compilation started.
      * @param path_id The file being compiled.
      */
-    file_cursor(hl::path_id base_path_id, hl::path_id path_id) noexcept;
+    file_cursor(hk::path_id base_path_id, hk::path_id path_id) noexcept;
 
     /** Get the file location where this file_cursor is currently pointint to.
      * 

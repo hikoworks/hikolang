@@ -4,7 +4,7 @@
 #include <gsl/gsl>
 #include <cassert>
 
-namespace hl {
+namespace hk {
 
 [[nodiscard]] std::optional<token> parse_bracketed_string(file_cursor& c, char open_bracket)
 {

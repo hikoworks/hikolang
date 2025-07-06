@@ -10,7 +10,7 @@
 #include <utility>
 #include <limits>
 
-namespace hl {
+namespace hk {
 
 [[nodiscard]] std::optional<token> parse_string(file_cursor& c)
 {

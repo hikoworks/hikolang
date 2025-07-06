@@ -11,7 +11,7 @@
 #include <variant>
 #include <format>
 
-namespace hl {
+namespace hk {
 
 class token {
 public:
@@ -325,4 +325,4 @@ public:
     }
 };
 
-} // namespace hl
+} // namespace hk

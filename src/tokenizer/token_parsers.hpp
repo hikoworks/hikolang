@@ -6,7 +6,7 @@
 #include <cstddef>
 #include <optional>
 
-namespace hl {
+namespace hk {
 
 /** Parse an assembly block in the source code.
  * 

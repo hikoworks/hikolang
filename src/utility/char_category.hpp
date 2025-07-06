@@ -10,7 +10,7 @@
  * to check if a code-point belongs to a specific category.
  */
 
-namespace hl {
+namespace hk {
 
 /** Is a code-point a vertical space.
  * 
@@ -235,4 +235,4 @@ namespace hl {
  */
 [[nodiscard]] bool is_pattern_syntax(char32_t cp) noexcept;
 
-} // namespace hl
+} // namespace hk

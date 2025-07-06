@@ -4,7 +4,7 @@
 #include "file.hpp"
 #include <vector>
 
-namespace hl {
+namespace hk {
 
 /** A file object that is a memory buffer instead of a file on disk.
  */
@@ -14,7 +14,7 @@ public:
      *
      * @param path The absolute normalized path to the file.
      */
-    explicit file_buffer(hl::path_id path_id);
+    explicit file_buffer(hk::path_id path_id);
 
     /** Read the file content into a buffer.
      *

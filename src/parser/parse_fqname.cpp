@@ -2,7 +2,7 @@
 #include "parsers.hpp"
 #include "utility/fqname.hpp"
 
-namespace hl {
+namespace hk {
 
 [[nodiscard]] parse_result<fqname> parse_fqname(token_iterator& it, error_list& e)
 {
@@ -30,4 +30,4 @@ namespace hl {
     }
 }
 
-} // namespace hl
+} // namespace hk

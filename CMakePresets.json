@@ -76,8 +76,8 @@
       "name": "targets",
       "hidden": true,
       "targets": [
-        "hic-tests",
-        "hic"
+        "hktests",
+        "hkc"
       ]
     },
     {

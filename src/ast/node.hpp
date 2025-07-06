@@ -3,7 +3,7 @@
 
 #include "utility/file_location.hpp"
 
-namespace hl::ast {
+namespace hk::ast {
 
 class node {
 public:

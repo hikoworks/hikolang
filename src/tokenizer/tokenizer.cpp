@@ -12,11 +12,11 @@
 #include <format>
 #include <expected>
 
-namespace hl {
+namespace hk {
 
 template<typename... Args>
 static void
-send_error(hl::file_cursor& c, tokenize_delegate& delegate, unsigned int advance, std::format_string<Args...> fmt, Args&&... args)
+send_error(hk::file_cursor& c, tokenize_delegate& delegate, unsigned int advance, std::format_string<Args...> fmt, Args&&... args)
 {
     auto r = token{c.location(), token::error};
     r.text = std::format(std::move(fmt), std::forward<Args>(args)...);
@@ -25,7 +25,7 @@ send_error(hl::file_cursor& c, tokenize_delegate& delegate, unsigned int advance
     delegate.on_token(std::move(r));
 }
 
-static void simple_tokenize(hl::file_cursor& c, tokenize_delegate& delegate)
+static void simple_tokenize(hk::file_cursor& c, tokenize_delegate& delegate)
 {
     enum class state_type {
         normal,
@@ -273,10 +273,10 @@ struct tokenize_delegate_helper : tokenize_delegate {
     }
 };
 
-void tokenize(hl::file_cursor& c, tokenize_delegate& delegate)
+void tokenize(hk::file_cursor& c, tokenize_delegate& delegate)
 {
     auto simple_delegate = tokenize_delegate_helper{delegate};
     return simple_tokenize(c, simple_delegate);
 }
 
-} // namespace hl
+} // namespace hk

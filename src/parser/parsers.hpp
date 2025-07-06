@@ -9,7 +9,7 @@
 #include <memory>
 #include <expected>
 
-namespace hl {
+namespace hk {
 
 using token_iterator = std::vector<token>::const_iterator;
 
@@ -29,7 +29,7 @@ constexpr std::unexpected<error_code> tokens_did_not_match = std::unexpected{err
  * @param only_prologue If true, only parse the prologue of the module (declaration and imports).
  * @return A parse result containing the module node or an error code.
  */
-[[nodiscard]] parse_result_ptr<ast::module_node> parse_module(hl::file_cursor& c, error_list &e, bool only_prologue)
+[[nodiscard]] parse_result_ptr<ast::module_node> parse_module(hk::file_cursor& c, error_list &e, bool only_prologue);
 
 /** Parse a package metadata from the given file cursor. 
  * 
@@ -39,10 +39,10 @@ constexpr std::unexpected<error_code> tokens_did_not_match = std::unexpected{err
  * @param only_prologue If true, only parse the prologue of the package (declaration and imports).
  * @return A parse result containing the package node or an error code.
  */
-[[nodiscard]] parse_result_ptr<ast::package_node> parse_package(hl::file_cursor& c, error_list &e, bool only_prologue)
+[[nodiscard]] parse_result_ptr<ast::package_node> parse_package(hk::file_cursor& c, error_list &e, bool only_prologue);
 
 [[nodiscard]] parse_result<fqname> parse_fqname(token_iterator& it, error_list& e);
-[[nodiscard]] parse_result_ptr<ast::node> parse(hl::file_cursor& c);
+[[nodiscard]] parse_result_ptr<ast::node> parse(hk::file_cursor& c);
 [[nodiscard]] parse_result_ptr<ast::node> parse(token_iterator& it, error_list &errors);
 [[nodiscard]] parse_result_ptr<ast::module_node> parse_module(token_iterator& it, error_list &errors, bool only_prologue);
 [[nodiscard]] parse_result_ptr<ast::module_declaration_node> parse_module_declaration(token_iterator& it, error_list& e);

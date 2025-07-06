@@ -1,7 +1,7 @@
 
 #include "parsers.hpp"
 
-namespace hl {
+namespace hk {
 
 [[nodiscard]] parse_result_ptr<ast::import_declaration_node> parse_import_declaration(token_iterator& it, error_list& e)
 {

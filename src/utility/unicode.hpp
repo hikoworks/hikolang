@@ -10,7 +10,7 @@
 #include <bit>
 #include <string>
 
-namespace hl {
+namespace hk {
 
 enum class unicode_error : char32_t {
     /// Invalid UTF-16 surrogate value encoded in UTF-8 stream.
@@ -241,4 +241,4 @@ enum class unicode_name_error {
  */
 [[nodiscard]] std::expected<char32_t, unicode_name_error> unicode_name_to_code_point(std::string name);
 
-} // namespace hl
+} // namespace hk

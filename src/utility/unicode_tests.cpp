@@ -13,7 +13,7 @@ TEST_CASE(unicode_decode_valid)
     auto const end = ptr + utf8_str.size();
 
     while (ptr != end) {
-        auto const code_point = hl::decode_utf8_code_point(ptr, end);
+        auto const code_point = hk::decode_utf8_code_point(ptr, end);
         utf32_str.push_back(code_point);
 
         REQUIRE(code_point <= 0x10ffff);

@@ -4,7 +4,7 @@
 #include <cstddef>
 #include <string_view>
 
-namespace hl {
+namespace hk {
 
 /** A fixed imutable string type that can be used as a template parameter. 
  * 

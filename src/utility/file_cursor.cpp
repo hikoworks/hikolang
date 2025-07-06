@@ -4,9 +4,9 @@
 #include "char_category.hpp"
 #include <cassert>
 
-namespace hl {
+namespace hk {
 
-file_cursor::file_cursor(hl::path_id base_path_id, hl::path_id path_id) noexcept : _location(base_path_id, path_id)
+file_cursor::file_cursor(hk::path_id base_path_id, hk::path_id path_id) noexcept : _location(base_path_id, path_id)
 {
     _buffer.resize(max_buffer_size);
     fill_lookahead();
@@ -54,7 +54,7 @@ void file_cursor::advance()
 
 void file_cursor::fill_buffer()
 {
-    auto &file = hl::get_file(_location.path_id);
+    auto &file = hk::get_file(_location.path_id);
 
     assert(_buffer.size() == max_buffer_size);
     _buffer_size = file.read(_offset, std::span<char>(_buffer));

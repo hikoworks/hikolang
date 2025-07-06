@@ -2,7 +2,7 @@
 #include "semantic_version.hpp"
 #include "char_category.hpp"
 
-namespace hl {
+namespace hk {
 
 semantic_version::semantic_version(std::string_view version) :
     major(std::numeric_limits<std::size_t>::max()),

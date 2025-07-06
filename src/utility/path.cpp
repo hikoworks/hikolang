@@ -9,7 +9,7 @@
 #include <cassert>
 #include <format>
 
-namespace hl {
+namespace hk {
 
 inline static std::mutex _path_mutex;
 inline static std::map<std::filesystem::path, path_id> _path_by_name;
@@ -86,4 +86,4 @@ inline static std::vector<decltype(_path_by_name)::key_type const*> _path_by_id;
     return *key_ptr;
 }
 
-} // namespace hl
+} // namespace hk

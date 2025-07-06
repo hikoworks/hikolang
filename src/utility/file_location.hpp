@@ -6,16 +6,16 @@
 #include "char_category.hpp"
 #include <cstddef>
 
-namespace hl {
+namespace hk {
 
 struct file_location {
     /** The path where compilation started.
      */
-    hl::path_id base_path_id = hl::path_id::invalid;
+    hk::path_id base_path_id = hk::path_id::invalid;
 
     /** The file being compiled.
      */
-    hl::path_id path_id = hl::path_id::invalid;
+    hk::path_id path_id = hk::path_id::invalid;
 
     /** The line being compiled.
      */
@@ -27,7 +27,7 @@ struct file_location {
 
     /** The source file that generated the file being compiled.
      */
-    hl::path_id source_path_id = hl::path_id::invalid;
+    hk::path_id source_path_id = hk::path_id::invalid;
 
     /** The line in the source file that generated the file being compiled.
      */
@@ -44,7 +44,7 @@ struct file_location {
      * @param base_path_id The path where compilation started.
      * @param path_id The file being compiled.
      */
-    constexpr file_location(hl::path_id base_path_id, hl::path_id path_id) noexcept
+    constexpr file_location(hk::path_id base_path_id, hk::path_id path_id) noexcept
         : base_path_id(base_path_id), path_id(path_id), line(0), column(0),
           source_path_id(path_id), source_line(0)
     {
@@ -74,7 +74,7 @@ struct file_location {
      */
     void set_line(std::filesystem::path const& path, std::size_t line)
     {
-        this->source_path_id = hl::get_path_id(path, this->path_id);
+        this->source_path_id = hk::get_path_id(path, this->path_id);
         set_line(line);
     }
 
@@ -102,4 +102,4 @@ struct file_location {
     }
 };
 
-} // namespace hl
+} // namespace hk

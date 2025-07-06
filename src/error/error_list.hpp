@@ -8,7 +8,7 @@
 #include <vector>
 #include <format>
 
-namespace hl {
+namespace hk {
 
 class error_list : public std::vector<error> {
 public:

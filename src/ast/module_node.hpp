@@ -7,7 +7,7 @@
 #include <memory>
 #include <vector>
 
-namespace hl::ast {
+namespace hk::ast {
 
 class module_node : public node {
 public:
@@ -19,4 +19,4 @@ public:
 
 };
 
-} // namespace hl
+} // namespace hk

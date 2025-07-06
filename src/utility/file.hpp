@@ -6,7 +6,7 @@
 #include <mutex>
 #include <cstddef>
 
-namespace hl {
+namespace hk {
 
 /** A file object representing a file in the filesystem.
  * 
@@ -24,7 +24,7 @@ public:
      *
      * @param path The absolute normalized path to the file.
      */
-    explicit file(hl::path_id path_id);
+    explicit file(hk::path_id path_id);
 
     /** Read the file content into a buffer.
      *
@@ -77,7 +77,7 @@ protected:
  * @param path_id The path identifier to get the file for.
  * @return A file object pointing to the file, or an error code if the file could not be opened.
  */
-[[nodiscard]] file &get_file(hl::path_id path_id);
+[[nodiscard]] file &get_file(hk::path_id path_id);
 
 /** Remove the file object from memory.
  * 
@@ -86,6 +86,6 @@ protected:
  * 
  * @param path_id The path identifier of the file object to remove.
  */
-void free_file(hl::path_id path_id) noexcept;
+void free_file(hk::path_id path_id) noexcept;
 
-} // namespace hl
+} // namespace hk

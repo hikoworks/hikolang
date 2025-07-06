@@ -2,9 +2,9 @@
 #include "file_ifstream.hpp"
 #include <cassert>
 
-namespace hl {
+namespace hk {
 
-file_ifstream::file_ifstream(hl::path_id path_id)
+file_ifstream::file_ifstream(hk::path_id path_id)
     : file(path_id)
 {
 }
@@ -113,4 +113,4 @@ void file_ifstream::close() noexcept
     _close(std::unique_lock(_mutex));
 }
 
-} // namespace hl
+} // namespace hk

@@ -8,7 +8,7 @@
 #include <compare>
 #include <format>
 
-namespace hl {
+namespace hk {
 
 /** A semantic versioning structure.
  * 
@@ -121,9 +121,9 @@ struct semantic_version {
 }
 
 template<typename CharT>
-struct std::formatter<hl::semantic_version, CharT> : std::formatter<std::basic_string<CharT>, CharT> {
+struct std::formatter<hk::semantic_version, CharT> : std::formatter<std::basic_string<CharT>, CharT> {
     template <typename FormatContext>
-    auto format(hl::semantic_version const& v, FormatContext& ctx) const
+    auto format(hk::semantic_version const& v, FormatContext& ctx) const
     {
         auto minor_str = std::string{"*"};
         if (v.minor != std::numeric_limits<std::size_t>::max()) {

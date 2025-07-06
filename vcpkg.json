@@ -6,6 +6,6 @@
   "license": "BSL-1.0",
   "supports": "windows | linux | osx",
   "dependencies": [
-    "icu", "ms-gsl"
+    "icu", "ms-gsl", "libgit2"
   ]
 }

@@ -6,7 +6,7 @@
 #include <limits>
 #include <filesystem>
 
-namespace hl {
+namespace hk {
 
 /** A unique identifier for a path.
  * 

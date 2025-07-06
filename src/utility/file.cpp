@@ -6,9 +6,9 @@
 #include <memory>
 #include <cassert>
 
-namespace hl {
+namespace hk {
 
-file::file(hl::path_id path_id)
+file::file(hk::path_id path_id)
     : _path_id(path_id)
 {
 }
@@ -17,7 +17,7 @@ file::file(hl::path_id path_id)
 inline static std::mutex file_mutex;
 inline static std::map<path_id, std::unique_ptr<file>> file_by_path_id;
 
-[[nodiscard]] file& get_file(hl::path_id path_id)
+[[nodiscard]] file& get_file(hk::path_id path_id)
 {
     auto const _ = std::scoped_lock(file_mutex);
 
@@ -43,4 +43,4 @@ inline static std::map<path_id, std::unique_ptr<file>> file_by_path_id;
     return *(it->second);
 }   
 
-} // namespace hl
+} // namespace hk

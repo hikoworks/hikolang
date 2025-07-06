@@ -8,7 +8,7 @@
 #include <utility>
 #include <memory>
 
-namespace hl {
+namespace hk {
 
 /** A fixed-size FIFO queue implementation.
  * 
@@ -279,4 +279,4 @@ private:
     std::array<value_type, Size> _data = {};
 };
 
-} // namespace hl
+} // namespace hk

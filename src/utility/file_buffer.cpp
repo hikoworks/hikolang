@@ -3,9 +3,9 @@
 #include "file.hpp"
 #include <cassert>
 
-namespace hl {
+namespace hk {
 
-file_buffer::file_buffer(hl::path_id path_id)
+file_buffer::file_buffer(hk::path_id path_id)
     : file(path_id)
 {
 }
@@ -57,4 +57,4 @@ std::size_t file_buffer::write(std::size_t position, std::span<char const> buffe
     return make_file_buffer(std::span<char const>{content.data(), content.size()});
 }
 
-} // namespace hl
+} // namespace hk

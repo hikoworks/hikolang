@@ -5,7 +5,7 @@
 #include <cstddef>
 #include <mutex>
 
-namespace hl {
+namespace hk {
 
 static std::vector<module> modules;
 static std::mutex modules_mutex;

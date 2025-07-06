@@ -6,7 +6,7 @@
 #include <iterator>
 #include <cstddef>
 
-namespace hl {
+namespace hk {
 
 class fqname {
 public:

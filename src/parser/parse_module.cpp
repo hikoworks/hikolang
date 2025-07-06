@@ -4,7 +4,7 @@
 #include "ast/nodes.hpp"
 #include "tokenizer/tokenizer.hpp"
 
-namespace hl {
+namespace hk {
 
 
 [[nodiscard]] parse_result_ptr<ast::module_node> parse_module(token_iterator& it, error_list& e, bool only_prologue)
@@ -44,7 +44,7 @@ namespace hl {
     return r;
 }
 
-[[nodiscard]] parse_result_ptr<ast::module_node> parse_module(hl::file_cursor& c, error_list &e, bool only_prologue)
+[[nodiscard]] parse_result_ptr<ast::module_node> parse_module(hk::file_cursor& c, error_list &e, bool only_prologue)
 {
     class delegate_type : public tokenize_delegate {
     public:
@@ -69,10 +69,10 @@ namespace hl {
 
     auto tokens = std::vector<token>{};
     auto delegate = delegate_type(tokens);
-    hl::tokenize(c, delegate);
+    hk::tokenize(c, delegate);
 
     auto it = tokens.cbegin();
     return parse_module(it, e, only_prologue);
 }
 
-} // namespace hl
+} // namespace hk

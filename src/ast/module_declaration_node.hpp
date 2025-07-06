@@ -6,7 +6,7 @@
 #include "utility/fqname.hpp"
 #include <string>
 
-namespace hl::ast {
+namespace hk::ast {
 
 class module_declaration_node : public node {
 public:
