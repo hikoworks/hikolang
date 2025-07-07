@@ -12,9 +12,9 @@ or [`application`](application_declaration.md)) declaration to give the file a
 module-name. A module declaration must appear at the top of a file,
 before any other declarations.
 
-The _module_name_ is a unique identifier for the module, which is used to
-identify the module in the module system. Every module must have a
-_module_name_ that is a sub-name of a package declarated in the same repository.
+The _module_name_ is a unique identifier for the module. Every module must have
+a _module_name_ that is a sub-name of a package or application declarated in the
+same repository.
 
 The optional _compile_condition_ is evaluated during the prologue-scan phase of
 compilation, this checks if the file should be compiled.

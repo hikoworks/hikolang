@@ -2,93 +2,93 @@
 
 This document outlines the organization of files in the project.
 
-## Search Paths
+## Repository
+A repository is a directory hierarchy containing `*.hkm` files, which are the
+source files. The hierarchy is completely free-form, and the developer is
+free to organize the files as they see fit.
 
-The search paths for a project are as follows and in this order:
- - The current directory, or the directory passed as the non-option argument to
-   the compiler.
- - The paths specified in the `--search-path=<paths>` options.
- - The paths created by downloading packages specified in the `.hkp`
-   files, recursively.
+The compiler will scan the directory hierarchy for every `*.hkm` file, but
+will ignore files and directories that start with a dot `.`.
 
-The search path is a `;` separated list of:
- - directories,
- - .zip files,
- - git repository URLs
+`*.hkm` files are of three different types:
+ - **Application**: A file that declares and contains code for an executable
+   program.
+ - **Package**: A file that declares an anchoring point for a module hierarchy.
+   And allows code to be imported by another repository. 
+ - **Module**: A file that declares a module that contains code that can be
+   used by other modules, applications, and packages.
 
-The `.hkp` file includes the `import package` declaration which specifies the
-packages to be downloaded and their versions. The compiler will download the
-packages and add them to the search path.
+Each repository must have at least one `*.hkm` file that declares itself as
+either a `package` or an `application`. A repository may contain multiple
+packages and applications.
 
+### Host repository
+The host repository is repository that is being build by the compiler.
+Dependencies are not host repositories themselves.
 
-> [!NOTE]
-> It is a reportable error if a repository URL is used more than once from
-> different branches.
+The compiler will create a `.hkdeps/` directory in the host repository to clone
+all the repositories that are declared as dependencies recursively.
 
-> [!NOTE]
-> It is a reportable error if the same module is found in the search path.
+Each cloned-repository is located in `.hkdeps/<name>-<hash>/`:
+ - The `<name>` is the last part of the URL, `*.zip` file name, or the name of a
+   local directory. Excluding the extension.
+ - The `<hash>` is a hash of the full URL/path and branch of the repository,
+   using the following algorithm:
+    1. SHA-256 hash of:
+      * **git**: The full URL of the repository, a dash `-`, and the branch name.
+      * **zip**: The full URL of the .zip file.
+      * **local directory**: The full path of the directory.
+    3. Encode the lower 51 bits with base36, with the following alphabet:
+       `0123456789abcdefghijklmnopqrstuvwxyz` (lowercase letters and digits).
 
-## File Structure
-The file structure of a project or package is completely arbitrary. Each
-.hkm file in the directory hierarchy is read by the compiler to determine
-its module name and what modules it imports.
+### Remote repositories
+Each `*.hkm` file may declare a remote repository using the `repository`
+declaration. This declaration specifies a URL to a remote repository that
+should be cloned, or downloaded.
 
-Directories and files that have a dot `.` prefix are ignored by the compiler.
-The compiler uses this to place downloaded packages in a `.hkm/packages`
-directory.
+It is allowed for a remote repository to fail to clone or download, as long as
+another local or remote repository can be found that contains the same packages.
 
-## A .hkm source file
-A .hkm file is a source file that contains code that implements a module or
-application.
+### Local repositories
+From the point of view of a package manager, it does not make sense for a
+a source file to declare a local repository. As when the repository is
+distributed to other developers, any local repository will not be available.
 
-The first statement in a .hkm file is either a `module` or `application`
-statement. This is followed by zero or more `import` statements. This forms
-the prologue of the file. Any other statements in the file terminates the
-prologue and starts the body of the file.
+A local repository is declared by passing the path to the repository as a
+`--repository=<paths>` option or `HKREPOSITORY=<paths>` environment variable to
+the compiler. Multiple paths may be specified, separated by a `:` character.
 
-The compiler will read the prologue of each .hkm file in the directory hierarchy
-for each package listed in the search path. From this it will determine
-which files need to be compiled and in which order.
+When resolving packages, the compiler will ignore the version number of any
+package in a local repository and prioritice it above remote repositories.
 
-A `module` or `application` statement may include an expression for conditional
-compilation which will be evaluated during the prologue scan to determine if the
-file should be compiled for the current platform, architecture, build-phase, or
-other conditions.
+## Build Steps
 
-> [!NOTE]
-> It is a reportable error if two .hkm files have the same module or
-> application name after evaluation of the conditional compilation expression.
+ 1. **Clone**: The compiler will clone every repository declared with
+    `repository` in any `.hkm` file recursively; into the `.hkdeps/` directory
+    of the host repository.
+ 2. **Download**: The compiler will build and execute every application
+    with the `download` condition in depth-first order. This allows repositories
+    to download data from remote servers. The data should be stored in the
+    `.hkdeps/<name>-<hash>/` directory of the host repository.
+ 3. **Generate**: The compiler will build and execute every application
+    with the `generate` condition in depth-first order. This allows repositories
+    to generate code (and use data from previous `download` step).
+ 4. **Test**: The compiler will build and execute every application
+    with the `test` condition in the host repository. A `test-report.xml` file
+    will be generated at the root of the host repository.
+ 5. **Compile**: The compiler will build every application with the
+    `compile` condition in the host repository.
 
-## Application executable
-An application executable is created by compiling a .hkm file that contains an
-`application` statement. The executable is named with the name specified in the
-`application` statement and is placed next to the .hkm file.
+To test or compile recursively, use the `--test-recursive` or
+`--compile-recursive` options respectively.
 
-Like the `module` statement, the `application` statement may include an
-expression for conditional compilation which will be evaluated during the
-prologue scan to determine if the file should be compiled for the current
-platform, architecture, build-phase, or other conditions.
+Executables in cloned repositories are stored in the
+`.hkdeps/<name>-<hash>/bin/` of the host repository. Excutables from the host
+repository are stored in the `bin/` directory of the host repository.
 
-There are a set of special conditions which must be part of the conditional
-compilation expression for an application to be compiled in the current build
-phase. These conditions are:
- - `download`: This application is used for downloading data from the
-   internet before generating code.
- - `generate` : This application is used for generating code.
+Executables in cloned repositories which are executed during the `download`,
+`generate`, and `test` steps are executed with the current working directory set
+to `.hkdeps/<name>-<hash>/` of the host repository.
 
-## Build Phases
-
- 1. **Package Download Phase**: The compiler will download the packages
-    specified in the `.hkp` file, recursively. This includes downloading
-    the source code from the specified URLs, and .zip files and adding them
-    to the search path. Each package will be placed in a
-    `.hkm/packages/<package_name>` directory of the current package being
-    compiled. The package name is derived from the URL or .zip file name.
- 2. **Per Package**: For each package in depth-first order:
-    - Compile the package with the `download` build phase, any application with
-      the `download` condition will be compiled and executed in alphabetical
-      order.
-    - Compile the package with the `generate` build phase, any application with
-      the `generate` condition will be compiled and executed in alphabetical
-      order.
-    - Compile the package normally.
+When recusively testing, the `test-report.xml` file in the host repository will
+contain the results of all tests in the host repository and cloned repositories.

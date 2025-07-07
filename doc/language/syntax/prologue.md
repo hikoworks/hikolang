@@ -9,7 +9,8 @@ __(__
 __)__
 __(__
 [_import_statement_](import_statement.md) __|__
-[_repository_declaration_](repository_declaration.md)
+[_repository_declaration_](repository_declaration.md) __|__
+[_library_declaration_](library_declaration.md)
 __)*__
 
 ## Semantic
@@ -20,6 +21,7 @@ The prologue of a file contains only the following declarations:
  - `package`
  - `import`
  - `repository`
+ - `library`
 
 These declarations must appear at the top of a file, before any other
 declarations. The prologues are scanned before the compilation phase, to
