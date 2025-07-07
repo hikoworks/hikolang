@@ -2,8 +2,9 @@
 
 ## Syntax
 
-`import` [_module_name_](module_name.md) `;`
+`import` [_module_name_](module_name.md) __(__ `as` [_identifier_](identifier.md) __)?__ `;`
 
 ## Semantics
 
 An `import` declaration is used to import a module into the current file.
+

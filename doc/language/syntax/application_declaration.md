@@ -10,7 +10,7 @@ A file with an `application` declaration is used to create an executable with th
 the string literal. The `application` declaration is similar to a `module` declaration, but
 it is used to create an executable application instead of a library module.
 
-The optional compile-condition is evaluated during the prologue-scan phase of compilation,
+The optional _compile_condition_ is evaluated during the prologue-scan phase of compilation,
 this checks if the file should be compiled.
 
 Multiple files may have the same application-name, only if the conditional compilation is

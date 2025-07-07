@@ -2,11 +2,8 @@
 
 ## Syntax
 
-__(__
-[_module_declaration_](module_declaration.md) __|__
-[_application_declaration_](application_declaration.md) __|__
-[_package_declaration_](package_declaration.md)
-__)__ [_import_statement_](import_statement.md)__*__
+__(__ [_module_declaration_](module_declaration.md) __|__ [_application_declaration_](application_declaration.md) __)__
+__(__ [_import_statement_](import_statement.md) __|__ [_repository_declaration_](repository_declaration.md) __)*__
 
 ## Semantic
 
