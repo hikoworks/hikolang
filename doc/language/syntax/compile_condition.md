@@ -18,7 +18,8 @@ _compile_condition_ `or` _compile_condition_ __|__
 
 ## Semantics
 
-If a identifier is a `false`, then any comparison with a version-literal or integer-literal is `false` as well.
+If a identifier is a `false`, then any comparison with a version-literal or
+integer-literal is `false` as well.
 
 Build phases:
  - **download**: Download data before generating code.
@@ -30,7 +31,8 @@ Build type:
  - **release**: Application is build for release.
 
 Operating systems:
- - **windows**: (version) Build for Microsoft Windows platform. Version of Windows
+ - **windows**: (version) Build for Microsoft Windows platform. Version of
+   Windows
  - **macos**: (version) Build for Apple MacOS platform. Version of MacOS.
  - **linux**: (version) Build for Linux platform. Version of Linux kernel.
  - **ios**: (version) Mobile version of `macos`, which is also set.

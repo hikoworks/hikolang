@@ -9,17 +9,18 @@
 A `repository` declaration is used to declare a repository that contains packages
 that can be imported by other packages or applications.
 
-The compiler will clone, copy or download each repository (recursively) into the `_hkdeps`
-directory of the application being compiled. This means that all dependencies recursively
-will be collected into a single directory structure.
+The compiler will clone, copy or download each repository (recursively) into the
+`_hkdeps` directory of the application being compiled. This means that all
+dependencies recursively will be collected into a single directory structure.
 
-If a package is declared in multiple repositories, the compiler will ignore duplicates
-with a lower version number.
+If a package is declared in multiple repositories, the compiler will ignore
+duplicates with a lower version number.
 
-Repositories can also be specified in the `--search-path` option or `HKPATH` environment variable,
-these are called local repositories. Packages found in the local repository will override
-the packages in the remote repositories, even if the remote repository has a higher version number.
-This is useful for local development of packages.
+Repositories can also be specified in the `--search-path` option or `HKPATH`
+environment variable, these are called local repositories. Packages found in the
+local repository will override the packages in the remote repositories, even if
+the remote repository has a higher version number. This is useful for local
+development of packages.
 
 ### _hkdeps Directory Structure
 The `_hkdeps` directory is structured as follows:
@@ -32,12 +33,14 @@ _hkdeps/
         ...
 ```
 
-The `<name>` is the last part of the URL or path of the repository, excluding the extension.
+The `<name>` is the last part of the URL or path of the repository, excluding
+the extension.
 
 The `<hash>` is calculated as follows:
  1. Concatonate the URL and optional branch name with a `-` in between.
  2. Calculate the SHA-256 hash of the resulting string.
- 3. Encode the lower 60-bits of the hash into 10 characters using base64url encoding.
+ 3. Encode the lower 60-bits of the hash into 10 characters using base64url
+    encoding.
 
 The base64url alphabet that is very compatible with file names is as follows:
 ```
@@ -61,4 +64,5 @@ fetch the latest changes from the remote repository and update the files in the
 The `zip` argument specifies a URL to a zip file that contains the module files.
 
 The compiler will download the zip file and extract it into the
-`_hkdeps/<module-name>-<hash>` directory of the application that is being compiled.
+`_hkdeps/<module-name>-<hash>` directory of the application that is being
+compiled.

@@ -16,31 +16,34 @@ Storage-modifiers are mutually exclusive. The following storage-modifiers exist:
             refers to is immutable through a `view`.
 
 ### var
-A variable declared with `var` is mutable. It may appear in the following contexts:
+A variable declared with `var` is mutable. It may appear in the following
+contexts:
  - In the declaration of a global variable.
  - In the declaration of an automatic variable in a function or lambda.
  - In the declaration of an instance member variable in a class.
  - In the argument declaration of a function or lambda.
 
-A variable declared with `var` must be initialized before it is read. Initialization
-can occur at the point of declaration, or in all code paths before the variable
-is read.
+A variable declared with `var` must be initialized before it is read.
+Initialization can occur at the point of declaration, or in all code paths
+before the variable is read.
 
 The value of the variable can be changed. When the variable is changed, the
 original value is copied, or potentially moved, to the new value.
 
-It is recommended to use `let` over `var` unless the variable needs to be mutable.
-The compiler will issue a warning if `var` is used when `let` would suffice.
+It is recommended to use `let` over `var` unless the variable needs to be
+mutable. The compiler will issue a warning if `var` is used when `let` would
+suffice.
 
 ### let
-A variable declared with `let` is immutable. It may appear in the following contexts:
+A variable declared with `let` is immutable. It may appear in the following
+contexts:
  - In the declaration of a global variable.
  - In the declaration of an automatic variable in a function or lambda.
  - In the argument declaration of a function or lambda.
 
-A variable declared with `var` must be initialized before it is read. Initialization
-can occur at the point of declaration, or in all code paths before the variable
-is read.
+A variable declared with `var` must be initialized before it is read.
+Initialization can occur at the point of declaration, or in all code paths
+before the variable is read.
 
 The value of the variable cannot be changed. If an attempt is made to change the
 variable, the compiler will issue an error.

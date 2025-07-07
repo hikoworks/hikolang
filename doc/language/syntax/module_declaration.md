@@ -2,21 +2,25 @@
 
 ## Syntax
 
-`module` [_module_name_](module_name.md) [_version_literal_](version_literal.md)__?__
+`module` [_module_name_](module_name.md)
 __(__ `if` [_compile_condition_](compile_condition.md) __|__ `fallback` __)?__ `;`
 
 ## Semantics
 
-Each `.hkm` file must have a `module` (or [`application`](application_declaration.md))
-declaration to give the file a module-name.
+Each `.hkm` file must have a `module` ([`package`](package_declaration.md)
+or [`application`](application_declaration.md)) declaration to give the file a
+module-name. A module declaration must appear at the top of a file,
+before any other declarations.
 
-The optional _version_literal_ specifies the version of the module. Having a version
-makes the module a package. A repository may contain multiple packages.
-Every module in a repository must be a submodule of one of the packages in the repository.
+The _module_name_ is a unique identifier for the module, which is used to
+identify the module in the module system. Every module must have a
+_module_name_ that is a sub-name of a package declarated in the same repository.
 
-The optional _compile_condition_ is evaluated during the prologue-scan phase of compilation,
-this checks if the file should be compiled.
+The optional _compile_condition_ is evaluated during the prologue-scan phase of
+compilation, this checks if the file should be compiled.
 
-Multiple files may have the same _module_name_, only if the conditional compilation is
-mutually exclusive. If a file has a `fallback` condition, it will be used if no other
-file with the same _module_name_ is compiled.
+Multiple files may have the same _module_name_, only if the conditional
+compilation is mutually exclusive. If a file has a `fallback` condition, it will
+be used if no other file with the same _module_name_ is compiled.
+
+

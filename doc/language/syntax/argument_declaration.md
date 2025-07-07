@@ -25,5 +25,6 @@ optional in the [_function-call_](function_call.md). In the call every
 argument with a default value can be passed by name or by position.
 
 When the function is called and the argument with a default value is not passed;
-then the default value is evaluated on each call in the same scope as the function call.
+then the default value is evaluated on each call in the same scope as the
+function call.
 

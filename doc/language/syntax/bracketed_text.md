@@ -9,10 +9,11 @@ The parser will keep track of the following:
    - Parentheses `(` `)`
    - Square brackets `[` `]`
    - Curly braces `{` `}`
- - It ignores brackets that are inside string literals, using the quotation marks `"`, `'` or `\``.
+ - It ignores brackets that are inside string literals, using the quotation
+   marks `"`, `'` or `\``.
  - Quotation marks inside string literals can be escaped with a backslash `\`.
- - Brackets and quotes inside comments are ignored. Comments start with `//`, `;` or `#`
-   and end at the end of the line.
+ - Brackets and quotes inside comments are ignored. Comments start with `//`,
+   `;` or `#` and end at the end of the line.
  - Any valid Unicode character can be used inside the bracketed text.
 
 ## Semantics

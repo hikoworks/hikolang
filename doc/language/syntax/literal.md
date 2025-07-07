@@ -15,5 +15,5 @@ A literal is a constant value that is directly represented in the source code.
 The literal can be an integer, float, string, boolean, null, or character.
 
 version-literal is specifically added to be used with conditional-compilation,
-to compare with operating system or library versions. This is done at a very early stage of compilation, which
-is not able to use the standard library.
+to compare with operating system or library versions. This is done at a very
+early stage of compilation, which is not able to use the standard library.

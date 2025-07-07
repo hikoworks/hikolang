@@ -7,7 +7,8 @@
 ## Semantics
 
 ### Variable name
-A identifier used in an expression is a variable name. A variable names is searched in:
+A identifier used in an expression is a variable name. A variable names is
+searched in:
 - The current scope, then parent scopes,
 - The instance variables,
 - Variable declared in the namespace,
@@ -21,7 +22,7 @@ If it is not a enum name, it is an error.
 > point to a variable containing a type or namespace.
 
 ### Enum name
-If a name is directly used as a operand or a function argument, all overloaded functions
-are searched. When the type of the function argument matches a enum-type which has the same
-name, the function is called with the enum-type as argument. If multiple such functions
-are found this is an static error.
+If a name is directly used as a operand or a function argument, all overloaded
+functions are searched. When the type of the function argument matches a
+enum-type which has the same name, the function is called with the enum-type as
+argument. If multiple such functions are found this is an static error.

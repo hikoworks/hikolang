@@ -10,9 +10,10 @@ Functions will automatically pass injected variables into function-calls recursi
 
 ## Example
 
-In the following example `main()` will inject an instance of `logger` into `foo()` with the
-name `$log`. Notice that neither `foo()` or `bar()` have `$log` in the argument declaration.
-`$log` is automatically passed to `bar()` simply because `bar()` is using `$log` in its body.
+In the following example `main()` will inject an instance of `logger` into
+`foo()` with the name `$log`. Notice that neither `foo()` or `bar()` have `$log`
+in the argument declaration. `$log` is automatically passed to `bar()` simply
+because `bar()` is using `$log` in its body.
 ```
 function bar(x)
 {

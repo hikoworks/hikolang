@@ -7,7 +7,8 @@
 `not` [_expression_](expression.md)
 
 ## Semantics
-The logical operators `and`, `or` and `not` are used to combine boolean expressions.
+The logical operators `and`, `or` and `not` are used to combine boolean
+expressions.
 
 Features of the logical operators:
  - The `and` and `or` operators are short-circuit operators.
@@ -19,7 +20,8 @@ Features of the logical operators:
    before the evaluation of the logical operator.
 
 The operations of the logical operators are:
- - The `and` operator will return the first operand that is evaluated as `false`.
+ - The `and` operator will return the first operand that is evaluated as
+   `false`.
  - The `or` operator will return the first operand that is evaluated as `true`.
  - The `not` operator will return the negation of the boolean value of the
    expression.

@@ -6,8 +6,9 @@
 
 ## Semantics
 
- - `static` : A mutable variable, with copy semantics, which is shared between invocations
-              of a function or lambda, or shared between instances of a class.
+ - `static` : A mutable variable, with copy semantics, which is shared between
+              invocations of a function or lambda, or shared between instances
+              of a class.
  - `thread_local` : A mutable variable unique to the thread.
 
 ### static
