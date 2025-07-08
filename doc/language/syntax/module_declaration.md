@@ -5,6 +5,12 @@
 `module` [_module_name_](module_name.md)
 __(__ `if` [_compile_condition_](compile_condition.md) __|__ `fallback` __)?__ `;`
 
+`module` `application` [_module_name_](module_name.md) [_string_literal_](string_literal.md)
+__(__ `if` [_compile_condition_](compile_condition.md) __|__ `fallback` __)?__ `;`
+
+`module` `package` [_module_name_](module_name.md) [_version_literal_](version_literal.md)
+__(__ `if` [_compile_condition_](compile_condition.md) __|__ `fallback` __)?__ `;`
+
 ## Semantics
 
 Each `.hkm` file must have a `module` ([`package`](package_declaration.md)
