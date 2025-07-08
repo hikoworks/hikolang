@@ -298,7 +298,7 @@ void command_line::add(
 }
 
 #if defined(_WIN32)
-[[nodiscard]] static std::vector<string_string> win32_get_command_line_arguments()
+[[nodiscard]] static std::vector<std::string> win32_get_command_line_arguments()
 {
 auto w_line = GetCommandLineW();
     assert(w_line != nullptr);
@@ -307,7 +307,7 @@ auto w_line = GetCommandLineW();
     auto w_args = CommandLineToArgvW(w_line, &w_argc);
     if (w_args == nullptr) {
         std::println("Failed to parse command line: {}", GetLastError());
-        return result_type::argument_error;
+        return {};
     }
     assert(w_argc > 0);
 
@@ -333,7 +333,7 @@ auto w_line = GetCommandLineW();
         if (argument.empty()) {
             std::println("Failed to convert argument {} to UTF-8: {}", i, GetLastError());
             LocalFree(w_args);
-            return result_type::argument_error;
+            return {};
         }
     }
 
@@ -349,6 +349,10 @@ auto w_line = GetCommandLineW();
 #else
     auto arguments = argv_to_command_line_arguments(argc, argv);
 #endif
+    if (arguments.empty()) {
+        std::println("Could not retrieve command line from the operating system.");
+        return result_type::argument_error;
+    }
 
     return parse(arguments);
 }

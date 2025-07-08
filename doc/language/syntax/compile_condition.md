@@ -2,24 +2,50 @@
 
 ## Syntax
 
-'`(` _compile_condition_ `)` __|__
-[_identifier_](identifier.md) __|__
-[_integer_literal_](integer_literal.md) __|__
-[_version_literal_](version_literal.md) __|__
-_compile_condition_ `<` _compile_condition_ __|__
-_compile_condition_ `>` _compile_condition_ __|__
-_compile_condition_ `<=` _compile_condition_ __|__
-_compile_condition_ `>=` _compile_condition_ __|__
-_compile_condition_ `==` _compile_condition_ __|__
-_compile_condition_ `!=` _compile_condition_ __|__
-_compile_condition_ `and` _compile_condition_ __|__
-_compile_condition_ `or` _compile_condition_ __|__
-`not` _compile_condition_
+`if` [_expression_](expression.md) __|__ `fallback`
+
+The compile condition is appended at the end of some declarations, such as
+[`module`](module_declaration.md) and [`import`](import_declaration.md). Since
+it is at the end of the declaration, the expression is handled up to the
+semicolon of the declaration.
 
 ## Semantics
+The `if` compile condition is used to conditionally compile a module or import.
+while the `fallback` compile condition is used to specify a module or import
+that should be used if no other module or import is compiled.
 
-If a identifier is a `false`, then any comparison with a version-literal or
-integer-literal is `false` as well.
+The expression is evaluated during the prologue-scan phase of compilation.
+If the expression evaluates to `true`, the module or import is compiled.
+If the expression evaluates to `false`, the module or import is not compiled.
+
+During the prologue-scan phase, the compiler is very limited to what kind of
+expressions can be used. No function, a subset of operators, and only a set
+of special constants are available.
+
+### Operators
+The following operators are available in the compile condition expression:
+
+ - `==`: Equal to.
+ - `!=`: Not equal to.
+ - `<`: Less than.
+ - `<=`: Less than or equal to.
+ - `>`: Greater than.
+ - `>=`: Greater than or equal to.
+ - `and`: Logical and
+ - `or`: Logical or
+ - `not`: Logical not
+
+### Literals
+The following literals are available in the compile condition expression:
+
+ - [_integer-literal_](literal.md#integer-literal)
+ - [_boolean-literal_](literal.md#boolean-literal)
+ - [_string-literal_](literal.md#string-literal)
+ - [_version-literal_](literal.md#version-literal)
+
+### Special constants
+Beyond the constants listed below, you may add custom constants to the compiler
+with the `--define` command line option, or the `HKDEFINE` environment variable.
 
 Build phases:
  - **download**: Download data before generating code.

@@ -47,9 +47,12 @@ General options:
    search for _ffi_ (Foreign Function Interface) libraries. The libraries
    to link against must be specified in the source code using the
    `library` declaration.
+ - `-D <name>:<value>[,<name>:<value>]`, `--define=<name>:<value>[,<name>:<value>]`:
+   Define a constant that can be used in the source code.
 
 Environment variables:
  - `HKREPOSITORY`: Same as `--repository`, but can be set in the environment.
    Repositories are additive with the `--repository` option.
+ - `HKDEFINE`: Same as `--define`, but can be set in the environment.
 
 ## Description

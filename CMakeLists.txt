@@ -36,7 +36,7 @@ find_package(Microsoft.GSL CONFIG REQUIRED)
 find_package(LibGit2 CONFIG REQUIRED)
 
 add_library(hk_objects OBJECT
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/ast/condition_expression_node.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/ast/expression_node.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/ast/import_declaration_node.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/ast/module_declaration_node.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/ast/module_node.hpp"
