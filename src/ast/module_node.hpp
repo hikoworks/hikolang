@@ -39,10 +39,12 @@ public:
      */
     state_type state = state_type::idle;
     
-    std::unique_ptr<module_declaration_node> declaration;
-    std::vector<std::unique_ptr<import_declaration_node>> imports;
-    std::vector<std::unique_ptr<node>> body;
+    module_declaration_node_ptr declaration;
+    std::vector<import_declaration_node_ptr> imports;
+    std::vector<node_ptr> body;
 
 };
+
+using module_node_ptr = std::unique_ptr<module_node>;
 
 } // namespace hk

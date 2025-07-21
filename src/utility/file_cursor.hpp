@@ -61,10 +61,33 @@ public:
      * @param file_name The name of the file to set.
      * @param line The line number to set. The line number is 0-based, so 0 is the first line.
      */
-    void set_line(std::filesystem::path const& file_name, size_t line)
+    void set_line(std::filesystem::path file_name, size_t line)
     {
-        return _location.set_line(file_name, line);
+        auto it = std::find(_upstream_paths.begin(), _upstream_paths.end(), file_name);
+        if (it != _upstream_paths.end()) {
+            // Found the path.
+            auto const file_index = std::distance(_upstream_paths.begin(), it);
+            return _location.set_line(file_index, line);
+        }
+
+        if (_upstream_paths.size() == file_location::max_file - 2) {
+            // Too many files, but continue anyway.
+            _upstream_paths.emplace_back("<unknown file>");
+            return _location.set_line(file_location::max_file - 1);
+        }
+
+        _upstream_paths.push_back(std::move(file_name));
+        return _location.set_line(_upstream_paths.size() - 1, line);
     }
+
+    /** Get the paths that where used to generate the file being parsed.
+     * 
+     * The first path in the vector is the file that is being compiled.
+     * Subsequent paths are the paths of files that where used to generate the
+     * file ab 
+     * @return A vector of paths that where used to generate the file being parsed.
+     */
+    [[nodiscard]] std::vector<std::filesystem::path> get_paths() const;
 
     /** Set the key used for the #scram directive.
      * 
@@ -172,6 +195,14 @@ private:
     /** The file location where the current first character is positioned.
      */
     file_location _location = {};
+
+    /** A list of upstream files.
+     * 
+     * Entries:
+     *  - 0: The current file.
+     *  - file_location::max_file: The last valid file.
+     */
+    std::vector<std::filesystem::path> _upstream_paths = {};
 
     /** The key used for the #scram directive.
      * 

@@ -2,6 +2,7 @@
 #pragma once
 
 #include "token.hpp"
+#include "tokenizer_context.hpp"
 #include "utility/file_cursor.hpp"
 #include "utility/char_category.hpp"
 #include "utility/module.hpp"
@@ -41,7 +42,7 @@ struct tokenize_delegate {
  * @param file_cursor The file cursor pointing to the text to tokenize.
  * @param delegate The delegate to call for each token produced.
  */
-void tokenize(hk::file_cursor &file_cursor, tokenize_delegate &delegate);
+void tokenize(hk::file_cursor &file_cursor, tokenize_delegate &delegate, tokenizer_context &context);
 
 
 } // namespace hk

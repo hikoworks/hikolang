@@ -35,4 +35,6 @@ public:
 
 };
 
+using package_import_node_ptr = std::unique_ptr<package_import_node>;
+
 }

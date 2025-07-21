@@ -17,4 +17,6 @@ public:
 
 };
 
+using import_declaration_node_ptr = std::unique_ptr<import_declaration_node>;
+
 }

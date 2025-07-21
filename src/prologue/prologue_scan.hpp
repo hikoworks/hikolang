@@ -69,16 +69,6 @@ struct repository {
 
 };
 
-struct scan_prologue_context {
-
-    std::set<repository> repositories;
-
-
-    /** Always fetch remote repositories.
-     * 
-     */
-    bool fetch = false;
-};
 
 /**
  * Scan the prologue of all files in a repository.
@@ -89,14 +79,7 @@ struct scan_prologue_context {
  * 
  * @param path The path to the repository to scan.
  */
-std::vector<std::unique_ptr<ast::module_node>> prologue_scan_repository(std::filesystem::path const& path)
+std::vector<std::unique_ptr<ast::module_node>> prologue_scan_repository(std::filesystem::path const& path);
 
-/** Scan the prologue of all files in a repository.
- * 
- * 
- * @param file_path The path to the file to scan.
- * @return The prologue of the file as a string.
- */
-std::string scan_prologue(std::filesystem::path const& path);
 
 }

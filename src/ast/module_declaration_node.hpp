@@ -14,28 +14,67 @@ class module_declaration_node : public node {
 public:
     using node::node;
 
-    enum class variant_index {
+    enum class kind_type {
         module,
         package,
         application,
         library
     };
-    using variant_type = enum_variant<variant_index, std::monostate, semantic_version, std::string, std::string>;
 
-    fqname name;
-
-    /** Holds data specific to the type of module declaration.
+    /** The path to the module file.
      * 
-     * Belowe a list of the possible values:
-     *  - `module`: No additional data.
-     *  - `package`: The version of the package.
-     *  - `application`: The name of the executable.
-     *  - `library`: The name of the library.
+     * This is the path to the file that contains the module declaration.
      */
-    variant_type variant;
+    path_id path = {};
 
-    std::unique_ptr<expression_node> condition;
+    /** The type of module declaration.
+     * 
+     * This indicates the kind of module declaration, e.g. a module, package, application, or library.
+     */
+    kind_type kind = kind_type::module;
+
+    /** The name of the module.
+     * 
+     * This is the fully qualified name of the module, e.g. `com.example.my_module`.
+     */
+    fqname name = {};
+
+    /** The version of the module.
+     * 
+     * This is the semantic version of the module, e.g. `1.0.0`.
+     * 
+     * @note Valid when the module is a package.
+     */
+    semantic_version version = {};
+
+    /** Output filename
+     *
+     * This is the filename where the module will be compiled to.
+     * 
+     * @note Valid when the module is an application or library.
+     */
+    std::string output_filename = {};
+
+    /** The compilation condition.
+     * 
+     * Must be true for the module to be compiled.
+     */
+    expression_node_ptr condition = nullptr;
+
+    /** The result of the compilation condition.
+     */
+    [[nodiscard]] bool condition_result() const {
+        return false;
+    };
+
+    /** Indicates if the module is a fallback module.
+     * 
+     * A fallback module is a module that is compiled when no other module of
+     * the same name will be compiled.
+     */
     bool is_fallback = false;
 };
+
+using module_declaration_node_ptr = std::unique_ptr<module_declaration_node>;
 
 }

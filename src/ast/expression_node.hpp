@@ -12,4 +12,6 @@ public:
 
 };
 
+using expression_node_ptr = std::unique_ptr<expression_node>;
+
 } // namespace hk::ast

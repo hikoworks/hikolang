@@ -1,5 +1,6 @@
 
 #include "prologue_scan.hpp"
+#include "utility/vector_set.hpp"
 
 namespace hk {
 
@@ -8,12 +9,14 @@ std::vector<std::unique_ptr<ast::module_node>> prologue_scan_repository(std::fil
 {
     auto r = std::vector<std::unique_ptr<ast::module_node>>{};
 
-    auto first = std::filesystem::directory_entry{path};
-    auto last = std::filesystem::directory_entry{path};
+    auto first = std::filesystem::recursive_directory_iterator{path};
+    auto last = std::filesystem::recursive_directory_iterator{};
+
+    auto visited = vector_set<std::filesystem::path>{};
     for (auto it = first; it != last; ++it) {
         auto const& entry = *it;
 
-        if (entry.path().filename().string().startswith(".")) {
+        if (entry.path().filename().string().starts_with(".")) {
             // Do not recursively scan hidden directories.
             if (entry.is_directory()) {
                 it.disable_recursion_pending();
@@ -21,11 +24,18 @@ std::vector<std::unique_ptr<ast::module_node>> prologue_scan_repository(std::fil
             continue;
         }
 
+        if (not visited.add(std::filesystem::canonical(entry.path()))) {
+            // This directory has already been visited; a potential symlink loop.
+            it.disable_recursion_pending();
+            continue;
+        }
+            
+
         if (not entry.is_regular_file()) {
             continue;
         }
 
-        if (entry.path().extension() != ".hiko") {
+        if (entry.path().extension() != ".hkm") {
             continue;
         }
 
@@ -33,4 +43,6 @@ std::vector<std::unique_ptr<ast::module_node>> prologue_scan_repository(std::fil
     }
 
     return r;
+}
+
 }

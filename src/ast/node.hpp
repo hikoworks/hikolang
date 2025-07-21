@@ -2,6 +2,8 @@
 #pragma once
 
 #include "utility/file_location.hpp"
+#include <string>
+#include <memory>
 
 namespace hk::ast {
 
@@ -15,10 +17,16 @@ public:
      */
     file_location last = {};
 
+    /** Description of the node.
+     */
+    std::string description = {};
+
     virtual ~node() = default;
     constexpr node(file_location first) noexcept : first(first), last(first) {}
     constexpr node(file_location first, file_location last) noexcept : first(first), last(last) {}
 
 };
+
+using node_ptr = std::unique_ptr<node>;
 
 }
