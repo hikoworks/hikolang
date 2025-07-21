@@ -28,8 +28,7 @@ inline static std::map<path_id, std::unique_ptr<file>> file_by_path_id;
 
     auto file_ptr = std::unique_ptr<file>{};
 
-    auto const& path = get_path(path_id);
-    auto rel_path = path.relative_path();
+    auto rel_path = path_id->relative_path();
     auto rel_path_str = rel_path.generic_string();
 
     if (rel_path_str.starts_with("tmp/hic-buffer-") and rel_path_str.ends_with(".bin")) {

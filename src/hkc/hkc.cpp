@@ -6,9 +6,9 @@
 
 int main(int argc, char const *const *argv)
 {
-    auto options = parse_options(argc, argv);
-    if (not options) {
-        return options.error();
+    auto o = options{};
+    if (auto exit_code = o.parse(argc, argv); exit_code != -1) {
+        return exit_code;
     }
 
     return 0;

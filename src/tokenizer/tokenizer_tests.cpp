@@ -28,63 +28,70 @@ TEST_SUITE(tokenizer_suite)
     TEST_CASE(integer_12)
     {
         auto tokens = parse_tokens("12");
-        REQUIRE(tokens.size() == 2);
+        REQUIRE(tokens.size() == 3);
         REQUIRE(tokens[0].kind == hk::token::integer_literal);
         REQUIRE(tokens[0].text == "12");
-        REQUIRE(tokens[1] == '\0');
+        REQUIRE(tokens[1] == ';');
+        REQUIRE(tokens[2] == '\0');
     }
 
     TEST_CASE(integer_space_12)
     {
         auto tokens = parse_tokens(" 12");
-        REQUIRE(tokens.size() == 2);
+        REQUIRE(tokens.size() == 3);
         REQUIRE(tokens[0].kind == hk::token::integer_literal);
         REQUIRE(tokens[0].text == "12");
-        REQUIRE(tokens[1] == '\0');
+        REQUIRE(tokens[1] == ';');
+        REQUIRE(tokens[2] == '\0');
     }
 
     TEST_CASE(integer_12_space)
     {
         auto tokens = parse_tokens("12 ");
-        REQUIRE(tokens.size() == 2);
+        REQUIRE(tokens.size() == 3);
         REQUIRE(tokens[0].kind == hk::token::integer_literal);
         REQUIRE(tokens[0].text == "12");
-        REQUIRE(tokens[1] == '\0');
+        REQUIRE(tokens[1] == ';');
+        REQUIRE(tokens[2] == '\0');
     }
 
     TEST_CASE(integer_0b01)
     {
         auto tokens = parse_tokens("0b01");
-        REQUIRE(tokens.size() == 2);
+        REQUIRE(tokens.size() == 3);
         REQUIRE(tokens[0].kind == hk::token::integer_literal);
         REQUIRE(tokens[0].text == "0b01");
-        REQUIRE(tokens[1] == '\0');
+        REQUIRE(tokens[1] == ';');
+        REQUIRE(tokens[2] == '\0');
     }
 
     TEST_CASE(integer_0B10)
     {
         auto tokens = parse_tokens("0B10");
-        REQUIRE(tokens.size() == 2);
+        REQUIRE(tokens.size() == 3);
         REQUIRE(tokens[0].kind == hk::token::integer_literal);
         REQUIRE(tokens[0].text == "0B10");
-        REQUIRE(tokens[1] == '\0');
+        REQUIRE(tokens[1] == ';');
+        REQUIRE(tokens[2] == '\0');
     }
 
     TEST_CASE(integer_0x2a)
     {
         auto tokens = parse_tokens("0x2a");
-        REQUIRE(tokens.size() == 2);
+        REQUIRE(tokens.size() == 3);
         REQUIRE(tokens[0].kind == hk::token::integer_literal);
         REQUIRE(tokens[0].text == "0x2a");
-        REQUIRE(tokens[1] == '\0');
+        REQUIRE(tokens[1] == ';');
+        REQUIRE(tokens[2] == '\0');
     }
 
     TEST_CASE(integer_0X2A)
     {
         auto tokens = parse_tokens("0X2A");
-        REQUIRE(tokens.size() == 2);
+        REQUIRE(tokens.size() == 3);
         REQUIRE(tokens[0].kind == hk::token::integer_literal);
         REQUIRE(tokens[0].text == "0X2A");
-        REQUIRE(tokens[1] == '\0');
+        REQUIRE(tokens[1] == ';');
+        REQUIRE(tokens[2] == '\0');
     }
 };

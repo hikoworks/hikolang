@@ -69,7 +69,7 @@ protected:
 
     /** The absolute normalized path to the file.
      */
-    path_id _path_id = path_id::invalid;
+    path_id _path_id = {};
 };
 
 /** Get a file object pointing the the given path identifier.

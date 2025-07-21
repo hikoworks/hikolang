@@ -30,8 +30,7 @@ file_ifstream::file_ifstream(hk::path_id path_id)
         // This can happen if the file was not opened successfully or if it
         // was closed while we were trying to read from it.
         lock = _close(std::move(lock));
-        auto const &path = get_path(_path_id);
-        throw std::runtime_error{std::format("Failed to seek in file stream: {}", path.string())};
+        throw std::runtime_error{std::format("Failed to seek in file stream: {}", _path_id->string())};
 
     } else if (_file_stream.eof()) {
         // If the end of the file has been reached, we return 0.
@@ -45,8 +44,7 @@ file_ifstream::file_ifstream(hk::path_id path_id)
         if (_file_stream.fail() or _file_stream.bad()) {
             // If we cannot seek to the end of the file, we close it and throw an error.
             lock = _close(std::move(lock));
-            auto const &path = get_path(_path_id);
-            throw std::runtime_error{std::format("Failed to seek to end of file stream: {}", path.string())};
+            throw std::runtime_error{std::format("Failed to seek to end of file stream: {}", _path_id->string())};
         }
     }
 
@@ -54,16 +52,14 @@ file_ifstream::file_ifstream(hk::path_id path_id)
     if (_file_stream.bad()) {
         // If the file stream is in a bad state, we close it and throw an error.
         lock = _close(std::move(lock));
-        auto const &path = get_path(_path_id);
-        throw std::runtime_error{std::format("Failed to read from file stream: {}", path.string())};
+        throw std::runtime_error{std::format("Failed to read from file stream: {}", _path_id->string())};
 
     } else if (_file_stream.eof()) {
         return 0;
 
     } else if (_file_stream.fail()) {
         lock = _close(std::move(lock));
-        auto const &path = get_path(_path_id);
-        throw std::runtime_error{std::format("Failed to read from file stream: {}", path.string())};
+        throw std::runtime_error{std::format("Failed to read from file stream: {}", _path_id->string())};
     }
 
     return _file_stream.gcount();
@@ -77,13 +73,12 @@ std::unique_lock<std::mutex> file_ifstream::_open(std::unique_lock<std::mutex> l
         return lock;
     }
 
-    auto const &path = get_path(_path_id);
-    _file_stream.open(path, std::ios::binary);
+    _file_stream.open(_path_id, std::ios::binary);
     if (_file_stream.fail() or _file_stream.bad()) {
         // If the file stream could not be opened, we throw an exception.
         // This is important to ensure that the file is not left in an
         // inconsistent state.
-        throw std::runtime_error{std::format("Failed to open file stream: {}", path.string())};
+        throw std::runtime_error{std::format("Failed to open file stream: {}", _path_id->string())};
     }
     // End-of-file is not an error, so we do not check for it here.
     return lock;

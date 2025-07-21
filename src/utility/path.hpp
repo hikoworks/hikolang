@@ -2,55 +2,37 @@
 
 #pragma once
 
+#include "interned.hpp"
 #include <cstddef>
 #include <limits>
 #include <filesystem>
+#include <system_error>
+#include <cassert>
+#include <expected>
 
 namespace hk {
 
-/** A unique identifier for a path.
+/** Convert a relative path to an absolute path based on a base path.
  * 
- * Internally we use identifiers to paths, to reduce memory usage and
- * improve performance when dealing with many paths.
+ * Construct an canonical absolute path from a relative path and a base path:
+ *  - If the path is already absolute, it is returned as is.
+ *  - If the base path is absolute, the function combines the base path with the relative path.
+ *  - If the base path is relative, it is first converted to an absolute path
+ *    using the current working directory, and then combined with the relative path.
+ * 
+ * @param path The relative path to convert.
+ * @param base The base path to use for conversion.
+ * @param ec An error code to indicate success or failure.
+ * @return The absolute path as a std::filesystem::path object.
  */
-enum class path_id : std::size_t {
-    invalid = std::numeric_limits<std::size_t>::max()
-};
+[[nodiscard]] std::expected<std::filesystem::path, std::error_code> absolute_to(
+    std::filesystem::path const& path, std::filesystem::path const& base);
 
-/** Get a unique identifier for a path.
+/** A unique identifier for a filesystem path.
  * 
- * The path will be normalized to an absolute path.
- * 
- * @note The path does not need to exist on the filesystem.
- * @param path A path, if relative compared to the current working directory.
- * @return A unique identifier for the path.
+ * This class is used to intern filesystem paths, allowing for efficient
+ * comparison and storage of paths in a way that avoids duplication.
  */
-[[nodiscard]] path_id get_path_id(std::filesystem::path path);
-
-/** Get a unique identifier for a path relative to another path.
- * 
- * The path will be normalized to an absolute path.
- * 
- * @note The path does not need to exist on the filesystem.
- * @param path A path, if relative compared to @a relative_to.
- * @param relative_to A path to resolve the relative path against.
- * @return A unique identifier for the path.
- */
-[[nodiscard]] path_id get_path_id(std::filesystem::path path, path_id relative_to);
-
-/** Get a unique identifier for a buffer_file.
- * 
- * This path does not need to exist on the filesystem.
- * The path will have the following format:
- *  - "/tmp/hic-buffer-<unique_id>.bin"
- */
-[[nodiscard]] path_id get_path_id();
-
-/** Get the absolute normalized path for a given path identifier.
- * 
- * @param id The path identifier.
- * @return The absolute normalized path for the given identifier.
- */
-[[nodiscard]] std::filesystem::path const& get_path(path_id id);
+using path_id = interned<std::filesystem::path>;
 
 }

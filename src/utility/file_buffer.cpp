@@ -2,6 +2,7 @@
 #include "file_buffer.hpp"
 #include "file.hpp"
 #include <cassert>
+#include <format>
 
 namespace hk {
 
@@ -42,9 +43,18 @@ std::size_t file_buffer::write(std::size_t position, std::span<char const> buffe
     return buffer.size();
 }
 
+[[nodiscard]] static std::filesystem::path make_file_buffer_path()
+{
+    static std::atomic<uint64_t> counter = 0;
+
+    // Generate a unique path for the file buffer.
+    // This could be a temporary file or a specific directory for file buffers.
+    return std::format("/tmp/hic-buffer-{}.bin", ++counter);
+}
+
 [[nodiscard]] path_id make_file_buffer(std::span<char const> content)
 {
-    auto path = get_path_id();
+    auto path = path_id{make_file_buffer_path()};
     auto& file = get_file(path);
     assert(dynamic_cast<file_buffer*>(&file) != nullptr);
 

@@ -11,11 +11,11 @@ namespace hk {
 struct file_location {
     /** The path where compilation started.
      */
-    hk::path_id base_path_id = hk::path_id::invalid;
+    hk::path_id base_path_id = hk::path_id{};
 
     /** The file being compiled.
      */
-    hk::path_id path_id = hk::path_id::invalid;
+    hk::path_id path_id = hk::path_id{};
 
     /** The line being compiled.
      */
@@ -27,7 +27,7 @@ struct file_location {
 
     /** The source file that generated the file being compiled.
      */
-    hk::path_id source_path_id = hk::path_id::invalid;
+    hk::path_id source_path_id = hk::path_id{};
 
     /** The line in the source file that generated the file being compiled.
      */
@@ -74,7 +74,11 @@ struct file_location {
      */
     void set_line(std::filesystem::path const& path, std::size_t line)
     {
-        this->source_path_id = hk::get_path_id(path, this->path_id);
+        if (auto source_path = absolute_to(path, this->base_path_id)) {
+            this->source_path_id = *source_path;
+        } else {
+            this->source_path_id = path;
+        }
         set_line(line);
     }
 

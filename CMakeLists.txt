@@ -52,6 +52,8 @@ add_library(hk_objects OBJECT
     "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/parse_module.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/parser.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/parsers.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/prologue/prologue_scan.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/prologue/prologue_scan.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer/parse_block_comment.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer/parse_bracketed_string.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer/parse_identifier.cpp"
@@ -88,6 +90,8 @@ add_library(hk_objects OBJECT
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/path.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/semantic_version.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/semantic_version.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/strings.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/strings.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/unicode.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/unicode.hpp"
 )
@@ -134,6 +138,7 @@ if(BUILD_TESTING)
         $<TARGET_OBJECTS:hk_objects>
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/unicode_tests.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer/tokenizer_tests.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/strings_tests.cpp"
     )
     #target_compile_definitions(hktests PRIVATE ${LLVM_DEFINITIONS})
     #target_link_libraries(hktests PRIVATE ${llvm_libs})

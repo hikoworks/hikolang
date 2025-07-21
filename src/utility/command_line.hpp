@@ -49,7 +49,6 @@ public:
 
     enum class result_type {
         success,
-        help_requested,
         argument_error,
         file_error
     };
