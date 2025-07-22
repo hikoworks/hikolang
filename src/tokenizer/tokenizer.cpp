@@ -25,7 +25,7 @@ send_error(hk::file_cursor& c, tokenize_delegate& delegate, unsigned int advance
     delegate.on_token(std::move(r));
 }
 
-static void simple_tokenize(hk::file_cursor& c, tokenize_delegate& delegate, tokenizer_context& context)
+static void simple_tokenize(hk::file_cursor& c, tokenize_delegate& delegate)
 {
     enum class state_type {
         normal,
@@ -273,10 +273,10 @@ struct tokenize_delegate_helper : tokenize_delegate {
     }
 };
 
-void tokenize(hk::file_cursor& c, tokenize_delegate& delegate, tokenizer_context &context)
+void tokenize(hk::file_cursor& c, tokenize_delegate& delegate)
 {
     auto simple_delegate = tokenize_delegate_helper{delegate};
-    return simple_tokenize(c, simple_delegate, context);
+    return simple_tokenize(c, simple_delegate);
 }
 
 } // namespace hk

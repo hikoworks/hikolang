@@ -79,7 +79,7 @@ struct repository {
  * 
  * @param path The path to the repository to scan.
  */
-std::vector<std::unique_ptr<ast::module_node>> prologue_scan_repository(std::filesystem::path const& path);
+[[nodiscard]] std::vector<std::unique_ptr<ast::module_node>> prologue_scan_repository(std::filesystem::path const& path);
 
 
 }

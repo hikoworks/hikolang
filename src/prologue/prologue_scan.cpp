@@ -5,7 +5,7 @@
 namespace hk {
 
 
-std::vector<std::unique_ptr<ast::module_node>> prologue_scan_repository(std::filesystem::path const& path)
+[[nodiscard]] std::vector<std::unique_ptr<ast::module_node>> prologue_scan_repository(std::filesystem::path const& path)
 {
     auto r = std::vector<std::unique_ptr<ast::module_node>>{};
 
@@ -39,7 +39,16 @@ std::vector<std::unique_ptr<ast::module_node>> prologue_scan_repository(std::fil
             continue;
         }
 
-        r.push_back(parse_module(entry.path(), ast::module_node::state_type::prologue));
+        auto cursor = file_cursor(entry.path());
+        if (auto node = parse_module(cursor, errors, true)) {
+
+            r.push_back(std::move(node()).value());
+        } else if (node.is_error()) {
+
+
+        } else {
+
+        }
     }
 
     return r;

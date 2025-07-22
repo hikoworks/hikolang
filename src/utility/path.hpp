@@ -28,11 +28,5 @@ namespace hk {
 [[nodiscard]] std::expected<std::filesystem::path, std::error_code> absolute_to(
     std::filesystem::path const& path, std::filesystem::path const& base);
 
-/** A unique identifier for a filesystem path.
- * 
- * This class is used to intern filesystem paths, allowing for efficient
- * comparison and storage of paths in a way that avoids duplication.
- */
-using path_id = interned<std::filesystem::path>;
 
 }
