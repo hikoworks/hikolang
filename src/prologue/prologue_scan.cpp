@@ -1,6 +1,9 @@
 
 #include "prologue_scan.hpp"
 #include "utility/vector_set.hpp"
+#include "utility/file_cursor.hpp"
+#include "error/error_list.hpp"
+#include "parser/parsers.hpp"
 
 namespace hk {
 
@@ -39,11 +42,12 @@ namespace hk {
             continue;
         }
 
+        auto errors = error_list{};
         auto cursor = file_cursor(entry.path());
         if (auto node = parse_module(cursor, errors, true)) {
 
-            r.push_back(std::move(node()).value());
-        } else if (node.is_error()) {
+            r.push_back(std::move(node).value());
+        } else if (node.error()) {
 
 
         } else {

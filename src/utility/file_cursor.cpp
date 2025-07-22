@@ -6,8 +6,9 @@
 
 namespace hk {
 
-file_cursor::file_cursor(hk::path_id base_path_id, hk::path_id path_id) noexcept : _location(base_path_id, path_id)
+file_cursor::file_cursor(std::filesystem::path path) : _file(make_file(path))
 {
+    _upstream_paths.push_back(std::move(path));
     _buffer.resize(max_buffer_size);
     fill_lookahead();
 }
@@ -54,10 +55,8 @@ void file_cursor::advance()
 
 void file_cursor::fill_buffer()
 {
-    auto &file = hk::get_file(_location.path_id);
-
     assert(_buffer.size() == max_buffer_size);
-    _buffer_size = file.read(_offset, std::span<char>(_buffer));
+    _buffer_size = _file->read(_offset, std::span<char>(_buffer));
     if (_buffer_size < max_buffer_size) {
         // Fill the rest of the buffer with zeros, so that the lookahead
         // can safely read beyond the end of the file.

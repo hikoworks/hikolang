@@ -3,11 +3,16 @@
 #include "file.hpp"
 #include <cassert>
 #include <format>
+#include <mutex>
+#include <map>
 
 namespace hk {
 
-file_buffer::file_buffer(hk::path_id path_id)
-    : file(path_id)
+std::mutex file_buffer::_mutex;
+std::map<std::filesystem::path, std::vector<char>> file_buffer::_content_by_path;
+
+file_buffer::file_buffer(std::filesystem::path path)
+    : file(), _path(std::move(path))
 {
 }
 
@@ -18,13 +23,18 @@ file_buffer::file_buffer(hk::path_id path_id)
     }
 
     auto const _ = std::scoped_lock(_mutex);
+    auto it = _content_by_path.lower_bound(_path);
+    if (it == _content_by_path.end() or it->first != _path) {
+        it = _content_by_path.emplace_hint(it, _path, std::vector<char>{});
+    }
+    auto const &content = it->second;
 
-    if (position >= _content.size()) {
+    if (position >= content.size()) {
         return 0; // Position is beyond the end of the content
     }
 
-    auto bytes_read = std::min(buffer.size(), _content.size() - position);
-    std::copy_n(_content.data() + position, bytes_read, buffer.data());
+    auto bytes_read = std::min(buffer.size(), content.size() - position);
+    std::copy_n(content.data() + position, bytes_read, buffer.data());
 
     if (bytes_read < buffer.size()) {
         // If we read less than the buffer size, fill the rest with null characters.
@@ -36,10 +46,17 @@ file_buffer::file_buffer(hk::path_id path_id)
 
 std::size_t file_buffer::write(std::size_t position, std::span<char const> buffer)
 {
-    if (position >= _content.size()) {
-        _content.resize(position + buffer.size(), '\0');
+    auto const _ = std::scoped_lock(_mutex);
+    auto it = _content_by_path.lower_bound(_path);
+    if (it == _content_by_path.end() or it->first != _path) {
+        it = _content_by_path.emplace_hint(it, _path, std::vector<char>{});
     }
-    std::copy(buffer.begin(), buffer.end(), _content.begin() + position);
+    auto &content = it->second;
+
+    if (position >= content.size()) {
+        content.resize(position + buffer.size(), '\0');
+    }
+    std::copy(buffer.begin(), buffer.end(), content.begin() + position);
     return buffer.size();
 }
 
@@ -49,20 +66,19 @@ std::size_t file_buffer::write(std::size_t position, std::span<char const> buffe
 
     // Generate a unique path for the file buffer.
     // This could be a temporary file or a specific directory for file buffers.
-    return std::format("/tmp/hic-buffer-{}.bin", ++counter);
+    return std::filesystem::path{std::format("/tmp/hic-buffer-{}.bin", ++counter)};
 }
 
-[[nodiscard]] path_id make_file_buffer(std::span<char const> content)
+[[nodiscard]] std::filesystem::path make_file_buffer(std::span<char const> content)
 {
-    auto path = path_id{make_file_buffer_path()};
-    auto& file = get_file(path);
-    assert(dynamic_cast<file_buffer*>(&file) != nullptr);
+    auto path = make_file_buffer_path();
+    auto file = file_buffer{path};
 
     file.write(0, content);
     return path;
 }
 
-[[nodiscard]] path_id make_file_buffer(std::string_view content)
+[[nodiscard]] std::filesystem::path make_file_buffer(std::string_view content)
 {
     return make_file_buffer(std::span<char const>{content.data(), content.size()});
 }

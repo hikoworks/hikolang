@@ -7,6 +7,7 @@
 #include "utility/semantic_version.hpp"
 #include "utility/enum_variant.hpp"
 #include <string>
+#include <filesystem>
 
 namespace hk::ast {
 
@@ -25,7 +26,7 @@ public:
      * 
      * This is the path to the file that contains the module declaration.
      */
-    path_id path = {};
+    std::filesystem::path path = {};
 
     /** The type of module declaration.
      * 

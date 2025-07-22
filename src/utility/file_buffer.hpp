@@ -3,6 +3,7 @@
 
 #include "file.hpp"
 #include <vector>
+#include <map>
 
 namespace hk {
 
@@ -14,7 +15,7 @@ public:
      *
      * @param path The absolute normalized path to the file.
      */
-    explicit file_buffer(hk::path_id path_id);
+    explicit file_buffer(std::filesystem::path path);
 
     /** Read the file content into a buffer.
      *
@@ -27,12 +28,16 @@ public:
     std::size_t write(std::size_t position, std::span<char const> buffer) override;
 
 private:
+    static std::mutex _mutex;
+
     /** The file content stored in a vector.
      *
      * This is used to read the file content from memory instead of from disk.
      * It is initialized when the file is opened.
      */
-    std::vector<char> _content = {};
+    static std::map<std::filesystem::path, std::vector<char>> _content_by_path;
+
+    std::filesystem::path _path;
 };
 
 /** Create a file buffer with the given content.
@@ -40,13 +45,13 @@ private:
  * @param content The content to write to the file buffer.
  * @return A unique identifier for the file buffer.
  */
-[[nodiscard]] path_id make_file_buffer(std::span<char const> content);
+[[nodiscard]] std::filesystem::path make_file_buffer(std::span<char const> content);
 
 /** Create a file buffer with the given content.
  * 
  * @param content The content to write to the file buffer.
  * @return A unique identifier for the file buffer.
  */
-[[nodiscard]] path_id make_file_buffer(std::string_view content);
+[[nodiscard]] std::filesystem::path make_file_buffer(std::string_view content);
 
 }

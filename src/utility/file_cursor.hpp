@@ -3,6 +3,7 @@
 
 #include "path.hpp"
 #include "file_location.hpp"
+#include "file.hpp"
 #include <cstddef>
 #include <bit>
 #include <vector>
@@ -25,16 +26,11 @@ namespace hk {
  */
 class file_cursor {
 public:
-    /** Create a file_cursor that is not associated with any file.
-     */
-    constexpr file_cursor() noexcept = default;
-
     /** Create a file_cursor that points to the given file.
      * 
-     * @param base_path_id The path where compilation started.
-     * @param path_id The file being compiled.
+     * @param path The path of the file being read.
      */
-    file_cursor(hk::path_id base_path_id, hk::path_id path_id) noexcept;
+    file_cursor(std::filesystem::path path);
 
     /** Get the file location where this file_cursor is currently pointint to.
      * 
@@ -164,6 +160,10 @@ private:
     constexpr static std::size_t max_buffer_size = 4096;
 
     constexpr static std::size_t buffer_mask = max_buffer_size - 1;
+
+    /** The file object to read from.
+     */
+    std::unique_ptr<file> _file;
 
     /** The buffer used to read the file.
      * 

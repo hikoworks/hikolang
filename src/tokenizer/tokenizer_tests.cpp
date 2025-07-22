@@ -17,8 +17,8 @@ TEST_SUITE(tokenizer_suite)
 
     static std::vector<hk::token> parse_tokens(std::string_view text)
     {
-        auto path_id = hk::make_file_buffer(text);
-        auto cursor = hk::file_cursor{path_id, path_id};
+        auto path = hk::make_file_buffer(text);
+        auto cursor = hk::file_cursor{path};
         auto delegate = delegate_type{};
 
         hk::tokenize(cursor, delegate);

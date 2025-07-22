@@ -11,16 +11,14 @@ namespace hk {
  * This class provides methods to read the content of a file, open and close it,
  * and manage its path identifier.
  * 
- * This class is thread-safe, meaning that multiple threads can access it
- * concurrently.
  */
 class file_ifstream : public file {
 public:
     /** Create a file object with the given path.
      *
-     * @param path The absolute normalized path to the file.
+     * @param path The path to the file.
      */
-    explicit file_ifstream(hk::path_id path_id);
+    explicit file_ifstream(std::filesystem::path path);
 
     /** Read the file content into a buffer.
      *
@@ -45,19 +43,13 @@ public:
     void close() noexcept override;
 
 private:
+    std::filesystem::path _path = {};
+
     /** The file stream used to read the file.
      * 
      * This may be empty or closed if the file is not open.
      */
     std::ifstream _file_stream = {};
-
-    /** Open the file without locking the mutex.
-     */
-    std::unique_lock<std::mutex> _open(std::unique_lock<std::mutex> lock);
-
-    /** Close the file without locking the mutex.
-     */
-    std::unique_lock<std::mutex> _close(std::unique_lock<std::mutex> lock) noexcept;
 };
 
 } // namespace hk

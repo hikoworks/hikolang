@@ -13,18 +13,12 @@ namespace hk {
  * This class provides methods to read the content of a file, open and close it,
  * and manage its path identifier.
  * 
- * This class is thread-safe, meaning that multiple threads can access it
- * concurrently.
  */
 class file {
 public:
     virtual ~file() = default;
 
-    /** Create a file object with the given path.
-     *
-     * @param path The absolute normalized path to the file.
-     */
-    explicit file(hk::path_id path_id);
+    file() = default;
 
     /** Read the file content into a buffer.
      *
@@ -61,31 +55,12 @@ public:
      * If the file is not open, this will do nothing.
      */
     virtual void close() noexcept {};
-
-protected:
-    /** This class is thread-safe, so we need a mutex to protect access to the file stream.
-     */
-    std::mutex _mutex;
-
-    /** The absolute normalized path to the file.
-     */
-    path_id _path_id = {};
 };
 
-/** Get a file object pointing the the given path identifier.
+/** Make a file object from a path.
  * 
- * @param path_id The path identifier to get the file for.
- * @return A file object pointing to the file, or an error code if the file could not be opened.
+ * @param path The path to open.
  */
-[[nodiscard]] file &get_file(hk::path_id path_id);
-
-/** Remove the file object from memory.
- * 
- * This will close the file and remove it from the internal cache.
- * This is used when the file no longer exists during incremental compilation.
- * 
- * @param path_id The path identifier of the file object to remove.
- */
-void free_file(hk::path_id path_id) noexcept;
+[[nodiscard]] std::unique_ptr<file> make_file(std::filesystem::path path);
 
 } // namespace hk
