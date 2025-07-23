@@ -137,6 +137,8 @@ if(BUILD_TESTING)
     add_executable(hktests)
     target_sources(hktests PRIVATE
         $<TARGET_OBJECTS:hk_objects>
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/unit_test.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/unit_test.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/prologue/prologue_scan_tests.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer/tokenizer_tests.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/unicode_tests.cpp"
@@ -162,5 +164,20 @@ if(BUILD_TESTING)
         target_link_options(hktests PRIVATE -fsanitize=address)
     endif()
 
+    add_custom_command(
+        OUTPUT ${CMAKE_BINARY_DIR}/test_data/.copied
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+                ${CMAKE_SOURCE_DIR}/test_data
+                ${CMAKE_BINARY_DIR}/test_data
+        COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/test_data/.copied
+        DEPENDS ${CMAKE_SOURCE_DIR}/test_data  # optional, see note
+        COMMENT "Copying test_data directory"
+    )
+
+    add_custom_target(copy_test_data ALL
+        DEPENDS ${CMAKE_BINARY_DIR}/test_data/.copied
+    )
+
+    add_dependencies(hktests copy_test_data)
     add_test(NAME hktests COMMAND hktests)
 endif()

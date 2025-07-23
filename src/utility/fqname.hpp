@@ -197,6 +197,16 @@ public:
     {
     }
 
+    constexpr fqname(std::string_view name) noexcept
+        : _name(name)
+    {
+    }
+
+    constexpr fqname(char const* name) noexcept
+        : _name(name)
+    {
+    }
+
     [[nodiscard]] constexpr friend bool operator==(fqname const&, fqname const&) noexcept = default;
 
     /** Compares two fully qualified names lexicographically per component. 
