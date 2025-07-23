@@ -13,6 +13,11 @@ file_cursor::file_cursor(std::filesystem::path path) : _file(make_file(path))
     fill_lookahead();
 }
 
+[[nodiscard]] std::vector<std::filesystem::path> file_cursor::upstream_paths() const
+{
+    return _upstream_paths;
+}
+
 void file_cursor::set_scram_key(uint32_t key) noexcept
 {
     _scram_key = key;

@@ -70,16 +70,16 @@ struct repository {
 };
 
 
-/**
- * Scan the prologue of all files in a repository.
+/** Scan the prologue of all files in a repository.
  * 
  * This function will scan all files in the given path and extract the prologue
  * from each file. The prologue is the first few lines of the file that contain
  * metadata about the file, such as the module name, version, and dependencies.
  * 
  * @param path The path to the repository to scan.
+ * @return A module for each .hkm file found.
  */
-[[nodiscard]] std::vector<std::unique_ptr<ast::module_node>> prologue_scan_repository(std::filesystem::path const& path);
+[[nodiscard]] std::vector<ast::module_node_ptr> prologue_scan_repository(std::filesystem::path const& path);
 
 
 }

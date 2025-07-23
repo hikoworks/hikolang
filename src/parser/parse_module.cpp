@@ -1,4 +1,5 @@
 
+#include "parse_module.hpp"
 #include "parsers.hpp"
 #include "consume.hpp"
 #include "ast/nodes.hpp"
@@ -7,21 +8,19 @@
 namespace hk {
 
 
-[[nodiscard]] parse_result_ptr<ast::module_node> parse_module(token_iterator& it, error_list& e, bool only_prologue)
+[[nodiscard]] ast::module_node_ptr parse_module(token_iterator& it, bool only_prologue)
 {
     auto const first = it->first;
     auto r = std::make_unique<ast::module_node>(first);
 
-    if (auto node = parse_module_declaration(it, e)) {
+    if (auto node = parse_module_declaration(it, r->errors)) {
         r->declaration = std::move(node).value();
-    } else if (node.error()) {
-        return std::unexpected{node.error()};
     } else {
-        return tokens_did_not_match;
+        return r;
     }
 
     while (true) {
-        if (auto node = parse_import_declaration(it, e)) {
+        if (auto node = parse_import_declaration(it, r->errors)) {
             r->imports.push_back(std::move(node).value());
         } else if (node.error()) {
             // Parsing can continue on failure.
@@ -44,7 +43,7 @@ namespace hk {
     return r;
 }
 
-[[nodiscard]] parse_result_ptr<ast::module_node> parse_module(hk::file_cursor& c, error_list &e, bool only_prologue)
+[[nodiscard]] ast::module_node_ptr parse_module(hk::file_cursor& c, bool only_prologue)
 {
     class delegate_type : public tokenize_delegate {
     public:
@@ -72,7 +71,9 @@ namespace hk {
     hk::tokenize(c, delegate);
 
     auto it = tokens.cbegin();
-    return parse_module(it, e, only_prologue);
+    auto m = parse_module(it, only_prologue);
+    m->upstream_paths = c.upstream_paths();
+    return m;
 }
 
 } // namespace hk

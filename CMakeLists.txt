@@ -50,6 +50,7 @@ add_library(hk_objects OBJECT
     "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/parse_import_declaration.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/parse_module_declaration.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/parse_module.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/parse_module.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/parser.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/parsers.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/prologue/prologue_scan.cpp"
@@ -136,8 +137,9 @@ if(BUILD_TESTING)
     add_executable(hktests)
     target_sources(hktests PRIVATE
         $<TARGET_OBJECTS:hk_objects>
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/unicode_tests.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/prologue/prologue_scan_tests.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer/tokenizer_tests.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/unicode_tests.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/strings_tests.cpp"
     )
     #target_compile_definitions(hktests PRIVATE ${LLVM_DEFINITIONS})

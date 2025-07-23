@@ -3,7 +3,7 @@
 #include "utility/vector_set.hpp"
 #include "utility/file_cursor.hpp"
 #include "error/error_list.hpp"
-#include "parser/parsers.hpp"
+#include "parser/parse_module.hpp"
 
 namespace hk {
 
@@ -42,17 +42,10 @@ namespace hk {
             continue;
         }
 
-        auto errors = error_list{};
         auto cursor = file_cursor(entry.path());
-        if (auto node = parse_module(cursor, errors, true)) {
+        auto node = parse_module(cursor, true);
 
-            r.push_back(std::move(node).value());
-        } else if (node.error()) {
-
-
-        } else {
-
-        }
+        r.push_back(std::move(node));
     }
 
     return r;

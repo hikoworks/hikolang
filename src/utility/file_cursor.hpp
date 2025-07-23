@@ -83,7 +83,7 @@ public:
      * file ab 
      * @return A vector of paths that where used to generate the file being parsed.
      */
-    [[nodiscard]] std::vector<std::filesystem::path> get_paths() const;
+    [[nodiscard]] std::vector<std::filesystem::path> upstream_paths() const;
 
     /** Set the key used for the #scram directive.
      * 
