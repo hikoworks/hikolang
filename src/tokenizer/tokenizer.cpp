@@ -152,8 +152,8 @@ struct tokenize_delegate_helper : tokenize_delegate {
             return;
         }
 
-        if (not q.empty() and (q.back() == ';' or q.back() == '{')) {
-            // Don't insert a semicolon where one should not be.
+        if (q.empty() or q.back() == ';' or q.back() == '{') {
+            // Don't add semicolon when there is a termination token on the queue. 
             return;
         }
 
