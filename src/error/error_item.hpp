@@ -9,7 +9,7 @@
 
 namespace hk {
 
-class cause {
+class error_cause {
 public:
 
 private:
@@ -18,16 +18,16 @@ private:
     std::string _message;
 };
 
-class error {
+class error_item {
 public:
-    constexpr error() noexcept = default;
-    error(error const&) = default;
-    error(error&&) = default;
-    error& operator=(error const&) = default;
-    error& operator=(error&&) = default;
+    constexpr error_item() noexcept = default;
+    error_item(error_item const&) = default;
+    error_item(error_item&&) = default;
+    error_item& operator=(error_item const&) = default;
+    error_item& operator=(error_item&&) = default;
 
     template<typename... Args>
-    error(file_location first, file_location last, error_code code, std::format_string<Args...> fmt, Args&&... args)
+    error_item(file_location first, file_location last, error_code code, std::format_string<Args...> fmt, Args&&... args)
         : _first(first), _last(last), _code(code), _message(std::format(std::move(fmt), std::forward<Args>(args)...))
     {
         assert(_code.has_value());
@@ -56,7 +56,7 @@ private:
     file_location _last = {};
     error_code _code = {};
     std::string _message = {};
-    std::vector<cause> _causes = {};
+    std::vector<error_cause> _causes = {};
 };
 
 }

@@ -61,21 +61,4 @@ struct error_code {
     }
 };
 
-inline std::set<error_code> all_unique_error_codes = {};
-
-template<fixed_string Fmt>
-struct unique_error_code_helper {
-    error_code code;
-
-    unique_error_code_helper() {
-        code = error_code{Fmt};
-        auto const [_, inserted] = all_unique_error_codes.insert(code);
-
-        assert(inserted);
-    }
-};
-
-template<fixed_string Fmt>
-inline unique_error_code_helper<Fmt> unique_error_code = {};
-
 }

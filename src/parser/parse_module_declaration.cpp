@@ -1,5 +1,7 @@
 
 #include "parsers.hpp"
+#include "tokenizer/token_parsers.hpp"
+#include "error/errors.hpp"
 
 namespace hk {
 
@@ -19,33 +21,60 @@ namespace hk {
     } else if (node.error()) {
         return std::unexpected{node.error()};
     } else {
-        return e.add<"E0001: Expected fully qualified name after 'module' keyword in module-declaration.">(first, it->last);
+        return e.add<error::missing_module_declaration_name>(first, it->last);
     }
 
-    if (*it == "fallback") {
-        r->is_fallback = true;
+    // Optional module specialization.
+    if (*it == "application") {
         ++it;
+        r->kind = ast::module_declaration_node::kind_type::application;
+        if (*it == token::string_literal) {
+            r->output_filename = it->text;
+            ++it;
+        } else {
+            return e.add<error::missing_module_application_declaration_exe>(first, it->last);
+        }
 
-    //} else if (*it == "if") {
-    //    ++it;
-//
-    //    if (auto condition = parse_condition_expression(it, e)) {
-    //        r->condition = std::move(condition);
-    //    } else if (condition.has_error()) {
-    //        return condition.error();
-    //    } else {
-    //        return e.add<"E0002: Expected expression after 'if' in module-declaration.">(first, it->last);
-    //    }
+    } else if (*it == "library") {
+        ++it;
+        r->kind = ast::module_declaration_node::kind_type::library;
+        if (*it == token::string_literal) {
+            r->output_filename = it->text;
+            ++it;
+        } else {
+            return e.add<error::missing_module_library_declaration_bin>(first, it->last);
+        }
+
+    } else if (*it == "package") {
+        ++it;
+        r->kind = ast::module_declaration_node::kind_type::package;
+        if (*it == token::version_literal) {
+            r->version = it->version_value();
+            ++it;
+        } else {
+            return e.add<error::missing_module_package_declaration_version>(first, it->last);
+        }
+
+    } else {
+        r->kind = ast::module_declaration_node::kind_type::module;
     }
 
-    auto const last = it->first;
-    if (*it != ';') {
-        return e.add<"E0003: Expected ';' after module-declaration.">(first, it->last);
-    }
-    ++it;
+    // Optional conditional compilation.
+    if (*it == "fallback") {
+        ++it;
+        r->is_fallback = true;
 
-    r->last = last;
-    return r;
+    } else if (*it == "if") {
+        ++it;
+        return e.add<error::unimplemented_module_declaration_if>(first, it->last);
+    }
+
+    if (*it == ';') {
+        ++it;
+        return r;
+    }
+
+    return e.add<error::missing_module_declaration_semicolon>(first, it->last);
 }
 
 } // namespace hk

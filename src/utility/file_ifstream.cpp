@@ -48,20 +48,22 @@ file_ifstream::file_ifstream(std::filesystem::path path)
     }
 
     _file_stream.read(buffer.data(), buffer.size());
+    // It is important to read gcount() directly after read() due to bugs in libc++.
+    auto const r = _file_stream.gcount();
     if (_file_stream.bad()) {
         // If the file stream is in a bad state, we close it and throw an error.
         close();
         throw std::runtime_error{std::format("Failed to read from file stream: {}", _path.string())};
 
     } else if (_file_stream.eof()) {
-        return 0;
+        return r;
 
     } else if (_file_stream.fail()) {
         close();
         throw std::runtime_error{std::format("Failed to read from file stream: {}", _path.string())};
     }
 
-    return _file_stream.gcount();
+    return r;
 }
 
 void file_ifstream::open()

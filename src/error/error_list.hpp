@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "error.hpp"
+#include "error_item.hpp"
 #include "error_code.hpp"
 #include "utility/file_location.hpp"
 #include "utility/fixed_string.hpp"
@@ -10,9 +10,9 @@
 
 namespace hk {
 
-class error_list : public std::vector<error> {
+class error_list : public std::vector<error_item> {
 public:
-    using element_type = error;
+    using element_type = error_item;
 
     /** Add an error to the list. 
      * 
@@ -23,15 +23,12 @@ public:
      *  @param args The arguments to format the error message.
      *  @return A unexpected error containing the error code.
      */
-    template<fixed_string Fmt, typename... Args>
+    template<typename ErrorType, typename... Args>
     std::unexpected<error_code> add(file_location first, file_location last, Args&&... args)
     {
-        auto const code = unique_error_code<Fmt>.code;
-        assert(code.has_value());
-
-        auto e = error{first, last, code, Fmt, std::forward<Args>(args)...};
+        auto e = error_item{first, last, ErrorType::code, ErrorType::fmt, std::forward<Args>(args)...};
         this->push_back(std::move(e));
-        return std::unexpected{code};
+        return std::unexpected{ErrorType::code};
     }
 
 private:

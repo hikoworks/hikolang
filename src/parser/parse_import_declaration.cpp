@@ -1,5 +1,6 @@
 
 #include "parsers.hpp"
+#include "error/errors.hpp"
 
 namespace hk {
 
@@ -14,23 +15,74 @@ namespace hk {
 
     auto r = std::make_unique<ast::import_declaration_node>(first);
 
-    if (auto fqname = parse_fqname(it, e)) {
+    if (*it == "git") {
+        r->kind = ast::import_declaration_node::kind_type::git;
+        ++it;
+
+        if (*it == token::string_literal) {
+            r->path = it->text;
+            ++it;
+        } else {
+            return e.add<error::missing_import_git_declaration_url>(first, it->last);
+        }
+
+        if (*it == token::string_literal) {
+            r->branch = it->text;
+            ++it;
+        } else {
+            return e.add<error::missing_import_git_declaration_branch>(first, it->last);
+        }
+
+    } else if (*it == "zip") {
+        r->kind = ast::import_declaration_node::kind_type::zip;
+        ++it;
+
+        if (*it == token::string_literal) {
+            r->path = it->text;
+            ++it;
+        } else {
+            return e.add<error::missing_import_zip_declaration_path>(first, it->last);
+        }
+
+    } else if (*it == "lib") {
+        r->kind = ast::import_declaration_node::kind_type::lib;
+        ++it;
+
+        if (*it == token::string_literal) {
+            r->path = it->text;
+            ++it;
+        } else {
+            return e.add<error::missing_import_lib_declaration_path>(first, it->last);
+        }
+
+    } else if (auto fqname = parse_fqname(it, e)) {
+        r->kind = ast::import_declaration_node::kind_type::mod;
         r->name = std::move(fqname).value();
+        ++it;
+
+        if (*it == "as") {
+            ++it;
+
+            if (*it == token::string_literal) {
+                r->as = it->text;
+
+            } else {
+                return e.add<error::missing_import_mod_declaration_as_name>(first, it->last);
+            }
+        }
+
     } else if (fqname.error()) {
         return std::unexpected{fqname.error()};
     } else {
-        return e.add<"E0007: Expected fully qualified name after 'import' keyword in import-declaration.">(first, it->last);
+        return e.add<error::missing_import_mod_declaration_name>(first, it->last);
     }
-    ++it;
 
-    auto const last = it->first;
-    if (*it != ';') {
-        return e.add<"E0008: Expected ';' after import-declaration.">(first, it->last);
+    if (*it == ';') {
+        ++it;
+        return r;
     }
-    ++it;
 
-    r->last = last;
-    return r;
+    return e.add<error::missing_import_declaration_semicolon>(first, it->last);
 }
 
 }

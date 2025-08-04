@@ -54,6 +54,7 @@ namespace hk {
             if (c[0] == quote_char) {
                 // End of string literal.
                 r.last = c.location();
+                ++c;
                 return r;
 
             } else if (c[0] == '\\') {

@@ -1,0 +1,4 @@
+
+module com.example.foo application "bar"
+
+import git "https://github.com/example/baz" "main"

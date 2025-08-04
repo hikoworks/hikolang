@@ -2,6 +2,7 @@
 #include "tokenizer.hpp"
 #include "utility/file_buffer.hpp"
 #include "utility/file_cursor.hpp"
+#include "utility/unit_test.hpp"
 #include <hikotest/hikotest.hpp>
 
 TEST_SUITE(tokenizer_suite) 
@@ -94,4 +95,53 @@ TEST_SUITE(tokenizer_suite)
         REQUIRE(tokens[1] == ';');
         REQUIRE(tokens[2] == '\0');
     }
+
+    TEST_CASE(short_file_file)
+    {
+        auto test_data_path = hk::test_data_path();
+        auto path = test_data_path / "simple.hkm";
+        auto cursor = hk::file_cursor{path};
+        auto delegate = delegate_type{};
+
+        hk::tokenize(cursor, delegate);
+        auto tokens = delegate.tokens;
+        REQUIRE(tokens.size() == 15);
+        REQUIRE(tokens[0] == "module");
+        REQUIRE(tokens[1] == "com");
+        REQUIRE(tokens[2] == ".");
+        REQUIRE(tokens[3] == "example");
+        REQUIRE(tokens[4] == ".");
+        REQUIRE(tokens[5] == "foo");
+        REQUIRE(tokens[6] == "application");
+        REQUIRE(tokens[7].text == "bar");
+        REQUIRE(tokens[8] == ';');
+        REQUIRE(tokens[9] == "import");
+        REQUIRE(tokens[10] == "git");
+        REQUIRE(tokens[11].text == "https://github.com/example/baz");
+        REQUIRE(tokens[12].text == "main");
+        REQUIRE(tokens[13] == ';');
+        REQUIRE(tokens[14] == '\0');
+    }
+
+    TEST_CASE(short_file_content)
+    {
+        auto tokens = parse_tokens("\n\nmodule com.example.foo application \"bar\"\n\nimport git \"https://github.com/example/baz\" \"main\"\n");
+        REQUIRE(tokens.size() == 15);
+        REQUIRE(tokens[0] == "module");
+        REQUIRE(tokens[1] == "com");
+        REQUIRE(tokens[2] == ".");
+        REQUIRE(tokens[3] == "example");
+        REQUIRE(tokens[4] == ".");
+        REQUIRE(tokens[5] == "foo");
+        REQUIRE(tokens[6] == "application");
+        REQUIRE(tokens[7].text == "bar");
+        REQUIRE(tokens[8] == ';');
+        REQUIRE(tokens[9] == "import");
+        REQUIRE(tokens[10] == "git");
+        REQUIRE(tokens[11].text == "https://github.com/example/baz");
+        REQUIRE(tokens[12].text == "main");
+        REQUIRE(tokens[13] == ';');
+        REQUIRE(tokens[14] == '\0');
+    }
+
 };

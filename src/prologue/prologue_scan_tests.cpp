@@ -17,6 +17,10 @@ TEST_CASE(prologue_scan_repository_test)
     REQUIRE(module->errors.empty());
     REQUIRE(module->declaration != nullptr);
     REQUIRE(module->declaration->name == "nl.hikolang.prologue_scan.main");
+
+    REQUIRE(module->imports.size() == 1);
+    auto dir = module->imports[0]->directory_name();
+    REQUIRE(dir == "hklang_tests-ariucw66qa");
 }
 
 };

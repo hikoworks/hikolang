@@ -1,6 +1,7 @@
 
 #include "parsers.hpp"
 #include "utility/fqname.hpp"
+#include "error/errors.hpp"
 
 namespace hk {
 
@@ -16,13 +17,13 @@ namespace hk {
     ++it;
 
     while (true) {
-        if (*it != '.') {
+        if (*it != ".") {
             return r;
         }
 
         ++it;
         if (*it != token::identifier) {
-            return e.add<"E0004: Expected identifier after '.' in fully qualified name.">(first, it->last);
+            return e.add<error::missing_fqname_identifier_after_dot>(first, it->last);
         }
 
         r += it->text;

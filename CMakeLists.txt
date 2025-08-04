@@ -34,17 +34,21 @@ endif()
 find_package(ICU REQUIRED COMPONENTS i18n uc data)
 find_package(Microsoft.GSL CONFIG REQUIRED)
 find_package(LibGit2 CONFIG REQUIRED)
+find_package(OpenSSL REQUIRED)
 
 add_library(hk_objects OBJECT
     "${CMAKE_CURRENT_SOURCE_DIR}/src/ast/expression_node.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/ast/import_declaration_node.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/ast/import_declaration_node.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/ast/module_declaration_node.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/ast/module_node.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/ast/node.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/ast/nodes.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/error/error_code.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/error/error_item.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/error/error_list.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/error/error.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/error/errors.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/error/make_error.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/consume.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/parse_fqname.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/parse_import_declaration.cpp"
@@ -70,6 +74,8 @@ add_library(hk_objects OBJECT
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer/tokenizer.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer/tokenizer.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer/token_parsers.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/base32.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/base32.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/char_category.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/char_category.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/command_line.cpp"
@@ -85,12 +91,16 @@ add_library(hk_objects OBJECT
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/file.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/fixed_fifo.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/fqname.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/git.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/git.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/module.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/module.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/path.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/path.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/semantic_version.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/semantic_version.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/sha.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/sha.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/strings.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/strings.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/unicode.cpp"
@@ -131,12 +141,14 @@ target_link_libraries(hkc PRIVATE ICU::i18n)
 target_link_libraries(hkc PRIVATE ICU::uc)
 target_link_libraries(hkc PRIVATE ICU::data)
 target_link_libraries(hkc PRIVATE libgit2::libgit2package)
-
+target_link_libraries(hkc PRIVATE OpenSSL::SSL)
+target_link_libraries(hkc PRIVATE OpenSSL::Crypto)
 
 if(BUILD_TESTING)
     add_executable(hktests)
     target_sources(hktests PRIVATE
         $<TARGET_OBJECTS:hk_objects>
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/git_tests.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/unit_test.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/unit_test.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/prologue/prologue_scan_tests.cpp"
@@ -151,6 +163,8 @@ if(BUILD_TESTING)
     target_link_libraries(hktests PRIVATE ICU::uc)
     target_link_libraries(hktests PRIVATE ICU::data)
     target_link_libraries(hktests PRIVATE libgit2::libgit2package)
+    target_link_libraries(hktests PRIVATE OpenSSL::SSL)
+    target_link_libraries(hktests PRIVATE OpenSSL::Crypto)
     target_link_libraries(hktests PRIVATE hikotest)
     target_include_directories(hktests PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
