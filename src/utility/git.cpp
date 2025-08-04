@@ -1,5 +1,6 @@
 
 #include "git.hpp"
+#include "defer.hpp"
 #include <git2.h>
 #include <mutex>
 #include <format>
@@ -159,13 +160,84 @@ public:
     return r;
 }
 
-//[[nodiscard]] std::expected<git_oid, git_error> git_hash(std::string const& url, std::string const& branch)
-//{
-//
-//}
+/** Check if one of the remote has the correct branch checked out.
+ * 
+ * @param repository The repository to check all the remotes
+ * @param branch The branch to compare.
+ * @retval true The correct branch was checked out.
+ * @retval false Another branch was checked out.
+ * @retval error An error during query.
+ */
+[[nodiscard]] std::expected<bool, git_error> repository_matches_branch(::git_repository *repository, std::string const& branch)
+{
+
+}
+
+/** Check if one of the remote has a url that matches the given url.
+ * 
+ * @param repository The repository to check all the remotes
+ * @param url The url to compare.
+ * @retval true The url is a remote of the @a repository.
+ * @retval false None of the remotes match.
+ * @retval error An error during query.
+ */
+[[nodiscard]] std::expected<bool, git_error> repository_matches_url(::git_repository *repository, std::string const& url)
+{
+    assert(repository != nullptr);
+
+    auto remote_names = ::git_strarray{};
+    if (auto const result = ::git_remote_list(&remote_names, repository); result != GIT_OK) {
+        return std::unexpected{make_git_error(result)};
+    }
+    auto const _ = defer{[&]{ ::git_strarray_dispose(&remote_names); }};
+
+    for (auto i = 0uz; i != remote_names.count; ++i) {
+        ::git_remote *remote = nullptr;
+        if (auto const result = ::git_remote_lookup(&remote, repository, remote_names.strings[i]); result != GIT_OK) {
+            return std::unexpected{make_git_error(result)};
+        }
+        auto const _ = defer{[&]{ ::git_remote_free(remote); }};
+
+        auto const remote_url = ::git_remote_url(remote);
+        if (remote_url and url == remote_url) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+[[nodiscard]] git_error git_fetch_and_update(std::string const& url, std::string const& branch, std::filesystem::path path, git_checkout_flags flags)
+{
+    auto const& _ = git_lib_initialize();
+
+    auto r = git_error::ok;
+
+    ::git_repository *repository = nullptr;
+    if (auto const result = ::git_repository_open(&repository, url.c_str()); result != GIT_OK) {
+        return make_git_error(result);
+    }
+    auto const d1 = defer{[&]{ ::git_repository_free(repository); }};
+
+    if (auto result = repository_matches_url(repository, url)) {
+        if (not *result) {
+            std::print("The repository at {}, does not have a remote with the url {}", path.string(), url);
+            return git_error::remote_url_mismatch;
+        }
+    } else {
+        return result.error();
+    }
+
+    if (auto result = repository_matches_branch(repository, branch)) {
+
+    }
+}
 
 [[nodiscard]] git_error git_clone(std::string const& url, std::string const& branch, std::filesystem::path path)
 {
+    auto const& _ = git_lib_initialize();
+
+
     auto force_checkout = false;
 
     auto ref_list = git_references{};

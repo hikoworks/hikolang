@@ -50,6 +50,10 @@ enum class git_error {
     unchanged,
     not_supported,
     read_only,
+
+    /** The repository does have a remote that matches the expected URL. 
+     */
+    remote_url_mismatch,
 };
 
 enum class git_checkout_flags {
@@ -84,6 +88,16 @@ struct git_reference {
     [[nodiscard]] constexpr friend auto operator<=>(git_reference const& lhs, git_reference const& rhs) noexcept
     {
         return lhs.name <=> rhs.name;
+    }
+
+    [[nodiscard]] constexpr bool is_branch() const noexcept
+    {
+        return name.starts_with("refs/heads/");
+    }
+
+    [[nodiscard]] constexpr bool is_tag() const noexcept
+    {
+        return name.starts_with("ref/tags/");
     }
 };
 
@@ -121,7 +135,16 @@ public:
 
 [[nodiscard]] git_error git_clone(std::string const& url, std::string const& branch, std::filesystem::path path);
 
-[[nodiscard]] git_error git_checkout(std::filesystem::path path);
+/** This function will open the repository and update to the latest version.
+ * 
+ * @param url The remote url, used to check if the repository at the path
+ *            has the same remote url.
+ * @param branch The branch to checkout. If the repository is of a different
+ *               branch this branch is checked out, and the repository is cleaned.
+ * @param path The path where the repository is located.
+ * @param flags Flags for the way the repository should be checked out.
+ */
+[[nodiscard]] git_error git_fetch_and_update(std::string const& url, std::string const& branch, std::filesystem::path path, git_checkout_flags flags);
 
 /** Checkout or clone the repository.
  * 
