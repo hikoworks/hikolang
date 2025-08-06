@@ -54,6 +54,16 @@ enum class git_error {
     /** The repository does have a remote that matches the expected URL. 
      */
     remote_url_mismatch,
+
+    /** The workdir of the repository is relative, instead of absolute.
+     */
+    relative_workdir,
+
+    /** Found a file outside of the work dir.
+     * 
+     * This is a security issue.
+     */
+    file_outside_workdir
 };
 
 enum class git_checkout_flags {

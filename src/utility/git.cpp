@@ -1,6 +1,7 @@
 
 #include "git.hpp"
 #include "defer.hpp"
+#include "path.hpp"
 #include <git2.h>
 #include <mutex>
 #include <format>
@@ -184,7 +185,7 @@ enum class rev_match {
  * @param rev The rev to compare.
  * @retval error An error during query.
  */
-[[nodiscard]] std::expected<rev_match, git_error> repository_matches_rev(::git_repository *repository, std::string const& rev)
+[[nodiscard]] static std::expected<rev_match, git_error> repository_matches_rev(::git_repository *repository, std::string const& rev)
 {
     ::git_object *rev_obj = nullptr;
     ::git_reference *rev_ref = nullptr;
@@ -237,35 +238,26 @@ enum class rev_match {
 /** Check if one of the remote has a url that matches the given url.
  * 
  * @param repository The repository to check all the remotes
- * @param url The url to compare.
- * @retval true The url is a remote of the @a repository.
- * @retval false None of the remotes match.
+ * @param remote_name The remote to get the url for.
+ * @retval string The url of the remote.
  * @retval error An error during query.
  */
-[[nodiscard]] std::expected<bool, git_error> repository_matches_url(::git_repository *repository, std::string const& url)
+[[nodiscard]] static std::expected<std::string, git_error> repository_remote_url(::git_repository *repository, std::string const& remote_name = std::string{"origin"})
 {
     assert(repository != nullptr);
 
-    auto remote_names = ::git_strarray{};
-    if (auto const result = ::git_remote_list(&remote_names, repository); result != GIT_OK) {
+    ::git_remote *remote = nullptr;
+    if (auto const result = ::git_remote_lookup(&remote, repository, remote_name.c_str()); result != GIT_OK) {
         return std::unexpected{make_git_error(result)};
     }
-    auto const _ = defer{[&]{ ::git_strarray_dispose(&remote_names); }};
+    auto const d1 = defer{[&]{ ::git_remote_free(remote); }};
 
-    for (auto i = 0uz; i != remote_names.count; ++i) {
-        ::git_remote *remote = nullptr;
-        if (auto const result = ::git_remote_lookup(&remote, repository, remote_names.strings[i]); result != GIT_OK) {
-            return std::unexpected{make_git_error(result)};
-        }
-        auto const _ = defer{[&]{ ::git_remote_free(remote); }};
-
-        auto const remote_url = ::git_remote_url(remote);
-        if (remote_url and url == remote_url) {
-            return true;
-        }
+    auto const remote_url = ::git_remote_url(remote);
+    if (remote_url == nullptr) {
+        return std::string{""};
     }
 
-    return false;
+    return std::string{remote_url};
 }
 
 [[nodiscard]] static git_error repository_fetch(::git_repository *repository, std::string const& remote_name = std::string{"origin"})
@@ -291,6 +283,80 @@ enum class rev_match {
     return git_error::ok;
 }
 
+[[nodiscard]] static std::filesystem::path repository_workdir(::git_repository *repository)
+{
+    assert(repository != nullptr);
+
+    if (auto *p = ::git_repository_workdir(repository); p != nullptr) {
+        return std::filesystem::path{p};
+    } else {
+        return std::filesystem::path{};
+    }
+}
+
+/** Clean the repository in preperation for a new checkout.
+ * 
+ * This will remove all untracked and ignored files. It is expected that these
+ * are the only files that need to be removed to rebuild the repository.
+ * 
+ * @param repository An open repository.
+ * @return An error code or ok.
+ */
+[[nodiscard]] static git_error repository_clean(::git_repository *repository)
+{
+    assert(repository != nullptr);
+
+    auto repository_dir = repository_workdir(repository);
+    if (repository_dir.empty()) {
+        return git_error::bare_repo;
+    }
+    if (not repository_dir.is_absolute()) {
+        return git_error::relative_workdir;
+    }
+    repository_dir = std::filesystem::canonical(repository_dir);
+
+    auto status_opts = ::git_status_options{};
+    if (::git_status_options_init(&status_opts, GIT_STATUS_OPTIONS_VERSION) != 0) {
+        return git_error::error;
+    }
+
+    status_opts.show  = GIT_STATUS_SHOW_WORKDIR_ONLY;
+    status_opts.flags |= GIT_STATUS_OPT_INCLUDE_UNTRACKED;
+    status_opts.flags |= GIT_STATUS_OPT_RECURSE_UNTRACKED_DIRS;
+    status_opts.flags |= GIT_STATUS_OPT_INCLUDE_IGNORED;
+
+    ::git_status_list *status_list = nullptr;
+    if (auto result = ::git_status_list_new(&status_list, repository, &status_opts); result != GIT_OK) {
+        return make_git_error(result);
+    }
+    auto const d1 = defer{[&] { ::git_status_list_free(status_list); }};
+
+    auto const count = ::git_status_list_entrycount(status_list);
+    for (auto i = 0uz; i != count; ++i) {
+        auto const *entry = ::git_status_byindex(status_list, i);
+        if (entry->head_to_index == nullptr) {
+            continue;
+
+        } else if (entry->status == GIT_STATUS_WT_NEW or entry->status == GIT_STATUS_IGNORED) {
+            auto path = repository_dir / entry->head_to_index->new_file.path;
+            path = std::filesystem::canonical(path);
+
+            if (not is_subpath(path, repository_dir)) {
+                std::print(stderr, "security: file '{}' is outside of directory of repository at '{}'", path, repository_dir);
+                std::terminate();
+            }
+
+            std::print(stderr, "info: removing file '{}'", path.string());
+            auto ec = std::error_code{};
+            if (not std::filesystem::remove(path, ec)) {
+                std::print(stderr, "error: failed removing file '{}': {}", path.string(), ec);
+            }
+        }
+    }
+
+    return git_error::ok;
+}
+
 [[nodiscard]] git_error git_fetch_and_update(std::string const& url, std::string const& rev, std::filesystem::path path, git_checkout_flags flags)
 {
     auto const& _ = git_lib_initialize();
@@ -298,18 +364,18 @@ enum class rev_match {
     auto r = git_error::ok;
 
     ::git_repository *repository = nullptr;
-    if (auto const result = ::git_repository_open(&repository, url.c_str()); result != GIT_OK) {
+    if (auto const result = ::git_repository_open(&repository, path.string().c_str()); result != GIT_OK) {
         return make_git_error(result);
     }
     auto const d1 = defer{[&]{ ::git_repository_free(repository); }};
 
-    if (auto result = repository_matches_url(repository, url)) {
-        if (not *result) {
+    if (auto remote_url_o = repository_remote_url(repository, url)) {
+        if (*remote_url_o != url) {
             std::print("The repository at {}, does not have a remote with the url {}", path.string(), url);
             return git_error::remote_url_mismatch;
         }
     } else {
-        return result.error();
+        return remote_url_o.error();
     }
 
     auto fetch = to_bool(flags & git_checkout_flags::force_checkout);

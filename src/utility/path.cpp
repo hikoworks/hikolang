@@ -31,4 +31,33 @@ namespace hk {
     }
 }
 
+[[nodiscard]] bool is_subpath(std::filesystem::path const& path, std::filesystem::path const& base)
+{
+    auto ec = std::error_code{};
+
+    auto const path_ = std::filesystem::canonical(path, ec);
+    if (not ec) {
+        return false;
+    }
+
+    auto const base_ = std::filesystem::canonical(path, ec);
+    if (not ec) {
+        return false;
+    }
+
+    auto it = base_.begin();
+    auto jt = path_.begin();
+
+    for (; it != base_.end(); ++it, ++jt) {
+        if (jt == path_.end()) {
+            return false;
+        }
+
+        if (*it != *jt) {
+            return false;
+        }
+    }
+    return true;
+}
+
 }

@@ -28,5 +28,15 @@ namespace hk {
 [[nodiscard]] std::expected<std::filesystem::path, std::error_code> absolute_to(
     std::filesystem::path const& path, std::filesystem::path const& base);
 
+/** Is subpath.
+ * 
+ * Make sure that @a path is a subpath inside of @a base.
+ * 
+ * @param path The file path a subpath inside @a base.
+ * @param base A directory containing @a path.
+ * @retval true If @a path is contained with @a base.
+ * @retval false If @a path is outside @a base, or an error occured. 
+ */
+[[nodiscard]] bool is_subpath(std::filesystem::path const& path, std::filesystem::path const& base);
 
 }
