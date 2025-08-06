@@ -160,18 +160,79 @@ public:
     return r;
 }
 
+enum class rev_match {
+    /** Rev was not found in the repository.
+     */
+    rev_not_found,
+
+    /** Rev was not checked out.
+     */
+    not_checked_out,
+
+    /** Rev was checked out and is a tag or sha.
+     */
+    checked_out,
+
+    /** Rev was checked out and is a branch.
+     */
+    checked_out_branch,
+};
+
 /** Check if one of the remote has the correct branch checked out.
  * 
  * @param repository The repository to check all the remotes
- * @param branch The branch to compare.
- * @retval true The correct branch was checked out.
- * @retval false Another branch was checked out.
+ * @param rev The rev to compare.
  * @retval error An error during query.
  */
-[[nodiscard]] std::expected<bool, git_error> repository_matches_branch(::git_repository *repository, std::string const& branch)
+[[nodiscard]] std::expected<rev_match, git_error> repository_matches_rev(::git_repository *repository, std::string const& rev)
 {
+    ::git_object *rev_obj = nullptr;
+    ::git_reference *rev_ref = nullptr;
+    if (auto const result = ::git_revparse_ext(&rev_obj, &rev_ref, repository, rev.c_str()); result != GIT_OK) {
+        if (result == GIT_ENOTFOUND) {
+            // The rev was not found in the repository.
+            return rev_match::rev_not_found;
+        }
+        return std::unexpected{make_git_error(result)};
+    }
+    auto const d1 = defer{[&] {
+        ::git_object_free(rev_obj);
+        ::git_reference_free(rev_ref);
+    }};
 
+    ::git_object *peeled_rev_obj = nullptr;
+    if (auto const result = ::git_object_peel(&peeled_rev_obj, rev_obj, GIT_OBJECT_COMMIT); result != GIT_OK) {
+        return std::unexpected{make_git_error(result)};
+    }
+    auto const d2 = defer{[&] { ::git_object_free(peeled_rev_obj); }};
+
+    ::git_reference *head_ref = nullptr;
+    if (auto const result = ::git_repository_head(&head_ref, repository); result != GIT_OK) {
+        return std::unexpected{make_git_error(result)};
+    }
+    auto const d3 = defer{[&] { ::git_reference_free(head_ref); }};
+
+    ::git_object *peeled_head_obj = nullptr;
+    if (auto const result = ::git_reference_peel(&peeled_head_obj, head_ref, GIT_OBJECT_COMMIT); result != GIT_OK) {
+        return std::unexpected{make_git_error(result)};
+    }
+    auto const d4 = defer{[&] { ::git_object_free(peeled_head_obj); }};
+
+    auto const *rev_oid = git_object_id(peeled_rev_obj);
+    assert(rev_oid != nullptr);
+
+    auto const *head_oid = git_object_id(peeled_head_obj);
+    assert(head_oid != nullptr);
+
+    if (git_oid_cmp(rev_oid, head_oid) != 0) {
+        return rev_match::not_checked_out;
+    } else if (git_reference_is_branch(rev_ref)) {
+        return rev_match::checked_out_branch;
+    } else {
+        return rev_match::checked_out;
+    }
 }
+
 
 /** Check if one of the remote has a url that matches the given url.
  * 
@@ -207,7 +268,30 @@ public:
     return false;
 }
 
-[[nodiscard]] git_error git_fetch_and_update(std::string const& url, std::string const& branch, std::filesystem::path path, git_checkout_flags flags)
+[[nodiscard]] static git_error repository_fetch(::git_repository *repository, std::string const& remote_name = std::string{"origin"})
+{
+    assert(repository != nullptr);
+
+    ::git_remote *remote = nullptr;
+    auto fetch_opts = ::git_fetch_options{};
+
+    if (auto result = ::git_fetch_init_options(&fetch_opts, GIT_FETCH_OPTIONS_VERSION); result != 0) {
+        return git_error::error;
+    }
+
+    if (auto result = ::git_remote_lookup(&remote, repository, remote_name.c_str()); result != GIT_OK) {
+        return make_git_error(result);
+    }
+    defer{[&] { ::git_remote_free(remote); }};
+
+    if (auto result = ::git_remote_fetch(remote, nullptr, &fetch_opts, nullptr)) {
+        return make_git_error(result);
+    }
+
+    return git_error::ok;
+}
+
+[[nodiscard]] git_error git_fetch_and_update(std::string const& url, std::string const& rev, std::filesystem::path path, git_checkout_flags flags)
 {
     auto const& _ = git_lib_initialize();
 
@@ -228,9 +312,60 @@ public:
         return result.error();
     }
 
-    if (auto result = repository_matches_branch(repository, branch)) {
+    auto fetch = to_bool(flags & git_checkout_flags::force_checkout);
+    if (auto result = repository_matches_rev(repository, rev)) {
+        switch (*result) {
+        case rev_match::rev_not_found:
+        case rev_match::not_checked_out:
+        case rev_match::checked_out_branch:
+            fetch = true;
+            break;
+        case rev_match::checked_out:
+            break;
+        }
 
+    } else {
+        return result.error();
     }
+
+    if (fetch) {
+        if (auto result = repository_fetch(repository); result != git_error::ok) {
+            return result;
+        }
+    }
+
+    auto checkout = false;
+    if (auto result = repository_matches_rev(repository, rev)) {
+        switch (*result) {
+        case rev_match::rev_not_found:
+            return git_error::not_found;
+        case rev_match::not_checked_out:
+            checkout = true;
+            break;
+        case rev_match::checked_out:
+        case rev_match::checked_out_branch:
+            break;
+        }
+    } else {
+        return result.error();
+    }
+    
+    auto clean = to_bool(flags & git_checkout_flags::clean);
+    clean |= checkout;
+
+    if (clean) {
+        if (auto result = repository_clean(repository); result != git_error::ok) {
+            return result;
+        }
+    }
+
+    if (checkout) {
+        if (auto result = repository_checkout(repository, rev); result != git_error::ok) {
+            return result;
+        }
+    }
+
+    return git_error::ok;
 }
 
 [[nodiscard]] git_error git_clone(std::string const& url, std::string const& branch, std::filesystem::path path)

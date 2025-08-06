@@ -139,12 +139,12 @@ public:
  * 
  * @param url The remote url, used to check if the repository at the path
  *            has the same remote url.
- * @param branch The branch to checkout. If the repository is of a different
- *               branch this branch is checked out, and the repository is cleaned.
+ * @param rev The rev (branch/tag/sha) to checkout. If the repository is of a different
+ *            rev this branch is checked out, and the repository is cleaned.
  * @param path The path where the repository is located.
  * @param flags Flags for the way the repository should be checked out.
  */
-[[nodiscard]] git_error git_fetch_and_update(std::string const& url, std::string const& branch, std::filesystem::path path, git_checkout_flags flags);
+[[nodiscard]] git_error git_fetch_and_update(std::string const& url, std::string const& rev, std::filesystem::path path, git_checkout_flags flags);
 
 /** Checkout or clone the repository.
  * 
