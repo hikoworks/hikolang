@@ -357,6 +357,50 @@ enum class rev_match {
     return git_error::ok;
 }
 
+[[nodiscard]] static git_error repository_checkout(::git_repository *repository, std::string const& rev)
+{
+    ::git_object *rev_obj = nullptr;
+    ::git_reference *rev_ref = nullptr;
+    if (auto const result = ::git_revparse_ext(&rev_obj, &rev_ref, repository, rev.c_str()); result != GIT_OK) {
+        if (result == GIT_ENOTFOUND) {
+            // The rev was not found in the repository.
+            return git_error::not_found;
+        }
+        return make_git_error(result);
+    }
+    auto const d1 = defer{[&] {
+        ::git_object_free(rev_obj);
+        ::git_reference_free(rev_ref);
+    }};
+
+    ::git_object *peeled_rev_obj = nullptr;
+    if (auto const result = ::git_object_peel(&peeled_rev_obj, rev_obj, GIT_OBJECT_COMMIT); result != GIT_OK) {
+        return make_git_error(result);
+    }
+    auto const d2 = defer{[&] { ::git_object_free(peeled_rev_obj); }};
+
+    auto checkout_options = ::git_checkout_options{};
+    if (::git_checkout_options_init(&checkout_options, GIT_CHECKOUT_OPTIONS_VERSION) != 0) {
+        return git_error::error;
+    }
+    checkout_options.checkout_strategy = GIT_CHECKOUT_FORCE;
+
+    if (auto const result = ::git_checkout_tree(repository, peeled_rev_obj, &checkout_options); result != GIT_OK) {
+        return make_git_error(result);
+    }
+
+    auto const *commit_oid = ::git_object_id(peeled_rev_obj);
+    if (commit_oid == nullptr) {
+        return git_error::error;
+    }
+
+    if (auto const result = ::git_repository_set_head_detached(repository, commit_oid); result != GIT_OK) {
+        return make_git_error(result);
+    }
+
+    return git_error::ok;
+}
+
 [[nodiscard]] git_error git_fetch_and_update(std::string const& url, std::string const& rev, std::filesystem::path path, git_checkout_flags flags)
 {
     auto const& _ = git_lib_initialize();
