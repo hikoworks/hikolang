@@ -93,6 +93,8 @@ add_library(hk_objects OBJECT
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/fqname.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/git.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/git.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/log.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/log.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/module.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/module.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/path.cpp"
