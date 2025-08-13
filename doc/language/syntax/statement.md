@@ -2,8 +2,7 @@
 
 ## Syntax
 
-[_expression_statement_](expression_statement.md) __|__
-[_variable-declaration_](variable_declaration.md) __|__
+[_expression_](expression.md) `;` __|__
 [_return_](return.md) __|__
 [_result_](result.md) __|__
 [_yield_](yield.md) __|__

@@ -7,7 +7,7 @@
 [_name_](name.md) __|__
 [_injected-variable_](injected_variable.md) __|__
 [_positional-variable_](positional_variable.md) __|__
-[_variable-initializer_](variable_initializer.md) __|__
+[_variable-declaration_](variable_declaration.md) __|__
 [_operator-expression_](operator_expression.md) __|__
 [_if-control-expression_](if_control_expression.md) __|__
 [_while-control-expression_](while_control_expression.md) __|__
