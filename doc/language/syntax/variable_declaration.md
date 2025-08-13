@@ -2,7 +2,7 @@
 
 ## Syntax
 
-[_storage_class_](storage_class.md)__?__ [_binding_mode_](binding_mode.md) [_name_](name.md) _type_declaration_**?**
+[_storage_class_](storage_class.md)__?__ [_binding_mode_](binding_mode.md) [_name_](name.md) _type_declaration_**?** `;`
 
 ## Semantics
 Declares a variable with a [_name_](name.md) which can be used in the scope or
@@ -14,8 +14,8 @@ Variable declarations may appear in the following contexts:
  - In a code block of a control-expression
  - In a class declaration.
 
-A _variable_declaration_ is a [_expression_](expression.md) which results in a
-reference to declared variable.
+A _variable_declaration_ is a [_statement_](statement.md) as it was not assigned a value,
+there can be no result.
 
 The type and coercion-method of the variable can be set by using the
 [_coerce_](coerce.md) operator on the _variable_declaration_ or on the
