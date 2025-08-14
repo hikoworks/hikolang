@@ -2,9 +2,14 @@
 
 ## Syntax
 
-`{` `(` [_argument-list_](argument_list.md)__?__ `)` [_result-type-declaration_](result_type_declaration.md)__?__ `in` [_statement-list_](statement_list.md) `}` __|__\
-`{` [_argument-list_](argument_list.md) `in` [_statement-list_](statement_list.md) `}` __|__\
-`{` [_statement-list_](statement_list.md) `}`
+`{` [_attribute_](attribute.md)__*__ `(` [_argument-list_](argument_list.md)__?__ `)`\
+[_result-type-declaration_](result_type_declaration.md)__?__\
+`in` [_statement-list_](statement_list.md) `}` __|__
+
+`{` [_attribute_](attribute.md)__*__ [_argument-list_](argument_list.md)\
+`in` [_statement-list_](statement_list.md) `}` __|__
+
+`{` [_attribute_](attribute.md)__*__ [_statement-list_](statement_list.md) `}`
 
 
 ## Semantics

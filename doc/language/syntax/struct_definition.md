@@ -14,6 +14,11 @@ var a = struct {
 struct b {
     var x: int
 }
+
+// Merge members to the struct b.
+b += struct {
+    var y: int
+}
 ```
 
 ### A struct-definition expression
@@ -29,4 +34,22 @@ A statement which is syntactic sugar for a struct-definition and variable declar
 
 ## Semantics
 
+A struct describes a type with zero or more member variables each with their own type.
 
+### Member functions
+Member functions are defined outside of the struct and are resolved using the standard
+overload resolution, where the first argument of the function is the reference to `self`.
+
+The exception is virtual functions.
+
+## Value-type
+
+A `lang::struct_type` has the following members:
+ - `__add__(a, b) -> c`: Add members from `b` to `a` creating a new struct `c`.
+ - `__inplace_add__(a, b)`: Add members from `b` to `a`.
+ - `__or__(a, b) -> c`: Merge members from `b` to `a` creating a new struct `c`.
+ - `__inplace_or__(a, b)`: Merge members from `b` to `a`.
+ - `__get_index__(a, args...)`: Create a new `lang:struct_type` that has filled in template
+   arguments.
+ - `__call__(a, args...)`: Create an instance and call the constructor with those arguments.
+ 
