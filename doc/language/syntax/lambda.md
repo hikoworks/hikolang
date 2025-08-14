@@ -36,10 +36,31 @@ are not of the same type.
 ## Example
 
 ```
-var a = {(x, y :*int) :^int[5..=6] : x + y }
-var b = {(x, y :*int) : x + y }
-var c = {:^int[5..=6] : $0 + $1 }
+var a = {(x, y :*int) -> int[5..=6] in x + y }
+var b = {(x, y :*int) in x + y }
+var c = {-> int[5..=6] in $0 + $1 }
 var d = { $0 + $1 }
 ```
 
+Larger example:
 
+```
+var foo += {
+    (x: float, y: float): float
+    pre(x >= 0.0)
+    pre($2 > 0.0)
+    post($0 > 0.0)
+    [[noinline]]
+
+start:
+    x += y;
+    x *= y;
+    return x;
+}
+
+var bar += {(x: float, y: float): float => x + y * 3}
+
+fn bar(x: int, y: float): string {
+    return x + y + 3;
+}
+```

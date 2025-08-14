@@ -2,7 +2,7 @@
 
 ## Syntax
 
-`module` [_module_name_](module_name.md) _module_type_**?** [_compile_condition_](compile_condition.md)__?__ `;`
+`module` [_fully_qualified_name_](fully_qualified_name.md) _module_type_**?** [_compile_condition_](compile_condition.md)__?__ `;`
 
 ### module_type
 
