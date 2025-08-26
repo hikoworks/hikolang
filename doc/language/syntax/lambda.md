@@ -6,7 +6,6 @@ _long-form-lambda_ __|__ _short-form-lambda_
 
 ### long-form-lambda
 `{` [_argument-declarations_](argument_declarations.md)__?__ [_result-type-declaration_](result_type_declaration.md)__?__\
-[_specifiers_](specifiers.md)__*__
 [_attribute_](attribute.md)__*__
 `in` [_statement-list_](statement_list.md) `}`
 

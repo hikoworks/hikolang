@@ -2,7 +2,13 @@
 
 ## Syntax
 
-[_module_declaration_](module_declaration.md) [_import_declaration_](import_declaration.md)__*__
+[_module_declaration_](module_declaration.md)
+__(__
+[_import_module_](import_module.md) __|__
+[_import_git_](import_git.md) __|__
+[_import_lib_](import_lib.md) __|__
+[_import_zip_](import_zip.md)
+__)*__
 
 ## Semantic
 
