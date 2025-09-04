@@ -3,7 +3,7 @@
 The basic integer used in the language.
 
 ```
-struct int[range : interval[long]] {
+struct int[range : z_interval] {
     let N = make_number_of_digits(range, register_type)
     let is_signed = range.low < 0
     var _digits : array[register_type, N]

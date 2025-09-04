@@ -20,6 +20,9 @@ public:
         error,
         simple,
         identifier,
+        tag,
+        context_arg,
+        position_arg,
         _operator,
         comment,
         documentation,
@@ -30,7 +33,6 @@ public:
         integer_literal,
         float_literal,
         version_literal,
-        positional_argument,
         line_directive,
         scram_directive,
         bracketed_string_literal,
@@ -40,6 +42,9 @@ public:
     static constexpr kind_type error = kind_type::error;
     static constexpr kind_type simple = kind_type::simple;
     static constexpr kind_type identifier = kind_type::identifier;
+    static constexpr kind_type tag = kind_type::tag;
+    static constexpr kind_type context_arg = kind_type::context_arg;
+    static constexpr kind_type position_arg = kind_type::position_arg;
     static constexpr kind_type _operator = kind_type::_operator;
     static constexpr kind_type comment = kind_type::comment;
     static constexpr kind_type documentation = kind_type::documentation;
@@ -50,7 +55,6 @@ public:
     static constexpr kind_type integer_literal = kind_type::integer_literal;
     static constexpr kind_type float_literal = kind_type::float_literal;
     static constexpr kind_type version_literal = kind_type::version_literal;
-    static constexpr kind_type positional_argument = kind_type::positional_argument;
     static constexpr kind_type line_directive = kind_type::line_directive;
     static constexpr kind_type scram_directive = kind_type::scram_directive;
     static constexpr kind_type bracketed_string_literal = kind_type::bracketed_string_literal;

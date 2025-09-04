@@ -70,11 +70,17 @@ static void simple_tokenize(hk::file_cursor& c, tokenize_delegate& delegate)
         } else if (auto t = parse_scram_directive(c)) {
             delegate.on_token(std::move(t).value());
 
-        } else if (auto t = parse_positional_argument(c)) {
+        } else if (auto t = parse_position_arg(c)) {
+            delegate.on_token(std::move(t).value());
+
+        } else if (auto t = parse_context_arg(c)) {
+            delegate.on_token(std::move(t).value());
+
+        } else if (auto t = parse_tag(c)) {
             delegate.on_token(std::move(t).value());
 
         } else if (c[0] == '$' and c[1] == '#') {
-            auto r = token{c.location(), token::positional_argument};
+            auto r = token{c.location(), token::position_arg};
             r.append('#');
             c += 2;
             r.last = c.location();

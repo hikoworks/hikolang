@@ -5,13 +5,14 @@
 
 namespace hk {
 
-[[nodiscard]] std::optional<token> parse_identifier(file_cursor& c)
+[[nodiscard]] std::optional<token> parse_tag(file_cursor& c)
 {
-    if (not is_identifier_start(c[0])) {
+    if (c[0] != '#' or not is_identifier_start(c[1])) {
         return std::nullopt;
     }
 
-    auto r = token{c.location(), token::identifier};
+    auto r = token{c.location(), token::tag};
+    ++c;
     r.append(c[0]);
     ++c;
 

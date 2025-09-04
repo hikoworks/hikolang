@@ -5,13 +5,13 @@
 
 namespace hk {
 
-[[nodiscard]] std::optional<token> parse_positional_argument(file_cursor& c)
+[[nodiscard]] std::optional<token> parse_position_arg(file_cursor& c)
 {
     if (c[0] != '$' or not is_digit(c[1])) {
         return std::nullopt;
     }
 
-    auto r = token{c.location(), token::positional_argument};
+    auto r = token{c.location(), token::position_arg};
     r.append(c[1]);
     c += 2;
 
