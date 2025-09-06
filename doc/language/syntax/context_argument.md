@@ -5,8 +5,8 @@
 `$` [_name_](name.md)
 
 ## Semantics
-Injected variables are used to easilly inject dependencies between functions.
-Functions will automatically pass injected variables into function-calls recursively.
+Context arguments are `ref` variables which are implied and hidden arguments of a function.
+If a variable 
 
 ## Example
 

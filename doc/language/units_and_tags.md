@@ -1,6 +1,27 @@
 # Units and tags
 
-## Realms
+## Usage
+
+### Literals
+
+Units can be used with literals. You may directly add the name of a unit
+or if it is unit-expression you may add those between parentheses.
+
+```
+let foo = 1.0 m
+let bar = 100.0 cm
+let baz = 120.0 (km/h)
+```
+
+The type of these literals is:
+ - The base type, in the above case `real`, or a floating point number.
+ - A unit tag, which consists of:
+   * The realm, like: si
+   * A quantity expression condenced to a vector of exponentions.
+
+## Declarations
+
+### Realms
 A realm contains a set of units and constants. The most well know realm is
 the "SI International System of Units". But you can imagine units like pixels
 that do not fall within this realm.
@@ -16,7 +37,7 @@ declare realm font
 declare realm screen
 ```
 
-## Base Quantities
+### Base Quantities
 
 Here we declare the base quantities, each quantity may exist in different realms.
 You can specify the default realm so that there is a short-cut when adding a
@@ -32,7 +53,7 @@ declare quantity amount_of_substance default si
 declare quantity luminous_intensity default si
 ```
 
-## Derived Quantities
+### Derived Quantities
 
 ```
 declare quantity frequency = time^-1
@@ -48,7 +69,7 @@ declare quantity electrical_resistance = length^2 * mass * time^-3 * electric_cu
 ```
 
 
-## Base unit
+### Base unit
 A base unit is a standard quantity in a realm. For example `m` (meter) is the
 base unit `1.0` of the `length` quantity in the `si` realm.
 
@@ -64,7 +85,7 @@ declare unit Hz = 1.0 si frequency
 declare unit ohm "Ω" = 1.0 si electrical_resistance
 ```
 
-## Scale unit
+### Scale unit
 There are also scaled units.
 
 ```
