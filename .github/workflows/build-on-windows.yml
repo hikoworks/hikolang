@@ -34,6 +34,9 @@ jobs:
       DEBUG_BUILD_DIR: ${{github.workspace}}\out\build\x64-windows\Debug
       RELEASE_BUILD_DIR: ${{github.workspace}}\out\build\x64-windows\Release
       INSTALL_DIR: ${{github.workspace}}\out\install
+      VCPKG_DEFAULT_BINARY_CACHE: ${{github.workspace}}\bincache
+      VCPKG_BINARY_SOURCES: clear;file,${{github.workspace}}\\bincache,readwrite
+      VCPKG_FEATURE_FLAGS: binarycaching
 
     defaults:
       run:
@@ -43,7 +46,7 @@ jobs:
       - name: 🤘 Checkout Code
         uses: actions/checkout@v4 # https://github.com/actions/checkout
         with:
-          submodules: true
+          submodules: recursive
 
       - name: 🛠️ Setup Visual Studio Developer Command Prompt
         uses: ilammy/msvc-dev-cmd@v1
