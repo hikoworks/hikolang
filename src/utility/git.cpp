@@ -35,7 +35,7 @@ void git_references::sort() noexcept
         return it;
     }
 
-    if (auto const it = find_ref(std::format("ref/tags/{}", name)); it != end()) {
+    if (auto const it = find_ref(std::format("refs/tags/{}", name)); it != end()) {
         return it;
     }
 
@@ -158,9 +158,11 @@ public:
     if (auto const r = ::git_remote_create_anonymous(&remote, nullptr, url.c_str()); r != GIT_OK) {
         return std::unexpected{make_git_error(r)};
     }
+    auto const d1 = defer{[&] {
+        ::git_remote_free(remote);
+    }};
 
     if (auto const r = ::git_remote_connect(remote, GIT_DIRECTION_FETCH, nullptr, nullptr, nullptr); r != GIT_OK) {
-        ::git_remote_free(remote);
         return std::unexpected{make_git_error(r)};
     }
 
@@ -168,7 +170,6 @@ public:
     size_t list_size = 0;
 
     if (auto const r = ::git_remote_ls(&list_head, &list_size, remote); r != GIT_OK) {
-        ::git_remote_free(remote);
         return std::unexpected{make_git_error(r)};
     }
 
@@ -187,7 +188,6 @@ public:
         r.emplace_back(std::move(name), std::move(oid_str));
     }
 
-    ::git_remote_free(remote);
     r.sort();
     return r;
 }
@@ -315,7 +315,7 @@ repository_fetch(::git_repository* repository, std::string const& remote_name = 
     if (auto result = ::git_remote_lookup(&remote, repository, remote_name.c_str()); result != GIT_OK) {
         return make_git_error(result);
     }
-    defer{[&] {
+    auto const d1 = defer{[&] {
         ::git_remote_free(remote);
     }};
 
@@ -532,7 +532,7 @@ git_fetch_and_update(std::string const& url, std::string const& rev, std::filesy
     return git_error::ok;
 }
 
-[[nodiscard]] git_error git_clone(std::string const& url, std::string const& branch, std::filesystem::path path)
+[[nodiscard]] git_error git_clone(std::string const& url, std::string const& git_rev, std::filesystem::path path)
 {
     auto const& _ = git_lib_initialize();
 
@@ -550,10 +550,10 @@ git_fetch_and_update(std::string const& url, std::string const& rev, std::filesy
         return make_git_error(r);
     }
 
-    auto branch_it = ref_list.find(branch);
+    auto branch_it = ref_list.find(git_rev);
     if (branch_it != ref_list.end()) {
         if (branch_it->is_branch()) {
-            options.checkout_branch = branch.c_str();
+            options.checkout_branch = git_rev.c_str();
             options.fetch_opts.depth = 1;
             force_checkout = true;
 
@@ -572,6 +572,9 @@ git_fetch_and_update(std::string const& url, std::string const& rev, std::filesy
     if (auto r = ::git_clone(&repository, url.c_str(), path.string().c_str(), &options); r != GIT_OK) {
         return make_git_error(r);
     }
+    auto d1 = defer{[&] { ::git_repository_free(repository); }};
+
+    return git_error::ok;
 }
 
 //[[nodiscard]] git_error git_checkout_or_clone(

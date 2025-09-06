@@ -143,7 +143,15 @@ public:
  */
 [[nodiscard]] std::expected<git_references, git_error> git_list(std::string const& url);
 
-[[nodiscard]] git_error git_clone(std::string const& url, std::string const& branch, std::filesystem::path path);
+/** Clone a repository.
+ * 
+ * @param url The (remote) location of the repository
+ * @param git_rev The branch to checkout.
+ *                If git_rev is a branch the checkout is done with depth 1.
+ *                If git_rev is a tag then the default branch is checked with
+ *                full depth.
+ */
+[[nodiscard]] git_error git_clone(std::string const& url, std::string const& git_rev, std::filesystem::path path);
 
 /** This function will open the repository and update to the latest version.
  * 

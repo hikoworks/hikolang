@@ -9,6 +9,7 @@
 #include <system_error>
 #include <cassert>
 #include <expected>
+#include <mutex>
 
 namespace hk {
 
@@ -38,5 +39,20 @@ namespace hk {
  * @retval false If @a path is outside @a base, or an error occured. 
  */
 [[nodiscard]] bool is_subpath(std::filesystem::path const& path, std::filesystem::path const& base);
+
+class scoped_temporary_directory {
+public:
+    ~scoped_temporary_directory();
+    scoped_temporary_directory(std::string prefix = std::string{"tmp"});
+
+    [[nodiscard]] std::filesystem::path const &path() const noexcept
+    {
+        return _path;
+    }
+
+private:
+    inline static std::mutex _mutex;
+    std::filesystem::path _path;
+};
 
 }
