@@ -77,9 +77,6 @@ jobs:
         working-directory: ${{env.RELEASE_BUILD_DIR}}
         run: .\hktests-rel.exe --gtest_output=xml:hktests-rel.xml
 
-      # Each file is differently named by adding the job name of the matrix as a suffix.
-      # This enables the "Unit Test Result" display to show all individual test runs of the matrix.
-      # The tests are published after all matrix runs finished (from job: "publish-test-results").
       - name: 🔼 Upload Test Results
         uses: actions/upload-artifact@v4 # https://github.com/actions/upload-artifact
         if: always()
@@ -89,31 +86,31 @@ jobs:
             ${{env.DEBUG_BUILD_DIR}}\hktests-dbg.xml
             ${{env.RELEASE_BUILD_DIR}}\hktests-rel.xml
 
-# 
-#     - name: 📑 Generate CodeCoverage Report (Debug)
-#       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-#       run: |
-#         curl -L -O https://github.com/OpenCppCoverage/OpenCppCoverage/releases/download/release-0.9.9.0/OpenCppCoverageSetup-x64-0.9.9.0.exe
-#         OpenCppCoverageSetup-x64-0.9.9.0.exe /VERYSILENT /DIR=.\bin\coverage
-#         .\bin\coverage\OpenCppCoverage.exe ^
-#         --sources=src ^
-#         --excluded_sources=src\*_tests.cpp ^
-#         --excluded_sources=src\*\*_tests.cpp ^
-#         --excluded_sources=build\_deps ^
-#         --export_type=cobertura:hikogui_coverage.xml ^
-#         --working_dir=${{env.BUILD_DIR}} ^
-#         -- ${{env.BUILD_DIR}}\Debug\hikogui_htests-dbg
-# 
-#     # retry uploading to codecov with limit to workaround flaky upload issue
-#     - name: 📦 🚀 Upload CodeCoverage Report to codecov.io (Debug)
-#       if: github.event_name == 'push' && github.ref == 'refs/heads/main' && env.MATRIX_ID == 'cl-x86-64'
-#       uses: wandalen/wretry.action@v3 # https://github.com/wandalen/wretry.action
-#       with:
-#         attempt_limit: 10
-#         action: codecov/codecov-action@v3 # https://github.com/codecov/codecov-action
-#         with: |
-#           files: ./hikogui_coverage.xml
-# 
+  
+      - name: 📑 Generate CodeCoverage Report (Debug)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          curl -L -O https://github.com/OpenCppCoverage/OpenCppCoverage/releases/download/release-0.9.9.0/OpenCppCoverageSetup-x64-0.9.9.0.exe
+          OpenCppCoverageSetup-x64-0.9.9.0.exe /VERYSILENT /DIR=.\bin\coverage
+          .\bin\coverage\OpenCppCoverage.exe ^
+          --sources=src ^
+          --excluded_sources=src\*_tests.cpp ^
+          --excluded_sources=src\*\*_tests.cpp ^
+          --excluded_sources=build\_deps ^
+          --export_type=cobertura:hikolang_coverage.xml ^
+          --working_dir=${{env.DEBUG_BUILD_DIR}} ^
+          -- ${{env.DEBUG_BUILD_DIR}}\hktests-dbg
+  
+      # retry uploading to codecov with limit to workaround flaky upload issue
+      - name: 📦 🚀 Upload CodeCoverage Report to codecov.io (Debug)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: wandalen/wretry.action@v3 # https://github.com/wandalen/wretry.action
+        with:
+          attempt_limit: 10
+          action: codecov/codecov-action@v3 # https://github.com/codecov/codecov-action
+          with: |
+            files: ./hikolang_coverage.xml
+  
     # In the future we can do this when building dynamic libraries without whole-program-optimization.
     #
     #  # Double ZIP issue: https://github.com/actions/upload-artifact#zipped-artifact-downloads
@@ -132,28 +129,27 @@ jobs:
 
 # ---------------------------------------------------------------------------------------
 
-#  publish-test-results:
-#    # Only publish test results, when the action runs in your repository's context.
-#    # In other words: this disables publishing tests results from pull requests.
-#    # PR test results are published from the standalone workflow "publish-PR-test-results.yml".
-#
-#    name: "Publish Tests Results"
-#    needs: build-and-test
-#    runs-on: windows-2022
-#    if: always() && ( github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository )
-#
-#    steps:
-#      - name: 🔽 Download Artifacts
-#        uses: actions/download-artifact@v4 # https://github.com/actions/download-artifact
-#        with:
-#          name: test-results
-#          path: artifacts
-#
-#      - name: 👌 Publish Test Results
-#        uses: EnricoMi/publish-unit-test-result-action/windows@v2 # https://github.com/EnricoMi/publish-unit-test-result-action
-#        if: (!cancelled())
-#        with:
-#          files: |
-#            artifacts/Debug/hic-tests-dbg.xml
-#            artifacts/Release/hic-tests-rel.xml
-
+  publish-test-results:
+    # Only publish test results, when the action runs in your repository's context.
+    # In other words: this disables publishing tests results from pull requests.
+    # PR test results are published from the standalone workflow "publish-PR-test-results.yml".
+  
+    name: "Publish Tests Results"
+    needs: build-and-test
+    runs-on: windows-2022
+    if: always() && ( github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository )
+  
+    steps:
+      - name: 🔽 Download Artifacts
+        uses: actions/download-artifact@v4 # https://github.com/actions/download-artifact
+        with:
+          name: test-results
+          path: artifacts
+  
+      - name: 👌 Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action/windows@v2 # https://github.com/EnricoMi/publish-unit-test-result-action
+        if: (!cancelled())
+        with:
+          files: |
+            artifacts/Debug/hktests-dbg.xml
+            artifacts/Release/hktests-rel.xml
