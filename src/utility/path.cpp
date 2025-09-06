@@ -5,6 +5,7 @@
 #include <chrono>
 #include <system_error>
 #include <print>
+#include <exception>
 
 namespace hk {
 

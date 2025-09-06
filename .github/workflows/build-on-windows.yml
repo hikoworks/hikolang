@@ -71,11 +71,11 @@ jobs:
 
       - name: Run tests (Debug)
         working-directory: ${{env.DEBUG_BUILD_DIR}}
-        run: .\hic-tests-dbg.exe --gtest_output=xml:hic-tests-dbg.xml
+        run: .\hktests-dbg.exe --gtest_output=xml:hktests-dbg.xml
 
       - name: Run tests (Release)
         working-directory: ${{env.RELEASE_BUILD_DIR}}
-        run: .\hic-tests-rel.exe --gtest_output=xml:hic-tests-rel.xml
+        run: .\hktests-rel.exe --gtest_output=xml:hktests-rel.xml
 
       # Each file is differently named by adding the job name of the matrix as a suffix.
       # This enables the "Unit Test Result" display to show all individual test runs of the matrix.
@@ -86,8 +86,8 @@ jobs:
         with:
           name: test-results
           path: |
-            ${{env.DEBUG_BUILD_DIR}}\hic-tests-dbg.xml
-            ${{env.RELEASE_BUILD_DIR}}\hic-tests-rel.xml
+            ${{env.DEBUG_BUILD_DIR}}\hktests-dbg.xml
+            ${{env.RELEASE_BUILD_DIR}}\hktests-rel.xml
 
 # 
 #     - name: 📑 Generate CodeCoverage Report (Debug)

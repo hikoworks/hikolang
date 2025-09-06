@@ -128,7 +128,7 @@ public:
     template<typename... Args>
     progress(std::format_string<Args...> fmt, Args&&... args) : _msg(std::format(std::move(fmt), std::forward<Args...>(args)...))
     {
-        update();
+        //update();
     }
 
     progress& operator=(float value)
@@ -159,7 +159,7 @@ public:
     void set_message(std::format_string<Args...> fmt, Args&&... args)
     {
         _msg = std::format(std::move(fmt), std::forward<Args...>(args)...);
-        update();
+        //update();
     }
 
 private:
