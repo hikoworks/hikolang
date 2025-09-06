@@ -45,12 +45,12 @@ jobs:
         with:
           submodules: true
 
-      - name: 🔽 Install CMake and Ninja
-        uses: lukka/get-cmake@latest
-
       - name: 🛠️ Setup Visual Studio Developer Command Prompt
         uses: ilammy/msvc-dev-cmd@v1
     
+      - name: 🔽 Install CMake and Ninja
+        uses: lukka/get-cmake@latest
+
       - name: 🛠️ Setup vcpkg (optionally from cache)
         uses: lukka/run-vcpkg@v11
 
@@ -86,7 +86,14 @@ jobs:
             ${{env.DEBUG_BUILD_DIR}}\hktests-dbg.xml
             ${{env.RELEASE_BUILD_DIR}}\hktests-rel.xml
 
-  
+      - name: 👌 Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action/windows@v2 # https://github.com/EnricoMi/publish-unit-test-result-action
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        with:
+          files: |
+            ${{env.DEBUG_BUILD_DIR}}\hktests-dbg.xml
+            ${{env.RELEASE_BUILD_DIR}}\hktests-rel.xml
+
       - name: 📑 Generate CodeCoverage Report (Debug)
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
@@ -104,12 +111,10 @@ jobs:
       # retry uploading to codecov with limit to workaround flaky upload issue
       - name: 📦 🚀 Upload CodeCoverage Report to codecov.io (Debug)
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: wandalen/wretry.action@v3 # https://github.com/wandalen/wretry.action
+        uses: codecov/codecov-action@v5
         with:
-          attempt_limit: 10
-          action: codecov/codecov-action@v3 # https://github.com/codecov/codecov-action
-          with: |
             files: ./hikolang_coverage.xml
+            token: ${{secrets.CODECOV_TOKEN}}
   
     # In the future we can do this when building dynamic libraries without whole-program-optimization.
     #
@@ -126,30 +131,4 @@ jobs:
     #    with:
     #      name: ${{env.ARTIFACT_NAME}}
     #      path: build/${{env.ARTIFACT_NAME}}.zip
-
-# ---------------------------------------------------------------------------------------
-
-  publish-test-results:
-    # Only publish test results, when the action runs in your repository's context.
-    # In other words: this disables publishing tests results from pull requests.
-    # PR test results are published from the standalone workflow "publish-PR-test-results.yml".
   
-    name: "Publish Tests Results"
-    needs: build-and-test
-    runs-on: windows-2022
-    if: always() && ( github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository )
-  
-    steps:
-      - name: 🔽 Download Artifacts
-        uses: actions/download-artifact@v4 # https://github.com/actions/download-artifact
-        with:
-          name: test-results
-          path: artifacts
-  
-      - name: 👌 Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action/windows@v2 # https://github.com/EnricoMi/publish-unit-test-result-action
-        if: (!cancelled())
-        with:
-          files: |
-            artifacts/Debug/hktests-dbg.xml
-            artifacts/Release/hktests-rel.xml

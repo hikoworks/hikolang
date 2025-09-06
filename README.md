@@ -1,4 +1,7 @@
 # hikolang
+[![Build on Windows](https://github.com/hikogui/hikolang/actions/workflows/build-on-windows.yml/badge.svg?branch=main)](https://github.com/hikogui/hikolang/actions/workflows/build-on-windows.yml)
+[![Version](https://img.shields.io/badge/dynamic/json?url=https://raw.githubusercontent.com/hikogui/hikolang/main/vcpkg.json&label=Latest%20Version&query=$[%27version%27]&color=blue)](https://github.com/hikogui/hikolang/releases/latest)
+[![License](https://img.shields.io/github/license/hikogui/hikolang.svg)](https://github.com/hikogui/hikolang/blob/main/LICENSE)
 
  * type inference
  * elaboration phase
