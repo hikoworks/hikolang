@@ -14,41 +14,60 @@ struct file_location {
      * 
      * Values:
      *  - 0: The most top line.
-     *  - 2**22-1: The maximum tracked line number, or beyond
-     *  - other: The column index. 
+     *  - 2**32-1: The maximum tracked line number, or beyond
+     *  - other: The line index. 
      */
-    std::uint64_t line : 22 = 0;
-
-    /** The column number in the current source file.
-     *
-     * Values:
-     *  - 0: The most left column.
-     *  - 1023: The maximum tracked column number, or beyond
-     *  - other: The column index. 
-     */
-    std::uint64_t column : 10 = 0;
-
-    /** The upstream source file index.
-     * 
-     * Values:
-     *  - 0: This is the current source file.
-     *  - 1023: Unknown file.
-     *  - other: The index of the file that generated this file.
-     */
-    std::uint64_t upstream_file : 10 = 0;
+    std::uint32_t line = 0;
 
     /** The line number in the upstream source file.
      * 
      * Values:
      *  - 0: The most top line.
-     *  - 2**22-1: The maximum tracked line number, or beyond
+     *  - 2**32-1: The maximum tracked line number, or beyond
      *  - other: The column index. 
      */
-    std::uint64_t upstream_line : 22 = 0;
+    std::uint32_t upstream_line = 0;
 
-    constexpr static uint64_t max_line = 0x3f'ffff;
-    constexpr static uint64_t max_file = 0x3ff;
-    constexpr static uint64_t max_column = 0x3ff;
+    /** The utf-8 code-unit number in the current source file.
+     *
+     * Values:
+     *  - 0: The most left column.
+     *  - 65535: The maximum tracked column number, or beyond
+     *  - other: The column index. 
+     */
+    std::uint16_t utf8_column = 0;
+
+    /** The utf-16 code-unit number in the current source file.
+     *
+     * Values:
+     *  - 0: The most left column.
+     *  - 65535: The maximum tracked column number, or beyond
+     *  - other: The column index. 
+     */
+    std::uint16_t utf16_column = 0;
+
+    /** The utf-32 code-unit number in the current source file.
+     *
+     * Values:
+     *  - 0: The most left column.
+     *  - 65535: The maximum tracked column number, or beyond
+     *  - other: The column index. 
+     */
+    std::uint16_t utf32_column = 0;
+
+    /** The upstream source file index.
+     * 
+     * Values:
+     *  - 0: This is the current source file.
+     *  - 65535: Unknown file.
+     *  - other: The index of the file that generated this file.
+     */
+    std::uint16_t upstream_file = 0;
+
+
+    constexpr static std::size_t max_line = std::numeric_limits<uint32_t>::max();
+    constexpr static std::size_t max_file = std::numeric_limits<uint16_t>::max();
+    constexpr static std::size_t max_column = std::numeric_limits<uint16_t>::max();
 
     constexpr file_location() noexcept = default;
     constexpr file_location(file_location const&) noexcept = default;
@@ -108,12 +127,30 @@ struct file_location {
             if (upstream_line < max_line) {
                 ++upstream_line;
             }
-            column = 0;
+            utf8_column = 0;
+            utf16_column = 0;
+            utf32_column = 0;
 
         } else {
-            if (column < max_column) {
-                ++column;
+            // UTF-8, check how many code-units are needed.
+            if (cp >= 0x01'0000) {
+                utf8_column = utf8_column < max_column - 3 ? utf8_column + 4 : max_column;
+            } else if (cp >= 0x0800) {
+                utf8_column = utf8_column < max_column - 2 ? utf8_column + 3 : max_column;
+            } else if (cp >= 0x0080) {
+                utf8_column = utf8_column < max_column - 1 ? utf8_column + 2 : max_column;
+            } else {
+                utf8_column = utf8_column < max_column ? utf8_column + 1 : max_column;
             }
+
+            // UTF-16, check when surrogate pairs are needed.
+            if (cp >= 0x01'0000) {
+                utf16_column = utf16_column < max_column - 1 ? utf16_column + 2 : max_column;
+            } else {
+                utf16_column = utf16_column < max_column ? utf16_column + 1 : max_column;
+            }
+
+            utf32_column = utf32_column < max_column ? utf32_column + 1 : max_column;
         }
     }
 };

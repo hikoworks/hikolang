@@ -6,7 +6,7 @@ namespace hk {
 
 [[nodiscard]] std::optional<token> parse_line_directive(file_cursor& c)
 {
-    if (c.location().column != 0) {
+    if (c.location().utf8_column != 0) {
         // The line directive must be at the start of the line.
         return std::nullopt;
     }
