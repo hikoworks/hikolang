@@ -57,8 +57,14 @@ jobs:
       - name: Install CMake and Ninja
         uses: lukka/get-cmake@latest
 
-      - name: Setup vcpkg (optionally from cache)
+      - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11
+
+      # lukka/run-vcpkg@v11 does not have a working cache implementation.
+      - uses: actions/cache@v4
+        with:
+          path: ${{env.VCPKG_DEFAULT_BINARY_CACHE}}
+          key: vcpkg-cache-${{hashFiles('vcpkg.json', 'vcpkg\vcpkgLastBuiltCommitId')}}
 
       - name: Configure application (Debug, Release
         uses: lukka/run-cmake@v10
