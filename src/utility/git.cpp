@@ -395,13 +395,13 @@ repository_fetch(::git_repository* repository, std::string const& remote_name = 
                     std::terminate();
                 }
 
-                std::print(stderr, "info: removing file '{}'", path.string());
+                std::print(stderr, "git: removing untracked file '{}'", path.string());
 
                 // The untracked files in untracked directories are not listed,
                 // only the directories themselves.
                 auto ec = std::error_code{};
                 if (not std::filesystem::remove_all(path, ec)) {
-                    std::print(stderr, "error: failed removing file '{}': {}", path.string(), ec.message());
+                    std::print(stderr, "error: {}", ec.message());
                 }
             }
         }
@@ -438,7 +438,6 @@ repository_fetch(::git_repository* repository, std::string const& remote_name = 
     if (::git_checkout_options_init(&checkout_options, GIT_CHECKOUT_OPTIONS_VERSION) != 0) {
         return git_error::error;
     }
-    checkout_options.checkout_strategy = GIT_CHECKOUT_FORCE;
 
     if (auto const result = ::git_checkout_tree(repository, peeled_rev_obj, &checkout_options); result != GIT_OK) {
         return make_git_error(result);
@@ -473,7 +472,6 @@ git_fetch_and_update(std::string const& url, std::string const& rev, std::filesy
 
     if (auto remote_url_o = repository_remote_url(repository)) {
         if (*remote_url_o != url) {
-            std::print("The repository at {}, does not have a remote with the url {}", path.string(), url);
             return git_error::remote_url_mismatch;
         }
     } else {
@@ -603,6 +601,12 @@ git_fetch_and_update(std::string const& url, std::string const& rev, std::filesy
     case git_error::not_found:
         // The repository was not found, try and clone instead.
         break;
+
+    case git_error::conflict:
+        return git_error::conflict;
+
+    case git_error::merge_conflict:
+        return git_error::merge_conflict;
 
     default:
         return git_error::error;
