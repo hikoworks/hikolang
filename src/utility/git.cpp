@@ -164,7 +164,7 @@ public:
     }};
 
     if (auto const r = ::git_remote_connect(remote, GIT_DIRECTION_FETCH, nullptr, nullptr, nullptr); r != GIT_OK) {
-        return std::unexpected{make_git_error(r)};
+        return std::unexpected{git_error::could_not_connect_with_remote};
     }
 
     ::git_remote_head const** list_head = nullptr;
@@ -545,8 +545,6 @@ git_fetch_and_update(std::string const& url, std::string const& rev, std::filesy
 {
     auto const& _ = git_lib_initialize();
 
-    auto force_checkout = false;
-
     auto ref_list = git_references{};
     if (auto ref_list_o = git_list(url)) {
         ref_list = std::move(ref_list_o).value();
@@ -564,7 +562,6 @@ git_fetch_and_update(std::string const& url, std::string const& rev, std::filesy
         if (branch_it->is_branch()) {
             options.checkout_branch = git_rev.c_str();
             options.fetch_opts.depth = 1;
-            force_checkout = true;
 
         } else if (branch_it->is_tag()) {
             // Tags need to be checkout after clone.

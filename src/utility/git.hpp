@@ -67,7 +67,11 @@ enum class git_error {
      *
      * This is a security issue.
      */
-    file_outside_workdir
+    file_outside_workdir,
+
+    /** Could not connect with remote server using the URL passed.
+     */
+    could_not_connect_with_remote,
 };
 
 enum class git_checkout_flags {

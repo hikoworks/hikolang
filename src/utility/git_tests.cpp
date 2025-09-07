@@ -28,6 +28,48 @@ TEST_CASE(git_clone)
     REQUIRE(r == hk::git_error::ok);
 }
 
+TEST_CASE(git_clone_fail_wrong_url)
+{
+    using namespace std::literals;
+
+    auto const tmp_dir = hk::scoped_temporary_directory("git_clone_fail_wrong_url");
+    auto const git_url = "https://github.com/hikogui/hikolang-test-none-existing.git"s;
+    auto const git_rev = "main"s;
+
+    auto const r = hk::git_clone(git_url, git_rev, tmp_dir.path());
+    REQUIRE(r == hk::git_error::could_not_connect_with_remote);
+}
+
+TEST_CASE(git_clone_fail_wrong_rev_name)
+{
+    using namespace std::literals;
+
+    auto const tmp_dir = hk::scoped_temporary_directory("git_clone_fail_wrong_url");
+    auto const git_url = "https://github.com/hikogui/hikolang-test-a.git"s;
+    auto const git_rev = "none_existing_name"s;
+
+    auto const r = hk::git_clone(git_url, git_rev, tmp_dir.path());
+    REQUIRE(r == hk::git_error::ok);
+
+    auto const r2 = hk::git_fetch_and_update(git_url, git_rev, tmp_dir.path(), hk::git_checkout_flags::fresh_clone);
+    REQUIRE(r2 == hk::git_error::rev_not_found);
+}
+
+TEST_CASE(git_clone_fail_wrong_rev_oid)
+{
+    using namespace std::literals;
+
+    auto const tmp_dir = hk::scoped_temporary_directory("git_clone_fail_wrong_url");
+    auto const git_url = "https://github.com/hikogui/hikolang-test-a.git"s;
+    auto const git_rev = "11111111111"s;
+
+    auto const r = hk::git_clone(git_url, git_rev, tmp_dir.path());
+    REQUIRE(r == hk::git_error::ok);
+
+    auto const r2 = hk::git_fetch_and_update(git_url, git_rev, tmp_dir.path(), hk::git_checkout_flags::fresh_clone);
+    REQUIRE(r2 == hk::git_error::rev_not_found);
+}
+
 TEST_CASE(git_fetch_and_update_tag)
 {
     using namespace std::literals;
