@@ -78,7 +78,7 @@ jobs:
       - name: Save vcpkg binary-cache
         uses: actions/cache/save@v4
         id: save-vcpkg-cache
-        if: always()
+        if: always() && steps.restore-vcpkg-cache.outputs.cache-hit != 'true'
         with:
           path: vcpkg\binary-sources\**\*.zip
           key: ${{steps.restore-vcpkg-cache.outputs.cache-primary-key}}
@@ -114,7 +114,7 @@ jobs:
           --sources=src ^
           --excluded_sources=src\*_tests.cpp ^
           --excluded_sources=src\*\*_tests.cpp ^
-          --excluded_sources=build\_deps ^
+          --excluded_sources=out ^
           --export_type=cobertura:hikolang_coverage.xml ^
           --working_dir=${{env.DEBUG_BUILD_DIR}} ^
           -- ${{env.DEBUG_BUILD_DIR}}\hktests-dbg
