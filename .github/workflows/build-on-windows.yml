@@ -34,8 +34,8 @@ jobs:
       DEBUG_BUILD_DIR: ${{github.workspace}}\out\build\x64-windows\Debug
       RELEASE_BUILD_DIR: ${{github.workspace}}\out\build\x64-windows\Release
       INSTALL_DIR: ${{github.workspace}}\out\install
-      VCPKG_DEFAULT_BINARY_CACHE: ${{github.workspace}}\bincache
-      VCPKG_BINARY_SOURCES: clear;file,${{github.workspace}}\\bincache,readwrite
+      VCPKG_DEFAULT_BINARY_CACHE: ${{github.workspace}}\vcpkg\binary-cache
+      VCPKG_BINARY_SOURCES: clear;file,${{github.workspace}}\vcpkg\binary-cache,readwrite
       VCPKG_FEATURE_FLAGS: binarycaching
 
     defaults:
@@ -43,18 +43,21 @@ jobs:
         shell: cmd
 
     steps:
-      - name: 🤘 Checkout Code
+      - name: Checkout Code
         uses: actions/checkout@v4 # https://github.com/actions/checkout
         with:
           submodules: recursive
 
-      - name: 🛠️ Setup Visual Studio Developer Command Prompt
+      - name: Create vcpkg cache dir
+        run: mkdir ${{env.VCPKG_DEFAULT_BINARY_CACHE}}
+
+      - name: Setup Visual Studio Developer Command Prompt
         uses: ilammy/msvc-dev-cmd@v1
     
-      - name: 🔽 Install CMake and Ninja
+      - name: Install CMake and Ninja
         uses: lukka/get-cmake@latest
 
-      - name: 🛠️ Setup vcpkg (optionally from cache)
+      - name: Setup vcpkg (optionally from cache)
         uses: lukka/run-vcpkg@v11
 
       - name: Configure application (Debug, Release
@@ -80,16 +83,7 @@ jobs:
         working-directory: ${{env.RELEASE_BUILD_DIR}}
         run: .\hktests-rel.exe --gtest_output=xml:hktests-rel.xml
 
-      - name: 🔼 Upload Test Results
-        uses: actions/upload-artifact@v4 # https://github.com/actions/upload-artifact
-        if: always()
-        with:
-          name: test-results
-          path: |
-            ${{env.DEBUG_BUILD_DIR}}\hktests-dbg.xml
-            ${{env.RELEASE_BUILD_DIR}}\hktests-rel.xml
-
-      - name: 👌 Publish Test Results
+      - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action/windows@v2 # https://github.com/EnricoMi/publish-unit-test-result-action
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         with:
@@ -97,7 +91,7 @@ jobs:
             ${{env.DEBUG_BUILD_DIR}}\hktests-dbg.xml
             ${{env.RELEASE_BUILD_DIR}}\hktests-rel.xml
 
-      - name: 📑 Generate CodeCoverage Report (Debug)
+      - name: Generate CodeCoverage Report (Debug)
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           curl -L -O https://github.com/OpenCppCoverage/OpenCppCoverage/releases/download/release-0.9.9.0/OpenCppCoverageSetup-x64-0.9.9.0.exe
@@ -112,26 +106,10 @@ jobs:
           -- ${{env.DEBUG_BUILD_DIR}}\hktests-dbg
   
       # retry uploading to codecov with limit to workaround flaky upload issue
-      - name: 📦 🚀 Upload CodeCoverage Report to codecov.io (Debug)
+      - name: Upload CodeCoverage Report to codecov.io (Debug)
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: codecov/codecov-action@v5
         with:
             files: ./hikolang_coverage.xml
             token: ${{secrets.CODECOV_TOKEN}}
-  
-    # In the future we can do this when building dynamic libraries without whole-program-optimization.
-    #
-    #  # Double ZIP issue: https://github.com/actions/upload-artifact#zipped-artifact-downloads
-    #  # We can either zip an already zipped file; or send all files to a zip service, possibly creating a 503.
-    #  - name: 📦 Package
-    #    run: |
-    #       cd build
-    #       7z a -tzip -mx9 "${{env.ARTIFACT_NAME}}.zip" ./hikogui-${{env.VERSION}}
-    #
-    #  # To ensure that jobs don't overwrite existing artifacts, use a different "name" per job/run.
-    #  - name: 📦 🚀 Upload Artifact
-    #    uses: actions/upload-artifact@v4 # https://github.com/actions/upload-artifact
-    #    with:
-    #      name: ${{env.ARTIFACT_NAME}}
-    #      path: build/${{env.ARTIFACT_NAME}}.zip
-  
+    
