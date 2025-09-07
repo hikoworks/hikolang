@@ -166,4 +166,5 @@ TEST_CASE(git_checkout_or_clone_conflict)
     // a.hkm was modified and conflicts with a new checkout.
     REQUIRE(r3 == hk::git_error::conflict);
 }
+
 }; // TEST_SUITE(git_suite)
