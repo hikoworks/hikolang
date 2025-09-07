@@ -61,7 +61,9 @@ jobs:
         uses: lukka/run-vcpkg@v11
 
       # lukka/run-vcpkg@v11 does not have a working cache implementation.
-      - uses: actions/cache@v4
+      - name: Restore vcpkg binary-cache
+        id: restore-vcpkg-cache
+        uses: actions/cache/restore@v4
         with:
           path: ${{env.VCPKG_DEFAULT_BINARY_CACHE}}
           key: vcpkg-cache-${{hashFiles('vcpkg.json', 'vcpkg\vcpkgLastBuiltCommitId')}}
@@ -70,6 +72,14 @@ jobs:
         uses: lukka/run-cmake@v10
         with:
           configurePreset: 'x64-windows'
+
+      - name: Save vcpkg binary-cache
+        uses: actions/cache/save@v4
+        id: save-vcpkg-cache
+        if: steps.restore-vcpkg-cache.outputs.cache-hit != 'true'
+        with:
+          path: ${{env.VCPKG_DEFAULT_BINARY_CACHE}}
+          key: ${{steps.restore-vcpkg-cache.outputs.cache-primary-key}}
 
       - name: Build application (Debug)
         uses: lukka/run-cmake@v10
@@ -91,7 +101,7 @@ jobs:
 
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action/windows@v2 # https://github.com/EnricoMi/publish-unit-test-result-action
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
         with:
           files: |
             ${{env.DEBUG_BUILD_DIR}}\hktests-dbg.xml
