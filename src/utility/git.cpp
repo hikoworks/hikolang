@@ -366,7 +366,6 @@ repository_fetch(::git_repository* repository, std::string const& remote_name = 
 
     status_opts.show = GIT_STATUS_SHOW_WORKDIR_ONLY;
     status_opts.flags |= GIT_STATUS_OPT_INCLUDE_UNTRACKED;
-    status_opts.flags |= GIT_STATUS_OPT_RECURSE_UNTRACKED_DIRS;
     status_opts.flags |= GIT_STATUS_OPT_INCLUDE_IGNORED;
 
     ::git_status_list* status_list = nullptr;
@@ -380,26 +379,30 @@ repository_fetch(::git_repository* repository, std::string const& remote_name = 
     auto const count = ::git_status_list_entrycount(status_list);
     for (auto i = 0uz; i != count; ++i) {
         auto const* entry = ::git_status_byindex(status_list, i);
-        if (entry->head_to_index == nullptr) {
-            continue;
+        assert(entry != nullptr);
 
-        } else if (entry->status == GIT_STATUS_WT_NEW or entry->status == GIT_STATUS_IGNORED) {
-            auto path = repository_dir / entry->head_to_index->new_file.path;
-            path = std::filesystem::canonical(path);
+        if (entry->index_to_workdir != nullptr) {
+            if (entry->status == GIT_STATUS_WT_NEW or entry->status == GIT_STATUS_IGNORED) {
+                auto path = repository_dir / entry->index_to_workdir->new_file.path;
+                path = std::filesystem::canonical(path);
 
-            if (not is_subpath(path, repository_dir)) {
-                std::print(
-                    stderr,
-                    "security: file '{}' is outside of directory of repository at '{}'",
-                    path.string(),
-                    repository_dir.string());
-                std::terminate();
-            }
+                if (not is_subpath(path, repository_dir)) {
+                    std::print(
+                        stderr,
+                        "security: file '{}' is outside of directory of repository at '{}'",
+                        path.string(),
+                        repository_dir.string());
+                    std::terminate();
+                }
 
-            std::print(stderr, "info: removing file '{}'", path.string());
-            auto ec = std::error_code{};
-            if (not std::filesystem::remove(path, ec)) {
-                std::print(stderr, "error: failed removing file '{}': {}", path.string(), ec.message());
+                std::print(stderr, "info: removing file '{}'", path.string());
+
+                // The untracked files in untracked directories are not listed,
+                // only the directories themselves.
+                auto ec = std::error_code{};
+                if (not std::filesystem::remove_all(path, ec)) {
+                    std::print(stderr, "error: failed removing file '{}': {}", path.string(), ec.message());
+                }
             }
         }
     }
@@ -468,7 +471,7 @@ git_fetch_and_update(std::string const& url, std::string const& rev, std::filesy
         ::git_repository_free(repository);
     }};
 
-    if (auto remote_url_o = repository_remote_url(repository, url)) {
+    if (auto remote_url_o = repository_remote_url(repository)) {
         if (*remote_url_o != url) {
             std::print("The repository at {}, does not have a remote with the url {}", path.string(), url);
             return git_error::remote_url_mismatch;
@@ -477,15 +480,20 @@ git_fetch_and_update(std::string const& url, std::string const& rev, std::filesy
         return remote_url_o.error();
     }
 
-    auto fetch = to_bool(flags & git_checkout_flags::force_checkout);
+    auto fetch = to_bool(flags & git_checkout_flags::force_fetch);
     if (auto result = repository_matches_rev(repository, rev)) {
         switch (*result) {
         case rev_match::rev_not_found:
+            if (to_bool(flags & git_checkout_flags::fresh_clone)) {
+                return git_error::rev_not_found;
+            }
+            [[fallthrough]];
         case rev_match::not_checked_out:
         case rev_match::checked_out_branch:
-            fetch = true;
+            fetch |= not to_bool(flags & git_checkout_flags::fresh_clone);
             break;
         case rev_match::checked_out:
+            // Revisions that are tags or commits will not cause a fetch.
             break;
         }
 
@@ -503,7 +511,7 @@ git_fetch_and_update(std::string const& url, std::string const& rev, std::filesy
     if (auto result = repository_matches_rev(repository, rev)) {
         switch (*result) {
         case rev_match::rev_not_found:
-            return git_error::not_found;
+            return git_error::rev_not_found;
         case rev_match::not_checked_out:
             checkout = true;
             break;
@@ -515,8 +523,10 @@ git_fetch_and_update(std::string const& url, std::string const& rev, std::filesy
         return result.error();
     }
 
-    auto clean = to_bool(flags & git_checkout_flags::clean);
-    clean |= checkout;
+    auto clean = checkout;
+    clean |= to_bool(flags & git_checkout_flags::force_clean);
+    // A fresh clone does not need to be cleaned.
+    clean &= not to_bool(flags & git_checkout_flags::fresh_clone);
 
     if (clean) {
         if (auto result = repository_clean(repository); result != git_error::ok) {
@@ -578,28 +588,33 @@ git_fetch_and_update(std::string const& url, std::string const& rev, std::filesy
     return git_error::ok;
 }
 
-//[[nodiscard]] git_error git_checkout_or_clone(
-//    std::string const& url, std::string const& branch, std::filesystem::path path, git_checkout_flags flags)
-//{
-//    if (git_is_checked_out(path)) {
-//        // Check if the repository should be checked out again.
-//
-//        return git_error::ok;
-//    }
-//
-//    if (git_is_branch(url, branch)) {
-//        git_clone_shallow(url, branch, path);
-//
-//    } else if (git_is_tag(url, branch)) {
-//        git_clone(url, path);
-//        git_checkout(path, branch);
-//
-//    } else {
-//        git_clone(url, path);
-//        git_checkout_oid(path, branch);
-//
-//    }
-//
-//}
+[[nodiscard]] git_error git_checkout_or_clone(
+    std::string const& url, std::string const& rev, std::filesystem::path path, git_checkout_flags flags)
+{
+    // First try and just update the repository.
+    switch(git_fetch_and_update(url, rev, path, flags)) {
+    case git_error::ok:
+        return git_error::ok;
+
+    case git_error::rev_not_found:
+        // Repository was found but not the ref.
+        return git_error::rev_not_found;
+
+    case git_error::not_found:
+        // The repository was not found, try and clone instead.
+        break;
+
+    default:
+        return git_error::error;
+    }
+
+    if (auto r = git_clone(url, rev, path); r != git_error::ok) {
+        return r;
+    }
+
+    // In case rev is a tag or commit, checkout/update the repository.
+    flags |= git_checkout_flags::fresh_clone;
+    return git_fetch_and_update(url, rev, path, flags);
+}
 
 } // namespace hk
