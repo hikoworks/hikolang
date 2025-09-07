@@ -4,16 +4,42 @@
 [![License](https://img.shields.io/github/license/hikogui/hikolang.svg)](https://github.com/hikogui/hikolang/blob/main/LICENSE)
 [![Coverage](https://codecov.io/github/hikogui/hikolang/graph/badge.svg?token=P95N8UFH1D)](https://codecov.io/github/hikogui/hikolang)
 
+ * safe integers
  * type inference
  * elaboration phase
  * language syntax is extendable
  * inline assembler
  * compile time reflection, types are values.
  * hidden dependency injection, both functions and structs.
- * native ranged arbitrary sized integer type.
  * enum only has named-values, it is not an integer.
  * function overloading, on both arguments (type and non-type) and return type.
  * universal call syntax.
+
+## Safe integers
+All operations on integers will either:
+ * always result in a mathematically correct result, or
+ * the operation may throws an error that must be caught locally.
+
+### Default integer type (ranged)
+Each integer is ranged, and the range can be extended arbitrarilly large. Each
+operation will return an integer with a range that encompasses all possible values.
+
+Most operations will increase the range, but a few operations like modulo `%`
+, AND `&`, `min()`, `max()` and `clamp()` can reduce the range.
+
+Only a few operations, will require you to catch the error, including:
+ * division by an integer that may be zero.
+ * conversion to a smaller integer size.
+
+These integers are layout compatible with C and C++ types; for example
+`int[0..=65535]` is equal to `uint16_t`, and `int[-32768..=32767]` is
+equal to `int16_t`.
+
+### Dynamically sized integer type
+The second integer type is `long`, this integer dynamically scales in size
+and is allocated on the heap (it does have short integer optimization).
+
+## Units system
 
 ## Elaboration Phase
 Certain languages have a separate elaboration phase during compilation.
