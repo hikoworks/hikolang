@@ -28,13 +28,30 @@ TEST_CASE(git_clone)
     REQUIRE(r == hk::git_error::ok);
 }
 
-TEST_CASE(git_fetch_and_update)
+TEST_CASE(git_fetch_and_update_tag)
 {
     using namespace std::literals;
 
-    auto const tmp_dir = hk::scoped_temporary_directory("git_fetch_and_update");
+    auto const tmp_dir = hk::scoped_temporary_directory("git_fetch_and_update_tag");
     auto const git_url = "https://github.com/hikogui/hikolang-test-a.git"s;
     auto const git_rev = "v1.0.0"s;
+
+    // You can only directly clone a branch, specifying a tag will clone
+    // the branch.
+    auto const r1 = hk::git_clone(git_url, git_rev, tmp_dir.path());
+    REQUIRE(r1 == hk::git_error::ok);
+
+    auto const r2 = hk::git_fetch_and_update(git_url, git_rev, tmp_dir.path(), hk::git_checkout_flags::fresh_clone);
+    REQUIRE(r2 == hk::git_error::ok);
+}
+
+TEST_CASE(git_fetch_and_update_commit)
+{
+    using namespace std::literals;
+
+    auto const tmp_dir = hk::scoped_temporary_directory("git_fetch_and_update_commit");
+    auto const git_url = "https://github.com/hikogui/hikolang-test-a.git"s;
+    auto const git_rev = "e5e6a25"s; // v1.0.0
 
     // You can only directly clone a branch, specifying a tag will clone
     // the branch.
