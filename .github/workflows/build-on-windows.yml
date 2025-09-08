@@ -105,6 +105,15 @@ jobs:
             ${{env.DEBUG_BUILD_DIR}}\hktests-dbg.xml
             ${{env.RELEASE_BUILD_DIR}}\hktests-rel.xml
 
+      - name: Publish Test Results to Codecov
+        if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{secrets.CODECOV_TOKEN}}
+          files: |
+            ${{env.DEBUG_BUILD_DIR}}\hktests-dbg.xml
+            ${{env.RELEASE_BUILD_DIR}}\hktests-rel.xml
+
       - name: Generate CodeCoverage Report (Debug)
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
