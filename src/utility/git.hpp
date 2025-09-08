@@ -103,12 +103,12 @@ enum class git_checkout_flags {
     return static_cast<git_checkout_flags>(~std::to_underlying(rhs));
 }
 
-constexpr git_checkout_flags& operator|=(git_checkout_flags &lhs, git_checkout_flags rhs) noexcept
+constexpr git_checkout_flags& operator|=(git_checkout_flags& lhs, git_checkout_flags rhs) noexcept
 {
     return lhs = lhs | rhs;
 }
 
-constexpr git_checkout_flags& operator&=(git_checkout_flags &lhs, git_checkout_flags rhs) noexcept
+constexpr git_checkout_flags& operator&=(git_checkout_flags& lhs, git_checkout_flags rhs) noexcept
 {
     return lhs = lhs & rhs;
 }
@@ -117,6 +117,11 @@ constexpr git_checkout_flags& operator&=(git_checkout_flags &lhs, git_checkout_f
 {
     return static_cast<bool>(std::to_underlying(rhs));
 }
+
+struct git_url {
+    std::string url;
+    std::string rev;
+};
 
 struct git_reference {
     std::string name = {};
@@ -214,5 +219,15 @@ public:
     std::string const& rev,
     std::filesystem::path path,
     git_checkout_flags flags = git_checkout_flags{});
+
+/** Checkout or clone the repository.
+ *
+ * @see git_checkout_or_clone
+ */
+[[nodiscard]] git_error
+git_checkout_or_clone(git_url const& url, std::filesystem::path path, git_checkout_flags flags = git_checkout_flags{})
+{
+    return git_checkout_or_clone(url.url, url.rev, path, flags);
+}
 
 } // namespace hk

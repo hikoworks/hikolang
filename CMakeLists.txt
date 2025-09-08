@@ -135,6 +135,8 @@ target_sources(hkc PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/src/hkc/hkc.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/hkc/options.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/hkc/options.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/hkc/repository.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/hkc/repository.hpp"
 )
 
 target_include_directories(hkc PRIVATE "${CMAKE_SOURCE_DIR}/src")
