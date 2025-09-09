@@ -2,6 +2,7 @@
 #pragma once
 
 #include "ast/module_node.hpp"
+#include "error/error_list.hpp"
 #include <filesystem>
 #include <memory>
 #include <chrono>
@@ -35,6 +36,8 @@ private:
          * the filesystem.
          */
         bool touched = false;
+
+        error_list errors;
 
         module_type(std::filesystem::path path);
     };

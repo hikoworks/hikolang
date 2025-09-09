@@ -91,7 +91,7 @@ jobs:
         working-directory: ${{env.RELEASE_BUILD_DIR}}
         run: .\hktests-rel.exe --gtest_output=xml:hktests-rel.xml
 
-      - name: Publish Test Results
+      - name: Publish Test Results to github
         uses: EnricoMi/publish-unit-test-result-action/windows@v2
         if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
         with:
@@ -106,7 +106,7 @@ jobs:
           token: ${{secrets.CODECOV_TOKEN}}
           files: ${{env.DEBUG_BUILD_DIR}}\hktests-dbg.xml
 
-      - name: Generate CodeCoverage Report (Debug)
+      - name: Generate CodeCoverage Report
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           curl -L -O https://github.com/OpenCppCoverage/OpenCppCoverage/releases/download/release-0.9.9.0/OpenCppCoverageSetup-x64-0.9.9.0.exe
@@ -120,7 +120,7 @@ jobs:
           --working_dir=${{env.DEBUG_BUILD_DIR}} ^
           -- ${{env.DEBUG_BUILD_DIR}}\hktests-dbg
   
-      - name: Upload CodeCoverage Report to codecov.io (Debug)
+      - name: Upload CodeCoverage Report to codecov
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: codecov/codecov-action@v5
         with:
