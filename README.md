@@ -20,24 +20,22 @@ All operations on integers will either:
  * always result in a mathematically correct result, or
  * the operation may throws an error that must be caught locally.
 
-### Default integer type (ranged)
-Each integer is ranged, and the range can be extended arbitrarilly large. Each
-operation will return an integer with a range that encompasses all possible values.
+The `int` template type automatically scales to fit the full
+result of an operation: 
 
-Most operations will increase the range, but a few operations like modulo `%`
-, AND `&`, `min()`, `max()` and `clamp()` can reduce the range.
+```
+fn foo(x : int[10..=20], y : int[2..=4]) {
+    // return type is infered as int[20..=80]
+    return x * y
+}
+```
 
-Only a few operations, will require you to catch the error, including:
- * division by an integer that may be zero.
- * conversion to a smaller integer size.
+`int` is the basic integer type and the result of integer literals.
+The `int` with proper ranges are compatible with both signed and
+unsigned integers with C and C++.
 
-These integers are layout compatible with C and C++ types; for example
-`int[0..=65535]` is equal to `uint16_t`, and `int[-32768..=32767]` is
-equal to `int16_t`.
-
-### Dynamically sized integer type
 The second integer type is `long`, this integer dynamically scales in size
-and is allocated on the heap (it does have short integer optimization).
+and is allocated on the heap, and includes SIO (Short Integer Optimization).
 
 ## Units system
 
