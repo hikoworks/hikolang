@@ -54,4 +54,20 @@ private:
  */
 [[nodiscard]] std::filesystem::path make_file_buffer(std::string_view content);
 
+[[nodiscard]] inline std::filesystem::path make_file_buffer(std::string_view content)
+{
+    return make_file_buffer(std::span<char const>{content.data(), content.size()});
+}
+
+[[nodiscard]] inline std::filesystem::path make_file_buffer(std::string const& content)
+{
+    return make_file_buffer(std::span<char const>{content.data(), content.size()});
+}
+
+[[nodiscard]] inline std::filesystem::path make_file_buffer(char const *content)
+{
+    auto view = std::string_view{content};
+    return make_file_buffer(std::span<char const>{view.data(), view.size()});
+}
+
 }

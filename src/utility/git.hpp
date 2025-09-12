@@ -224,7 +224,7 @@ public:
  *
  * @see git_checkout_or_clone
  */
-[[nodiscard]] git_error
+[[nodiscard]] inline git_error
 git_checkout_or_clone(git_url const& url, std::filesystem::path path, git_checkout_flags flags = git_checkout_flags{})
 {
     return git_checkout_or_clone(url.url, url.rev, path, flags);

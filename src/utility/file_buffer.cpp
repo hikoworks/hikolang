@@ -78,9 +78,5 @@ std::size_t file_buffer::write(std::size_t position, std::span<char const> buffe
     return path;
 }
 
-[[nodiscard]] std::filesystem::path make_file_buffer(std::string_view content)
-{
-    return make_file_buffer(std::span<char const>{content.data(), content.size()});
-}
 
 } // namespace hk

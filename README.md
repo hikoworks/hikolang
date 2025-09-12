@@ -38,13 +38,15 @@ The second integer type is `long`, this integer dynamically scales in size
 and is allocated on the heap, and includes SIO (Short Integer Optimization).
 
 ## Units system
+Real, rational and decimal types can be tagged with a unit, which is used
+for dimensional analysis.
 
 ```
 let speed = 100.0 (km/h)
 let duration = 15.0 min
 let distance = speed * duration // 25.0 km
 
-fn convert(length : real (m), dpi : real (px/in)) -> real (px)
+fn convert(length : real #iso.length, dpi : real #(screen.length/iso.length)) -> real #screen.length
 {
     return length * dpi 
 }

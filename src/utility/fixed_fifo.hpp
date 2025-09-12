@@ -11,10 +11,10 @@
 namespace hk {
 
 /** A fixed-size FIFO queue implementation.
- * 
+ *
  * This class provides a fixed-size FIFO queue that can be used to store elements
  * of type T.
- * 
+ *
  * @tparam T The type of the elements stored in the queue.
  * @tparam Size The maximum number of elements the queue can hold.
  */
@@ -22,19 +22,19 @@ template<typename T, std::size_t Size>
 class fixed_fifo {
 public:
     /** Type alias for the value type stored in the fifo.
-     * 
+     *
      * This is the type of elements that can be stored in the fifo.
      */
     using value_type = T;
 
     /** Type alias for the size type of the fifo.
-     * 
+     *
      * This is typically std::size_t, representing the number of elements in the fifo.
      */
     using size_type = std::size_t;
 
     /** Destructor.
-     * 
+     *
      * Cleans up the fifo by destroying all elements in it.
      */
     constexpr ~fixed_fifo()
@@ -43,37 +43,37 @@ public:
     }
 
     /** Default constructor.
-     * 
+     *
      * Initializes the FIFO queue with a size of 0.
      */
     constexpr fixed_fifo() noexcept = default;
 
     /** Copy constructor.
-     * 
+     *
      * @note This is deleted to prevent copying of the fifo.
      */
     constexpr fixed_fifo(fixed_fifo const&) = delete;
 
     /** Move constructor.
-     * 
+     *
      * @note This is deleted to prevent moving of the fifo.
      */
     constexpr fixed_fifo(fixed_fifo&&) = delete;
 
     /** Copy assignment operator.
-     * 
+     *
      * @note This is deleted to prevent copying of the fifo.
      */
     constexpr fixed_fifo& operator=(fixed_fifo const&) = delete;
 
     /** Move assignment operator.
-     * 
+     *
      * @note This is deleted to prevent moving of the fifo.
      */
     constexpr fixed_fifo& operator=(fixed_fifo&&) = delete;
 
     /** The number of elements in the fifo.
-     * 
+     *
      * @return The current size of the queue.
      */
     [[nodiscard]] constexpr size_type size() const noexcept
@@ -82,7 +82,7 @@ public:
     }
 
     /** The maximum number of elements the fifo can hold.
-     * 
+     *
      * @return The maximum size of the queue.
      */
     [[nodiscard]] constexpr size_type max_size() const noexcept
@@ -91,7 +91,7 @@ public:
     }
 
     /** Check if the fifo is empty.
-     * 
+     *
      * @return true if the queue is empty, false otherwise.
      */
     [[nodiscard]] constexpr bool empty() const noexcept
@@ -100,7 +100,7 @@ public:
     }
 
     /** Check if the fifo is full.
-     * 
+     *
      * @return true if the queue is full, false otherwise.
      */
     [[nodiscard]] constexpr bool full() const noexcept
@@ -109,7 +109,7 @@ public:
     }
 
     /** Get the first element in the fifo.
-     * 
+     *
      * @note It is UNDEFINED BEHAVIOR to call this function if the queue is empty.
      * @return A const reference to the first element in the queue.
      */
@@ -119,7 +119,7 @@ public:
     }
 
     /** Get the first element in the fifo.
-     * 
+     *
      * @note It is UNDEFINED BEHAVIOR to call this function if the queue is empty.
      * @return A reference to the first element in the queue.
      */
@@ -129,7 +129,7 @@ public:
     }
 
     /** Get the first element in the fifo.
-     * 
+     *
      * @note It is UNDEFINED BEHAVIOR to call this function if the queue is empty.
      * @return A const reference to the first element in the queue.
      */
@@ -140,7 +140,7 @@ public:
     }
 
     /** Get the first element in the fifo.
-     * 
+     *
      * @note It is UNDEFINED BEHAVIOR to call this function if the queue is empty.
      * @return A reference to the first element in the queue.
      */
@@ -151,10 +151,10 @@ public:
     }
 
     /** Access an element at a specific index in the fifo.
-     * 
+     *
      * You are allowed to access elements in the fifo beyond the current size, up to the maximum size.
      * This would return a reference to the element with the default constructed value type.
-     * 
+     *
      * @note It is UNDEFINED BEHAVIOR to call this function with an index that is out of bounds of the
      *       of the internal array.
      * @param i The index of the element to access.
@@ -167,7 +167,7 @@ public:
     }
 
     /** Access an element at a specific index in the fifo.
-     * 
+     *
      * @note It is UNDEFINED BEHAVIOR to call this function with an index that is out of bounds.
      * @param i The index of the element to access.
      * @return A reference to the element at the specified index.
@@ -179,7 +179,7 @@ public:
     }
 
     /** Clear the fifo, removing all elements.
-     * 
+     *
      * This function resets the size of the queue to 0, effectively clearing it.
      */
     constexpr void clear() noexcept
@@ -191,7 +191,7 @@ public:
     }
 
     /** Emplace an element to the back of the queue.
-     * 
+     *
      * @note It is UNDEFINED BEHAVIOR to call this function if the queue is full.
      * @param args The arguments to forward to the constructor of T.
      * @return A reference to the newly emplaced element.
@@ -205,7 +205,7 @@ public:
     }
 
     /** Push an element to the back of the queue.
-     * 
+     *
      * @note It is UNDEFINED BEHAVIOR to call this function if the queue is full.
      * @param value The value to push to the back of the queue.
      * @return A reference to the newly pushed element.
@@ -218,7 +218,7 @@ public:
     }
 
     /** Push an element to the back of the queue.
-     * 
+     *
      * @note It is UNDEFINED BEHAVIOR to call this function if the queue is full.
      * @param value The value to push to the back of the queue.
      * @return A reference to the newly pushed element.
@@ -231,7 +231,7 @@ public:
     }
 
     /** Pop an element from the queue.
-     * 
+     *
      * @note It is UNDEFINED BEHAVIOR to call this function if the queue is empty.
      * @note It is UNDEFINED BEHAVIOR to call this function with an index that is out of bounds.
      * @param i The index of the element to pop/remove, defaults to 0 (the front).
@@ -251,9 +251,9 @@ public:
     }
 
     /** Pop the first element from the queue.
-     * 
+     *
      * This is equivalent to calling remove(0).
-     * 
+     *
      * @note It is UNDEFINED BEHAVIOR to call this function if the queue is empty.
      * @return The first element in the queue.
      */
@@ -263,15 +263,61 @@ public:
     }
 
     /** Pop the last element from the queue.
-     * 
+     *
      * This is equivalent to calling remove(size() - 1).
-     * 
+     *
      * @note It is UNDEFINED BEHAVIOR to call this function if the queue is empty.
      * @return The last element in the queue.
      */
     constexpr value_type pop_back()
     {
         return remove(_size - 1);
+    }
+
+    /** Push an element to the back of the queue.
+     *
+     * @param value The value to push to the back of the queue.
+     * @return The value at the front of the fifo when the queue is full.
+     */
+    [[nodiscard]] constexpr std::optional<value_type> push_back_overflow(value_type const& value)
+    {
+        auto tmp = std::optional<value_type>{};
+        if (full()) {
+            tmp = pop_front();
+        }
+        push_back(value);
+        return tmp;
+    }
+
+    /** Push an element to the back of the queue.
+     *
+     * @param value The value to push to the back of the queue.
+     * @return The value at the front of the fifo when the queue is full.
+     */
+    [[nodiscard]] constexpr std::optional<value_type> push_back_overflow(value_type&& value)
+    {
+        auto tmp = std::optional<value_type>{};
+        if (full()) {
+            tmp = pop_front();
+        }
+        push_back(std::move(value));
+        return tmp;
+    }
+
+    /** Emplace an element to the back of the queue.
+     *
+     * @param args The arguments to forward to the constructor of T.
+     * @return The value at the front of the fifo when the queue is full.
+     */
+    template<typename... Args>
+    [[nodiscard]] constexpr std::optional<value_type> emplace_overflow(Args &&... args)
+    {
+        auto tmp = std::optional<value_type>{};
+        if (full()) {
+            tmp = pop_front();
+        }
+        emplace_back(std::forward<Args>(args)...);
+        return tmp;
     }
 
 private:

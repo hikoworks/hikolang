@@ -4,6 +4,7 @@
 #include "consume.hpp"
 #include "ast/nodes.hpp"
 #include "tokenizer/tokenizer.hpp"
+#include "utility/lazy_vector.hpp"
 
 namespace hk {
 
@@ -45,32 +46,11 @@ namespace hk {
 
 [[nodiscard]] ast::module_node_ptr parse_module(hk::file_cursor& c, bool only_prologue)
 {
-    class delegate_type : public tokenize_delegate {
-    public:
-        delegate_type(std::vector<token> &tokens) : _tokens(std::addressof(tokens)) {}
+    
+    auto token_generator = hk::tokenize(c);
+    auto lazy_tokens = lazy_vector{token_generator.cbegin(), token_generator.cend()};
 
-        void on_token(token t) override
-        {
-            if (t == '\0') {
-                // If the token is an end-of-file token, we append extra tokens to make sure
-                // the parser can always look ahead without checking for end-of-file.
-                for (auto i = 0uz; i != 8; ++i) {
-                    _tokens->push_back(t);
-                }
-            }
-
-            _tokens->push_back(std::move(t));
-        }
-
-    private:
-        std::vector<token>* _tokens;
-    };
-
-    auto tokens = std::vector<token>{};
-    auto delegate = delegate_type(tokens);
-    hk::tokenize(c, delegate);
-
-    auto it = tokens.cbegin();
+    auto it = lazy_tokens.cbegin();
     auto m = parse_module(it, only_prologue);
     m->upstream_paths = c.upstream_paths();
     return m;

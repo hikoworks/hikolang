@@ -58,13 +58,13 @@ void repository::scan_prologues(bool force)
             continue;
         }
 
-        auto cursor = file_cursor(module_path);
-        auto it = 
-
-        m.errors.clear();
-        if (auto r = parse_module(cursor, m.errors, true)) {
-
-        }
+        //auto cursor = file_cursor(module_path);
+        //auto it = 
+//
+        //m.errors.clear();
+        //if (auto r = parse_module(cursor, m.errors, true)) {
+//
+        //}
     }
 
     untouch(true);
