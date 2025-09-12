@@ -39,6 +39,17 @@ and is allocated on the heap, and includes SIO (Short Integer Optimization).
 
 ## Units system
 
+```
+let speed = 100.0 (km/h)
+let duration = 15.0 min
+let distance = speed * duration // 25.0 km
+
+fn convert(length : real (m), dpi : real (px/in)) -> real (px)
+{
+    return length * dpi 
+}
+```
+
 ## Elaboration Phase
 Certain languages have a separate elaboration phase during compilation.
 
