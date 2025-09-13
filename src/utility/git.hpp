@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "remote_repo_url.hpp"
+#include "repository_url.hpp"
 #include <expected>
 #include <system_error>
 #include <memory>
@@ -222,9 +222,9 @@ public:
  * @see git_checkout_or_clone
  */
 [[nodiscard]] inline git_error
-git_checkout_or_clone(remote_repo_url const& url, std::filesystem::path path, git_checkout_flags flags = git_checkout_flags{})
+git_checkout_or_clone(repository_url const& url, std::filesystem::path path, git_checkout_flags flags = git_checkout_flags{})
 {
-    assert(url.kind() == remote_repo_url::git);
+    assert(url.kind() == repository_type::git);
     return git_checkout_or_clone(url.url(), url.rev(), path, flags);
 }
 

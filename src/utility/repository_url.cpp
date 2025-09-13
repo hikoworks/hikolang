@@ -1,5 +1,5 @@
 
-#include "remote_repo_url.hpp"
+#include "repository_url.hpp"
 #include "sha.hpp"
 #include "base32.hpp"
 #include <format>
@@ -8,16 +8,16 @@
 namespace hk {
 
 
-[[nodiscard]] std::string remote_repo_url::hash() const
+[[nodiscard]] std::array<char, 32> repository_url::hash() const
 {
     auto const text = [this] {
         switch (kind()) {
-        case kind_type::empty:
+        case repository_type::none:
             return std::string{};
-        case kind_type::git:
-            return std::format("{}:{}", path(), rev());
-        case kind_type::zip:
-            return path;
+        case repository_type::git:
+            return std::format("{}:{}", url(), rev());
+        case repository_type::zip:
+            return url();
         }
         std::unreachable();
     }();
@@ -25,15 +25,15 @@ namespace hk {
     return sha256(text);
 }
 
-[[nodiscard]] std::string remote_repo_url::stem() const
+[[nodiscard]] std::string repository_url::stem() const
 {
-    if (kind() == kind_type::empty) {
+    if (kind() == repository_type::none) {
         return std::string{};
     }
 
-    auto first = path().rfind('/');
+    auto first = url().rfind('/');
     if (first == std::string::npos) {
-        first = path().rfind('\\');
+        first = url().rfind('\\');
     }
     if (first == std::string::npos) {
         first = 0;
@@ -41,15 +41,15 @@ namespace hk {
         ++first;
     }
 
-    auto last = path().rfind('.');
+    auto last = url().rfind('.');
     if (last == std::string::npos or last <= first) {
-        last = path().size();
+        last = url().size();
     }
     
-    return path().substr(first, last - first);
+    return url().substr(first, last - first);
 }
 
-[[nodiscard]] std::string remote_repo_url::directory() const
+[[nodiscard]] std::string repository_url::directory() const
 {
     auto short_hash = base32_encode(hash()).substr(0, 10);
     return std::format("{}-{}", stem(), short_hash);

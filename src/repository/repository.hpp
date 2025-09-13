@@ -3,7 +3,7 @@
 
 #include "ast/module_node.hpp"
 #include "error/error_list.hpp"
-#include "utility/remote_repo_url.hpp"
+#include "utility/repository_url.hpp"
 #include "utility/generator.hpp"
 #include <filesystem>
 #include <memory>
@@ -22,7 +22,13 @@ public:
      */
     void scan_prologues(bool force);
 
-    [[nodiscard]] generator<remote_repo_url> remote_repositories() const;
+    /** Recusively clone and scan repositories.
+     * 
+     * @param force Force scanning even on files that were already parsed.
+     */
+    void recursive_scan_prologues(bool force);
+
+    [[nodiscard]] generator<repository_url> remote_repositories() const;
 
 private:
     struct module_type {
@@ -39,9 +45,12 @@ private:
          */
         bool touched = false;
 
-        error_list errors;
-
         module_type(std::filesystem::path path);
+    };
+
+    struct child_repository_type {
+        repository_url url;
+        std::unique_ptr<repository> repository;
     };
 
     /** The path to the repository.
@@ -51,6 +60,10 @@ private:
     /** modules, sorted by path.
      */
     std::vector<module_type> _modules;
+
+    /** The root repository also has a list of child repositories.
+     */
+    std::vector<child_repository_type> _child_repositories;
 
     /** Unset the touch flag on all modules.
      * 
@@ -65,6 +78,15 @@ private:
      * @param path The path the module.
      */
     [[nodiscard]] module_type &get_module(std::filesystem::path const& path);
+
+    /** Get or make a child repository based on the repository_url.
+     * 
+     * @note It is UNDEFINED BEHAVIOR if @a path is not canonical or is not
+     *       inside the repository.
+     * @param path The path the module.
+     */
+    [[nodiscard]] child_repository_type &get_child_repository(repository_url const& url);
+
 };
 
 

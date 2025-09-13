@@ -5,7 +5,7 @@
 #include "module_declaration_node.hpp"
 #include "import_declaration_node.hpp"
 #include "error/error_list.hpp"
-#include "utility/remote_repo_url.hpp"
+#include "utility/repository_url.hpp"
 #include <memory>
 #include <vector>
 #include <chrono>
@@ -22,9 +22,6 @@ public:
         parsed,
     };
 
-    [[nodiscard]] generator<remote_repo_url> remote_repositories() const;
-
-private:
     /** List of errors found.
      */
     error_list errors;
@@ -51,6 +48,9 @@ private:
     module_declaration_node_ptr declaration;
     std::vector<import_declaration_node_ptr> imports;
     std::vector<node_ptr> body;
+
+    [[nodiscard]] generator<repository_url> remote_repositories() const;
+
 };
 
 using module_node_ptr = std::unique_ptr<module_node>;

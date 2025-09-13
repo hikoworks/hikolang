@@ -3,7 +3,7 @@
 #include "utility/path.hpp"
 #include "utility/vector_set.hpp"
 #include "utility/file_cursor.hpp"
-#include "parser/parsers.hpp"
+#include "parser/parse_module.hpp"
 #include <cassert>
 #include <algorithm>
 
@@ -41,7 +41,7 @@ void repository::scan_prologues(bool force)
             }
             continue;
         }
-            
+
         if (not entry.is_regular_file()) {
             continue;
         }
@@ -50,24 +50,28 @@ void repository::scan_prologues(bool force)
             continue;
         }
 
-        auto &m = get_module(module_path);
+        auto& m = get_module(module_path);
         m.touched = true;
 
-        if (m.ast and m.time == entry.last_write_time()) {
+        if (m.ast and m.time == entry.last_write_time() and not force) {
             // The prologue for this module has already been scanned.
             continue;
         }
 
-        //auto cursor = file_cursor(module_path);
-        //auto it = 
-//
-        //m.errors.clear();
-        //if (auto r = parse_module(cursor, m.errors, true)) {
-//
-        //}
+        auto cursor = file_cursor(module_path);
+        if (auto r = parse_module(cursor, true)) {
+            m.ast = std::move(r);
+            m.time = entry.last_write_time();
+        }
     }
 
     untouch(true);
+}
+
+void repository::recursive_scan_prologues(bool force)
+{
+
+    
 }
 
 void repository::untouch(bool remove)
@@ -83,7 +87,7 @@ void repository::untouch(bool remove)
     }
 }
 
-[[nodiscard]] generator<remote_repo_url> repository::remote_repositories() const
+[[nodiscard]] generator<repository_url> repository::remote_repositories() const
 {
     for (auto const& m : _modules) {
         for (auto u : m.ast->remote_repositories()) {
@@ -92,15 +96,27 @@ void repository::untouch(bool remove)
     }
 }
 
-repository::module_type& repository::get_module(std::filesystem::path const& module_path)
+[[nodiscard]] repository::module_type& repository::get_module(std::filesystem::path const& module_path)
 {
     assert(is_subpath(module_path, _path));
 
-    auto it = std::lower_bound(_modules.begin(), _modules.end(), module_path, [](auto const &item, auto const &key) {
+    auto it = std::lower_bound(_modules.begin(), _modules.end(), module_path, [](auto const& item, auto const& key) {
         return item.path < key;
     });
     if (it == _modules.end() or it->path != module_path) {
         it = _modules.insert(it, module_type{module_path});
+    }
+    return *it;
+}
+
+[[nodiscard]] repository::child_repository_type& repository::get_child_repository(repository_url const& url)
+{
+    auto it =
+        std::lower_bound(_child_repositories.begin(), _child_repositories.end(), url, [](auto const& item, auto const& key) {
+            return item.url < key;
+        });
+    if (it == _child_repositories.end() or it->url != url) {
+        it = _child_repositories.insert(it, child_repository_type{url});
     }
     return *it;
 }
@@ -110,4 +126,4 @@ repository::module_type::module_type(std::filesystem::path path) : path(std::mov
     assert(std::filesystem::canonical(this->path) == this->path);
 }
 
-}
+} // namespace hk

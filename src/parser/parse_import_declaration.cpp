@@ -13,66 +13,77 @@ namespace hk {
     }
     ++it;
 
-    auto r = std::make_unique<ast::import_declaration_node>(first);
+    auto r = std::unique_ptr<ast::import_declaration_node>{};
 
     if (*it == "git") {
-        r->kind = ast::import_declaration_node::kind_type::git;
         ++it;
 
+        auto url = std::string{};
         if (*it == token::string_literal) {
-            r->path = it->text;
+            url = it->text;
             ++it;
         } else {
             return e.add<error::missing_import_git_declaration_url>(first, it->last);
         }
 
+        auto rev = std::string{};
         if (*it == token::string_literal) {
-            r->branch = it->text;
+            rev = it->text;
             ++it;
         } else {
             return e.add<error::missing_import_git_declaration_branch>(first, it->last);
         }
 
+        auto repository = repository_url{repository_type::git, std::move(url), std::move(rev)};
+        r = std::make_unique<ast::import_repository_declaration_node>(first, it->last, std::move(repository));
+
     } else if (*it == "zip") {
-        r->kind = ast::import_declaration_node::kind_type::zip;
         ++it;
 
+        auto url = std::string{};
         if (*it == token::string_literal) {
-            r->path = it->text;
+            url = it->text;
             ++it;
         } else {
             return e.add<error::missing_import_zip_declaration_path>(first, it->last);
         }
 
+        auto repository = repository_url{repository_type::zip, it->text};
+        r = std::make_unique<ast::import_repository_declaration_node>(first, it->last, std::move(repository));
+
     } else if (*it == "lib") {
-        r->kind = ast::import_declaration_node::kind_type::lib;
         ++it;
 
+        auto path = std::string{};
         if (*it == token::string_literal) {
-            r->path = it->text;
+            path = it->text;
             ++it;
         } else {
             return e.add<error::missing_import_lib_declaration_path>(first, it->last);
         }
 
-    } else if (auto fqname = parse_fqname(it, e)) {
-        r->kind = ast::import_declaration_node::kind_type::mod;
-        r->name = std::move(fqname).value();
+        r = std::make_unique<ast::import_library_declaration_node>(first, it->last, path);
+
+    } else if (auto name = parse_fqname(it, e)) {
         ++it;
 
+        auto as = hk::fqname{};
         if (*it == "as") {
             ++it;
 
-            if (*it == token::string_literal) {
-                r->as = it->text;
+            if (auto as = parse_fqname(it, e)) {
+                as = std::move(as).value();
 
             } else {
                 return e.add<error::missing_import_mod_declaration_as_name>(first, it->last);
             }
         }
 
-    } else if (fqname.error()) {
-        return std::unexpected{fqname.error()};
+        r = std::make_unique<ast::import_module_declaration_node>(first, it->last, std::move(name).value(), as);
+
+    } else if (name.error()) {
+        return std::unexpected{name.error()};
+
     } else {
         return e.add<error::missing_import_mod_declaration_name>(first, it->last);
     }
@@ -85,4 +96,4 @@ namespace hk {
     return e.add<error::missing_import_declaration_semicolon>(first, it->last);
 }
 
-}
+} // namespace hk
