@@ -5,6 +5,7 @@
 #include "module_declaration_node.hpp"
 #include "import_declaration_node.hpp"
 #include "error/error_list.hpp"
+#include "utility/remote_repo_url.hpp"
 #include <memory>
 #include <vector>
 #include <chrono>
@@ -21,6 +22,9 @@ public:
         parsed,
     };
 
+    [[nodiscard]] generator<remote_repo_url> remote_repositories() const;
+
+private:
     /** List of errors found.
      */
     error_list errors;

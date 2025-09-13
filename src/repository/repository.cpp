@@ -83,6 +83,15 @@ void repository::untouch(bool remove)
     }
 }
 
+[[nodiscard]] generator<remote_repo_url> repository::remote_repositories() const
+{
+    for (auto const& m : _modules) {
+        for (auto u : m.ast->remote_repositories()) {
+            co_yield std::move(u);
+        }
+    }
+}
+
 repository::module_type& repository::get_module(std::filesystem::path const& module_path)
 {
     assert(is_subpath(module_path, _path));

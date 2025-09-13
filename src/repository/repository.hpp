@@ -3,6 +3,8 @@
 
 #include "ast/module_node.hpp"
 #include "error/error_list.hpp"
+#include "utility/remote_repo_url.hpp"
+#include "utility/generator.hpp"
 #include <filesystem>
 #include <memory>
 #include <chrono>
@@ -20,7 +22,7 @@ public:
      */
     void scan_prologues(bool force);
 
-
+    [[nodiscard]] generator<remote_repo_url> remote_repositories() const;
 
 private:
     struct module_type {
@@ -42,6 +44,8 @@ private:
         module_type(std::filesystem::path path);
     };
 
+    /** The path to the repository.
+     */
     std::filesystem::path _path;
 
     /** modules, sorted by path.

@@ -8,6 +8,7 @@
 #include <memory>
 #include <type_traits>
 #include <cassert>
+#include <exception>
 
 namespace hk {
 

@@ -57,8 +57,8 @@ add_library(hk_objects OBJECT
     "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/parse_module.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/parser.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/parsers.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/prologue/prologue_scan.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/prologue/prologue_scan.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/repository/repository.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/repository/repository.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer/parse_block_comment.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer/parse_bracketed_string.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer/parse_context_arg.cpp"
@@ -82,6 +82,8 @@ add_library(hk_objects OBJECT
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/char_category.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/command_line.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/command_line.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/defer.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/enum_variant.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/file_buffer.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/file_buffer.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/file_cursor.cpp"
@@ -93,6 +95,7 @@ add_library(hk_objects OBJECT
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/file.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/fixed_fifo.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/fqname.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/generator.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/git.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/git.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/log.cpp"
@@ -109,6 +112,7 @@ add_library(hk_objects OBJECT
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/strings.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/unicode.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/unicode.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/vector_set.hpp"
 )
 
 target_include_directories(hk_objects PRIVATE "${CMAKE_SOURCE_DIR}/src")
@@ -135,8 +139,6 @@ target_sources(hkc PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/src/hkc/hkc.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/hkc/options.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/hkc/options.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/hkc/repository.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/hkc/repository.hpp"
 )
 
 target_include_directories(hkc PRIVATE "${CMAKE_SOURCE_DIR}/src")
@@ -154,13 +156,13 @@ if(BUILD_TESTING)
     add_executable(hktests)
     target_sources(hktests PRIVATE
         $<TARGET_OBJECTS:hk_objects>
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/repository/repository_tests.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer/tokenizer_tests.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/git_tests.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/unit_test.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/unit_test.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/prologue/prologue_scan_tests.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer/tokenizer_tests.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/unicode_tests.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/strings_tests.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/unicode_tests.cpp"
     )
     #target_compile_definitions(hktests PRIVATE ${LLVM_DEFINITIONS})
     #target_link_libraries(hktests PRIVATE ${llvm_libs})

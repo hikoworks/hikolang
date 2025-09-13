@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include "remote_repo_url.hpp"
 #include <expected>
 #include <system_error>
 #include <memory>
@@ -11,6 +12,7 @@
 #include <string>
 #include <filesystem>
 #include <utility>
+#include <cassert>
 
 namespace hk {
 
@@ -118,11 +120,6 @@ constexpr git_checkout_flags& operator&=(git_checkout_flags& lhs, git_checkout_f
     return static_cast<bool>(std::to_underlying(rhs));
 }
 
-struct git_url {
-    std::string url;
-    std::string rev;
-};
-
 struct git_reference {
     std::string name = {};
     std::string oid = {};
@@ -225,9 +222,10 @@ public:
  * @see git_checkout_or_clone
  */
 [[nodiscard]] inline git_error
-git_checkout_or_clone(git_url const& url, std::filesystem::path path, git_checkout_flags flags = git_checkout_flags{})
+git_checkout_or_clone(remote_repo_url const& url, std::filesystem::path path, git_checkout_flags flags = git_checkout_flags{})
 {
-    return git_checkout_or_clone(url.url, url.rev, path, flags);
+    assert(url.kind() == remote_repo_url::git);
+    return git_checkout_or_clone(url.url(), url.rev(), path, flags);
 }
 
 } // namespace hk
