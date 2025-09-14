@@ -49,7 +49,13 @@ public:
     std::vector<import_declaration_node_ptr> imports;
     std::vector<node_ptr> body;
 
-    [[nodiscard]] generator<repository_url> remote_repositories() const;
+    struct remote_repository_result {
+        repository_url url;
+        file_location first;
+        file_location last;
+        module_node *node;
+    };
+    [[nodiscard]] generator<remote_repository_result> remote_repositories() const;
 
 };
 

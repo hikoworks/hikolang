@@ -4,6 +4,7 @@
 #include "ast/module_node.hpp"
 #include "error/error_list.hpp"
 #include "utility/repository_url.hpp"
+#include "utility/repository_flags.hpp"
 #include "utility/generator.hpp"
 #include <filesystem>
 #include <memory>
@@ -20,13 +21,13 @@ public:
      * 
      * @param force Force scanning even on files that were already parsed.
      */
-    void scan_prologues(bool force);
+    void scan_prologues(repository_flags flags);
 
     /** Recusively clone and scan repositories.
      * 
      * @param force Force scanning even on files that were already parsed.
      */
-    void recursive_scan_prologues(bool force);
+    void recursive_scan_prologues(repository_flags flags);
 
     [[nodiscard]] generator<repository_url> remote_repositories() const;
 

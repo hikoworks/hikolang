@@ -456,7 +456,7 @@ repository_fetch(::git_repository* repository, std::string const& remote_name = 
 }
 
 [[nodiscard]] git_error
-git_fetch_and_update(std::string const& url, std::string const& rev, std::filesystem::path path, git_checkout_flags flags)
+git_fetch_and_update(std::string const& url, std::string const& rev, std::filesystem::path path, repository_flags flags)
 {
     auto const& _ = git_lib_initialize();
 
@@ -478,17 +478,17 @@ git_fetch_and_update(std::string const& url, std::string const& rev, std::filesy
         return remote_url_o.error();
     }
 
-    auto fetch = to_bool(flags & git_checkout_flags::force_fetch);
+    auto fetch = to_bool(flags & repository_flags::force_fetch);
     if (auto result = repository_matches_rev(repository, rev)) {
         switch (*result) {
         case rev_match::rev_not_found:
-            if (to_bool(flags & git_checkout_flags::fresh_clone)) {
+            if (to_bool(flags & repository_flags::fresh_clone)) {
                 return git_error::rev_not_found;
             }
             [[fallthrough]];
         case rev_match::not_checked_out:
         case rev_match::checked_out_branch:
-            fetch |= not to_bool(flags & git_checkout_flags::fresh_clone);
+            fetch |= not to_bool(flags & repository_flags::fresh_clone);
             break;
         case rev_match::checked_out:
             // Revisions that are tags or commits will not cause a fetch.
@@ -522,9 +522,9 @@ git_fetch_and_update(std::string const& url, std::string const& rev, std::filesy
     }
 
     auto clean = checkout;
-    clean |= to_bool(flags & git_checkout_flags::force_clean);
+    clean |= to_bool(flags & repository_flags::force_clean);
     // A fresh clone does not need to be cleaned.
-    clean &= not to_bool(flags & git_checkout_flags::fresh_clone);
+    clean &= not to_bool(flags & repository_flags::fresh_clone);
 
     if (clean) {
         if (auto result = repository_clean(repository); result != git_error::ok) {
@@ -584,7 +584,7 @@ git_fetch_and_update(std::string const& url, std::string const& rev, std::filesy
 }
 
 [[nodiscard]] git_error git_checkout_or_clone(
-    std::string const& url, std::string const& rev, std::filesystem::path path, git_checkout_flags flags)
+    std::string const& url, std::string const& rev, std::filesystem::path path, repository_flags flags)
 {
     // First try and just update the repository.
     switch(git_fetch_and_update(url, rev, path, flags)) {
@@ -614,7 +614,7 @@ git_fetch_and_update(std::string const& url, std::string const& rev, std::filesy
     }
 
     // In case rev is a tag or commit, checkout/update the repository.
-    flags |= git_checkout_flags::fresh_clone;
+    flags |= repository_flags::fresh_clone;
     return git_fetch_and_update(url, rev, path, flags);
 }
 

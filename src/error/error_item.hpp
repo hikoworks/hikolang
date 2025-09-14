@@ -34,6 +34,13 @@ public:
     }
 
     template<typename... Args>
+    error_item(error_code code, std::format_string<Args...> fmt, Args&&... args)
+        : _first(), _last(), _code(code), _message(std::format(std::move(fmt), std::forward<Args>(args)...))
+    {
+        assert(_code.has_value());
+    }
+
+    template<typename... Args>
     void add_cause(file_location first, file_location last, std::format_string<Args...> fmt, Args&&... args)
     {
         _causes.emplace_back(first, last, std::format(std::move(fmt), std::forward<Args>(args)...));

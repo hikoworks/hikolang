@@ -2,6 +2,7 @@
 #pragma once
 
 #include "repository_url.hpp"
+#include "repository_flags.hpp"
 #include <expected>
 #include <system_error>
 #include <memory>
@@ -76,49 +77,7 @@ enum class git_error {
     could_not_connect_with_remote,
 };
 
-enum class git_checkout_flags {
-    /** The repository was freshly cloned, not need for a fetch.
-     */
-    fresh_clone = 0x1,
 
-    /** Fetch, even when the rev points to a tag or commit.
-     */
-    force_fetch = 0x2,
-
-    /** Force the repository to be cleaned, even if no checkout is performed.
-     */
-    force_clean = 0x4
-};
-
-[[nodiscard]] constexpr git_checkout_flags operator|(git_checkout_flags lhs, git_checkout_flags rhs) noexcept
-{
-    return static_cast<git_checkout_flags>(std::to_underlying(lhs) | std::to_underlying(rhs));
-}
-
-[[nodiscard]] constexpr git_checkout_flags operator&(git_checkout_flags lhs, git_checkout_flags rhs) noexcept
-{
-    return static_cast<git_checkout_flags>(std::to_underlying(lhs) & std::to_underlying(rhs));
-}
-
-[[nodiscard]] constexpr git_checkout_flags operator~(git_checkout_flags rhs) noexcept
-{
-    return static_cast<git_checkout_flags>(~std::to_underlying(rhs));
-}
-
-constexpr git_checkout_flags& operator|=(git_checkout_flags& lhs, git_checkout_flags rhs) noexcept
-{
-    return lhs = lhs | rhs;
-}
-
-constexpr git_checkout_flags& operator&=(git_checkout_flags& lhs, git_checkout_flags rhs) noexcept
-{
-    return lhs = lhs & rhs;
-}
-
-[[nodiscard]] constexpr bool to_bool(git_checkout_flags rhs) noexcept
-{
-    return static_cast<bool>(std::to_underlying(rhs));
-}
 
 struct git_reference {
     std::string name = {};
@@ -200,7 +159,7 @@ public:
     std::string const& url,
     std::string const& rev,
     std::filesystem::path path,
-    git_checkout_flags flags = git_checkout_flags{});
+    repository_flags flags = repository_flags{});
 
 /** Checkout or clone the repository.
  *
@@ -215,14 +174,14 @@ public:
     std::string const& url,
     std::string const& rev,
     std::filesystem::path path,
-    git_checkout_flags flags = git_checkout_flags{});
+    repository_flags flags = repository_flags{});
 
 /** Checkout or clone the repository.
  *
  * @see git_checkout_or_clone
  */
 [[nodiscard]] inline git_error
-git_checkout_or_clone(repository_url const& url, std::filesystem::path path, git_checkout_flags flags = git_checkout_flags{})
+git_checkout_or_clone(repository_url const& url, std::filesystem::path path, repository_flags flags = repository_flags{})
 {
     assert(url.kind() == repository_type::git);
     return git_checkout_or_clone(url.url(), url.rev(), path, flags);

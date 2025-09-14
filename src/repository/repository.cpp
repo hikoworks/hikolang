@@ -3,6 +3,7 @@
 #include "utility/path.hpp"
 #include "utility/vector_set.hpp"
 #include "utility/file_cursor.hpp"
+#include "utility/git.hpp"
 #include "parser/parse_module.hpp"
 #include <cassert>
 #include <algorithm>
@@ -14,7 +15,7 @@ repository::repository(std::filesystem::path path) : _path(std::move(path))
     assert(std::filesystem::canonical(_path) == _path);
 }
 
-void repository::scan_prologues(bool force)
+void repository::scan_prologues(repository_flags flags)
 {
     untouch(false);
 
@@ -53,7 +54,7 @@ void repository::scan_prologues(bool force)
         auto& m = get_module(module_path);
         m.touched = true;
 
-        if (m.ast and m.time == entry.last_write_time() and not force) {
+        if (m.ast and m.time == entry.last_write_time() and not to_bool(flags & repository_flags::force_scan)) {
             // The prologue for this module has already been scanned.
             continue;
         }
@@ -68,10 +69,37 @@ void repository::scan_prologues(bool force)
     untouch(true);
 }
 
-void repository::recursive_scan_prologues(bool force)
+void repository::recursive_scan_prologues(repository_flags flags)
 {
+    auto todo = std::set<repository_url>{};
+    auto done = std::set<repository_url>{};
 
-    
+    scan_prologues(flags);
+    for (auto child_repo_url : remote_repositories()) {
+        todo.insert(std::move(child_repo_url));
+    }
+
+    auto hkdeps = _path / "_hkdeps";
+    while (not todo.empty()) {
+        auto child_repo_url_node = todo.extract(todo.begin());
+        auto [it, inserted, _] = done.insert(std::move(child_repo_url_node));
+        if (not inserted) {
+            continue;
+        }
+
+        assert(it != done.end());
+        auto child_repo_path = hkdeps / it->directory();
+        auto &child_repo = get_child_repository(*it);
+        if (not child_repo.repository) {
+            if (auto r = git_checkout_or_clone(*it, child_repo_path, flags); r != git_error::ok) {
+
+            }
+
+            child_repo.repository = std::make_unique<repository>(child_repo_path);
+        }
+    }
+
+    // Remove internal repositories not in done.
 }
 
 void repository::untouch(bool remove)

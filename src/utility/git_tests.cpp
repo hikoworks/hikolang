@@ -51,7 +51,7 @@ TEST_CASE(git_clone_fail_wrong_rev_name)
     auto const r = hk::git_clone(git_url, git_rev, tmp_dir.path());
     REQUIRE(r == hk::git_error::ok);
 
-    auto const r2 = hk::git_fetch_and_update(git_url, git_rev, tmp_dir.path(), hk::git_checkout_flags::fresh_clone);
+    auto const r2 = hk::git_fetch_and_update(git_url, git_rev, tmp_dir.path(), hk::repository_flags::fresh_clone);
     REQUIRE(r2 == hk::git_error::rev_not_found);
 }
 
@@ -66,7 +66,7 @@ TEST_CASE(git_clone_fail_wrong_rev_oid)
     auto const r = hk::git_clone(git_url, git_rev, tmp_dir.path());
     REQUIRE(r == hk::git_error::ok);
 
-    auto const r2 = hk::git_fetch_and_update(git_url, git_rev, tmp_dir.path(), hk::git_checkout_flags::fresh_clone);
+    auto const r2 = hk::git_fetch_and_update(git_url, git_rev, tmp_dir.path(), hk::repository_flags::fresh_clone);
     REQUIRE(r2 == hk::git_error::rev_not_found);
 }
 
@@ -83,7 +83,7 @@ TEST_CASE(git_fetch_and_update_tag)
     auto const r1 = hk::git_clone(git_url, git_rev, tmp_dir.path());
     REQUIRE(r1 == hk::git_error::ok);
 
-    auto const r2 = hk::git_fetch_and_update(git_url, git_rev, tmp_dir.path(), hk::git_checkout_flags::fresh_clone);
+    auto const r2 = hk::git_fetch_and_update(git_url, git_rev, tmp_dir.path(), hk::repository_flags::fresh_clone);
     REQUIRE(r2 == hk::git_error::ok);
 }
 
@@ -100,7 +100,7 @@ TEST_CASE(git_fetch_and_update_commit)
     auto const r1 = hk::git_clone(git_url, git_rev, tmp_dir.path());
     REQUIRE(r1 == hk::git_error::ok);
 
-    auto const r2 = hk::git_fetch_and_update(git_url, git_rev, tmp_dir.path(), hk::git_checkout_flags::fresh_clone);
+    auto const r2 = hk::git_fetch_and_update(git_url, git_rev, tmp_dir.path(), hk::repository_flags::fresh_clone);
     REQUIRE(r2 == hk::git_error::ok);
 }
 
