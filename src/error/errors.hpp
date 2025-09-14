@@ -22,6 +22,7 @@ E(missing_import_mod_declaration_name, "E0012: Expected fully qualified name aft
 E(missing_import_declaration_semicolon, "E0013: Expected ';' after a import-declaration.");
 E(missing_fqname_identifier_after_dot, "E0014: Expected identifier after '.' in fully qualified name.");
 
+E(could_not_clone_repository, "W0001: Could not clone repository '{}' rev '{}': {}.");
 
 #undef E
 

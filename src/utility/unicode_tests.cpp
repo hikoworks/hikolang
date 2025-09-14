@@ -22,5 +22,4 @@ TEST_CASE(unicode_decode_valid)
     REQUIRE(utf32_str == U"Hello, 世界!");
 }
 
-
 };

@@ -4,9 +4,11 @@
 #include "utility/vector_set.hpp"
 #include "utility/file_cursor.hpp"
 #include "utility/git.hpp"
+#include "error/errors.hpp"
 #include "parser/parse_module.hpp"
 #include <cassert>
 #include <algorithm>
+#include <map>
 
 namespace hk {
 
@@ -71,12 +73,12 @@ void repository::scan_prologues(repository_flags flags)
 
 void repository::recursive_scan_prologues(repository_flags flags)
 {
-    auto todo = std::set<repository_url>{};
-    auto done = std::set<repository_url>{};
+    auto todo = std::map<repository_url, error_location>{};
+    auto done = std::map<repository_url, error_location>{};
 
     scan_prologues(flags);
-    for (auto child_repo_url : remote_repositories()) {
-        todo.insert(std::move(child_repo_url));
+    for (auto item : remote_repositories()) {
+        todo.insert(std::move(item));
     }
 
     auto hkdeps = _path / "_hkdeps";
@@ -88,11 +90,11 @@ void repository::recursive_scan_prologues(repository_flags flags)
         }
 
         assert(it != done.end());
-        auto child_repo_path = hkdeps / it->directory();
-        auto &child_repo = get_child_repository(*it);
+        auto child_repo_path = hkdeps / it->first.directory();
+        auto &child_repo = get_child_repository(it->first);
         if (not child_repo.repository) {
-            if (auto r = git_checkout_or_clone(*it, child_repo_path, flags); r != git_error::ok) {
-
+            if (auto r = git_checkout_or_clone(it->first, child_repo_path, flags); r != git_error::ok) {
+                it->second.add<error::could_not_clone_repository>(it->first.url(), it->first.rev(), r);
             }
 
             child_repo.repository = std::make_unique<repository>(child_repo_path);
@@ -115,11 +117,11 @@ void repository::untouch(bool remove)
     }
 }
 
-[[nodiscard]] generator<repository_url> repository::remote_repositories() const
+[[nodiscard]] generator<std::pair<repository_url, error_location>> repository::remote_repositories() const
 {
     for (auto const& m : _modules) {
-        for (auto u : m.ast->remote_repositories()) {
-            co_yield std::move(u);
+        for (auto repo : m.ast->remote_repositories()) {
+            co_yield std::move(repo);
         }
     }
 }

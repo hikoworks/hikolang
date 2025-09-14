@@ -5,6 +5,7 @@
 #include "module_declaration_node.hpp"
 #include "import_declaration_node.hpp"
 #include "error/error_list.hpp"
+#include "error/error_location.hpp"
 #include "utility/repository_url.hpp"
 #include <memory>
 #include <vector>
@@ -24,7 +25,7 @@ public:
 
     /** List of errors found.
      */
-    error_list errors;
+    mutable error_list errors;
 
     /** The path to the module file.
      */
@@ -49,13 +50,7 @@ public:
     std::vector<import_declaration_node_ptr> imports;
     std::vector<node_ptr> body;
 
-    struct remote_repository_result {
-        repository_url url;
-        file_location first;
-        file_location last;
-        module_node *node;
-    };
-    [[nodiscard]] generator<remote_repository_result> remote_repositories() const;
+    [[nodiscard]] generator<std::pair<repository_url, error_location>> remote_repositories() const;
 
 };
 

@@ -42,6 +42,7 @@ add_library(hk_objects OBJECT
     "${CMAKE_CURRENT_SOURCE_DIR}/src/ast/import_declaration_node.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/ast/import_library_declaration_node.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/ast/import_module_declaration_node.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/ast/import_repository_declaration_node.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/ast/import_repository_declaration_node.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/ast/module_declaration_node.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/ast/module_node.cpp"
@@ -51,6 +52,7 @@ add_library(hk_objects OBJECT
     "${CMAKE_CURRENT_SOURCE_DIR}/src/error/error_code.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/error/error_item.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/error/error_list.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/error/error_location.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/error/errors.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/error/make_error.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/consume.hpp"
@@ -100,6 +102,8 @@ add_library(hk_objects OBJECT
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/fixed_fifo.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/fqname.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/generator.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/git_error.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/git_error.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/git.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/git.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/log.cpp"
@@ -193,19 +197,11 @@ if(BUILD_TESTING)
     endif()
 
     add_custom_command(
-        OUTPUT ${CMAKE_BINARY_DIR}/test_data/.copied
+        TARGET hktests POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
                 ${CMAKE_SOURCE_DIR}/test_data
                 ${CMAKE_BINARY_DIR}/test_data
-        COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/test_data/.copied
-        DEPENDS ${CMAKE_SOURCE_DIR}/test_data  # optional, see note
-        COMMENT "Copying test_data directory"
     )
 
-    add_custom_target(copy_test_data ALL
-        DEPENDS ${CMAKE_BINARY_DIR}/test_data/.copied
-    )
-
-    add_dependencies(hktests copy_test_data)
     add_test(NAME hktests COMMAND hktests)
 endif()

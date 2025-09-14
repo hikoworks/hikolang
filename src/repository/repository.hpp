@@ -29,7 +29,7 @@ public:
      */
     void recursive_scan_prologues(repository_flags flags);
 
-    [[nodiscard]] generator<repository_url> remote_repositories() const;
+    [[nodiscard]] generator<std::pair<repository_url, error_location>> remote_repositories() const;
 
 private:
     struct module_type {
