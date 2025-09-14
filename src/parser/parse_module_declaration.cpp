@@ -21,7 +21,7 @@ namespace hk {
     } else if (node.error()) {
         return std::unexpected{node.error()};
     } else {
-        return e.add<error::missing_module_declaration_name>(first, it->last);
+        return e.add(first, it->last, error::missing_module_declaration_name);
     }
 
     // Optional module specialization.
@@ -32,7 +32,7 @@ namespace hk {
             r->output_filename = it->text;
             ++it;
         } else {
-            return e.add<error::missing_module_application_declaration_exe>(first, it->last);
+            return e.add(first, it->last, error::missing_module_application_declaration_exe);
         }
 
     } else if (*it == "library") {
@@ -42,7 +42,7 @@ namespace hk {
             r->output_filename = it->text;
             ++it;
         } else {
-            return e.add<error::missing_module_library_declaration_bin>(first, it->last);
+            return e.add(first, it->last, error::missing_module_library_declaration_bin);
         }
 
     } else if (*it == "package") {
@@ -52,7 +52,7 @@ namespace hk {
             r->version = it->version_value();
             ++it;
         } else {
-            return e.add<error::missing_module_package_declaration_version>(first, it->last);
+            return e.add(first, it->last, error::missing_module_package_declaration_version);
         }
 
     } else {
@@ -66,7 +66,7 @@ namespace hk {
 
     } else if (*it == "if") {
         ++it;
-        return e.add<error::unimplemented_module_declaration_if>(first, it->last);
+        return e.add(first, it->last, error::unimplemented_module_declaration_if);
     }
 
     if (*it == ';') {
@@ -74,7 +74,7 @@ namespace hk {
         return r;
     }
 
-    return e.add<error::missing_module_declaration_semicolon>(first, it->last);
+    return e.add(first, it->last, error::missing_module_declaration_semicolon);
 }
 
 } // namespace hk

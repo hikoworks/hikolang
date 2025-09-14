@@ -23,7 +23,7 @@ namespace hk {
 
         ++it;
         if (*it != token::identifier) {
-            return e.add<error::missing_fqname_identifier_after_dot>(first, it->last);
+            return e.add(first, it->last, error::missing_fqname_identifier_after_dot);
         }
 
         r += it->text;

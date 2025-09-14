@@ -35,14 +35,14 @@ public:
      *  @param args The arguments to format the error message.
      *  @return A unexpected error containing the error code.
      */
-    template<typename ErrorType, typename... Args>
-    std::unexpected<error_code> add(Args&&... args)
+    template<std::derived_from<error_code_and_message_base> Message, typename... Args>
+    std::unexpected<error_code> add(Message msg, Args&&... args)
     {
         assert(_errors_ptr != nullptr);
 
-        auto e = error_item{_first, _last, ErrorType::code, ErrorType::fmt, std::forward<Args>(args)...};
+        auto e = error_item{_first, _last, msg.code, Message::fmt, std::forward<Args>(args)...};
         _errors_ptr->push_back(std::move(e));
-        return std::unexpected{ErrorType::code};
+        return std::unexpected{msg.code};
     }
 
 private:

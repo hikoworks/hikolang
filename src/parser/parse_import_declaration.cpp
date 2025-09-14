@@ -23,7 +23,7 @@ namespace hk {
             url = it->text;
             ++it;
         } else {
-            return e.add<error::missing_import_git_declaration_url>(first, it->last);
+            return e.add(first, it->last, error::missing_import_git_declaration_url);
         }
 
         auto rev = std::string{};
@@ -31,7 +31,7 @@ namespace hk {
             rev = it->text;
             ++it;
         } else {
-            return e.add<error::missing_import_git_declaration_branch>(first, it->last);
+            return e.add(first, it->last, error::missing_import_git_declaration_branch);
         }
 
         auto repository = repository_url{repository_type::git, std::move(url), std::move(rev)};
@@ -45,7 +45,7 @@ namespace hk {
             url = it->text;
             ++it;
         } else {
-            return e.add<error::missing_import_zip_declaration_path>(first, it->last);
+            return e.add(first, it->last, error::missing_import_zip_declaration_path);
         }
 
         auto repository = repository_url{repository_type::zip, it->text};
@@ -59,7 +59,7 @@ namespace hk {
             path = it->text;
             ++it;
         } else {
-            return e.add<error::missing_import_lib_declaration_path>(first, it->last);
+            return e.add(first, it->last, error::missing_import_lib_declaration_path);
         }
 
         r = std::make_unique<ast::import_library_declaration_node>(first, it->last, path);
@@ -75,7 +75,7 @@ namespace hk {
                 as = std::move(as).value();
 
             } else {
-                return e.add<error::missing_import_mod_declaration_as_name>(first, it->last);
+                return e.add(first, it->last, error::missing_import_mod_declaration_as_name);
             }
         }
 
@@ -85,7 +85,7 @@ namespace hk {
         return std::unexpected{name.error()};
 
     } else {
-        return e.add<error::missing_import_mod_declaration_name>(first, it->last);
+        return e.add(first, it->last, error::missing_import_mod_declaration_name);
     }
 
     if (*it == ';') {
@@ -93,7 +93,7 @@ namespace hk {
         return r;
     }
 
-    return e.add<error::missing_import_declaration_semicolon>(first, it->last);
+    return e.add(first, it->last, error::missing_import_declaration_semicolon);
 }
 
 } // namespace hk

@@ -27,7 +27,7 @@ public:
      * 
      * @param force Force scanning even on files that were already parsed.
      */
-    void recursive_scan_prologues(repository_flags flags);
+    error_code recursive_scan_prologues(repository_flags flags);
 
     [[nodiscard]] generator<std::pair<repository_url, error_location>> remote_repositories() const;
 

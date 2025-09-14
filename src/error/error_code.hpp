@@ -9,6 +9,7 @@
 #include <set>
 #include <cassert>
 #include <format>
+#include <print>
 
 namespace hk {
 
@@ -59,6 +60,37 @@ struct error_code {
     {
         return has_value();
     }
+
+    [[nodiscard]] friend std::string to_string(error_code rhs)
+    {
+        return std::format("{}{:04}", rhs.kind, rhs.code);
+    }
 };
+
+
+struct error_code_and_message_base {
+    error_code code = {};
+
+    error_code_and_message_base(error_code code) : code(code)
+    {
+        auto [it, inserted] = all_error_codes.insert(code);
+        if (not inserted) {
+            std::println(stderr, "Error: found collision in error-list: {}", to_string(code));
+            std::terminate();
+        }
+    }
+
+    inline static std::set<error_code> all_error_codes = {};
+};
+
+template<fixed_string Fmt>
+struct error_code_and_message : public error_code_and_message_base {
+    constexpr static decltype(Fmt) fmt = Fmt;
+
+    error_code_and_message() : error_code_and_message_base(error_code{fmt})
+    {
+    }
+};
+
 
 }

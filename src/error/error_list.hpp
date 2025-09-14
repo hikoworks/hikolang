@@ -7,6 +7,7 @@
 #include "utility/fixed_string.hpp"
 #include <vector>
 #include <format>
+#include <concepts>
 
 namespace hk {
 
@@ -22,12 +23,12 @@ public:
      *  @param args The arguments to format the error message.
      *  @return A unexpected error containing the error code.
      */
-    template<typename ErrorType, typename... Args>
-    std::unexpected<error_code> add(file_location first, file_location last, Args&&... args)
+    template<std::derived_from<error_code_and_message_base> Message, typename... Args>
+    std::unexpected<error_code> add(file_location first, file_location last, Message msg, Args&&... args)
     {
-        auto e = error_item{first, last, ErrorType::code, ErrorType::fmt, std::forward<Args>(args)...};
+        auto e = error_item{first, last, msg.code, Message::fmt, std::forward<Args>(args)...};
         this->push_back(std::move(e));
-        return std::unexpected{ErrorType::code};
+        return std::unexpected{msg.code};
     }
 
     /** Add an error to the list. 
@@ -36,12 +37,12 @@ public:
      *  @param args The arguments to format the error message.
      *  @return A unexpected error containing the error code.
      */
-    template<typename ErrorType, typename... Args>
-    std::unexpected<error_code> add(Args&&... args)
+    template<std::derived_from<error_code_and_message_base> Message, typename... Args>
+    std::unexpected<error_code> add(Message msg, Args&&... args)
     {
-        auto e = error_item{ErrorType::code, ErrorType::fmt, std::forward<Args>(args)...};
+        auto e = error_item{msg.code, Message::fmt, std::forward<Args>(args)...};
         this->push_back(std::move(e));
-        return std::unexpected{ErrorType::code};
+        return std::unexpected{msg.code};
     }
 
 private:

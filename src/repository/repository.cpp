@@ -71,7 +71,7 @@ void repository::scan_prologues(repository_flags flags)
     untouch(true);
 }
 
-void repository::recursive_scan_prologues(repository_flags flags)
+error_code repository::recursive_scan_prologues(repository_flags flags)
 {
     auto todo = std::map<repository_url, error_location>{};
     auto done = std::map<repository_url, error_location>{};
@@ -94,14 +94,20 @@ void repository::recursive_scan_prologues(repository_flags flags)
         auto &child_repo = get_child_repository(it->first);
         if (not child_repo.repository) {
             if (auto r = git_checkout_or_clone(it->first, child_repo_path, flags); r != git_error::ok) {
-                it->second.add<error::could_not_clone_repository>(it->first.url(), it->first.rev(), r);
+                return xxxxxxxxxxxxxxx needs destination directory in message it->second.add(error::could_not_clone_repository, it->first.url(), it->first.rev(), r).error();
             }
 
             child_repo.repository = std::make_unique<repository>(child_repo_path);
+            child_repo.repository->scan_prologues(flags);
+            for (auto item : child_repo.repository->remote_repositories()) {
+                todo.insert(std::move(item));
+            }
         }
     }
 
     // Remove internal repositories not in done.
+
+    return error_code{};
 }
 
 void repository::untouch(bool remove)

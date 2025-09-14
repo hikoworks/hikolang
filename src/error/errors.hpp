@@ -1,12 +1,11 @@
 
 #pragma once
 
-#include "make_error.hpp"
+#include "error_code.hpp"
+
+#define E(name, fmt) inline error_code_and_message<fmt> name = {};
 
 namespace hk::error {
-
-#define E(name, fmt) struct name : public make_error<fmt> {}
-
 E(missing_module_declaration_name, "E0001: Module declaration requires fqname.");
 E(missing_module_application_declaration_exe, "E0002: Module application declaration requires an executable name.");
 E(missing_module_library_declaration_bin, "E0003: Module library declaration requires a binary name.");
@@ -21,9 +20,10 @@ E(missing_import_mod_declaration_as_name, "E0011: Expected a name after 'as' key
 E(missing_import_mod_declaration_name, "E0012: Expected fully qualified name after 'import' keyword in a import-declaration.");
 E(missing_import_declaration_semicolon, "E0013: Expected ';' after a import-declaration.");
 E(missing_fqname_identifier_after_dot, "E0014: Expected identifier after '.' in fully qualified name.");
+E(could_not_clone_repository, "E0015: Could not clone repository '{}' rev '{}': {}.");
+}
 
-E(could_not_clone_repository, "W0001: Could not clone repository '{}' rev '{}': {}.");
+namespace hk::warning {
+}
 
 #undef E
-
-}
