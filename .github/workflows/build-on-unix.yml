@@ -23,7 +23,7 @@ jobs:
   build-and-test:
     strategy:
       matrix:
-        os: [{tripple: x64-linux, on: ubuntu-24.04}, {tripple: arm64-macos, on: macos-26}]
+        os: [{tripple: x64-linux, on: ubuntu-24.04}, {tripple: arm64-osx, on: macos-26}]
 
     name: ${{matrix.os.tripple}}
     runs-on: ${{matrix.os.on}}
