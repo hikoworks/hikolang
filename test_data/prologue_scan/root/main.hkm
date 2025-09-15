@@ -1,5 +1,0 @@
-
-module nl.hikolang.prologue_scan.main application "psmain"
-
-import git "https://github.com/hikogui/hikolang-tests-a.git" "main"
-

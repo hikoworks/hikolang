@@ -20,7 +20,7 @@ E(missing_import_mod_declaration_as_name, "E0011: Expected a name after 'as' key
 E(missing_import_mod_declaration_name, "E0012: Expected fully qualified name after 'import' keyword in a import-declaration.");
 E(missing_import_declaration_semicolon, "E0013: Expected ';' after a import-declaration.");
 E(missing_fqname_identifier_after_dot, "E0014: Expected identifier after '.' in fully qualified name.");
-E(could_not_clone_repository, "E0015: Could not clone repository '{}' rev '{}': {}.");
+E(could_not_clone_repository, "E0015: Could not clone repository '{}' rev '{}' into '{}': {}.");
 }
 
 namespace hk::warning {

@@ -81,7 +81,14 @@ error_code repository::recursive_scan_prologues(repository_flags flags)
         todo.insert(std::move(item));
     }
 
-    auto hkdeps = _path / "_hkdeps";
+    auto hkdeps_path = _path / "_hkdeps";
+
+    auto ec = std::error_code{};
+    if (not std::filesystem::create_directory(hkdeps_path, ec) and ec) {
+        std::println(stderr, "Error: could not create directory '{}': {}.", hkdeps_path.string(), ec.message());
+        std::terminate();
+    }
+
     while (not todo.empty()) {
         auto child_repo_url_node = todo.extract(todo.begin());
         auto [it, inserted, _] = done.insert(std::move(child_repo_url_node));
@@ -90,11 +97,12 @@ error_code repository::recursive_scan_prologues(repository_flags flags)
         }
 
         assert(it != done.end());
-        auto child_repo_path = hkdeps / it->first.directory();
+        auto child_repo_path = hkdeps_path / it->first.directory();
         auto &child_repo = get_child_repository(it->first);
         if (not child_repo.repository) {
             if (auto r = git_checkout_or_clone(it->first, child_repo_path, flags); r != git_error::ok) {
-                return xxxxxxxxxxxxxxx needs destination directory in message it->second.add(error::could_not_clone_repository, it->first.url(), it->first.rev(), r).error();
+                auto short_hkdeps = std::format("_hkdeps/{}", it->first.directory());
+                return it->second.add(error::could_not_clone_repository, it->first.url(), it->first.rev(), short_hkdeps, r).error();
             }
 
             child_repo.repository = std::make_unique<repository>(child_repo_path);
@@ -105,9 +113,12 @@ error_code repository::recursive_scan_prologues(repository_flags flags)
         }
     }
 
-    // Remove internal repositories not in done.
+    // Remove internal repositories not in 'done'.
+    std::erase_if(_child_repositories, [&](auto const& item) {
+        return not done.contains(item.url);
+    });
 
-    return error_code{};
+    return hk::error_code{};
 }
 
 void repository::untouch(bool remove)

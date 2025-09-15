@@ -2,6 +2,7 @@
 #include "utility/unit_test.hpp"
 #include <hikotest/hikotest.hpp>
 #include <ranges>
+#include <filesystem>
 
 TEST_SUITE(repository_suite) 
 {
@@ -9,7 +10,7 @@ TEST_SUITE(repository_suite)
 TEST_CASE(single_repository_scan) 
 {
     auto test_data_path = hk::test_data_path();
-    auto repository_path = std::filesystem::canonical(test_data_path / "prologue_scan" / "root");
+    auto repository_path = std::filesystem::canonical(test_data_path / "single_repository_scan");
     auto repository = hk::repository{repository_path};
     repository.scan_prologues(hk::repository_flags{});
 
@@ -19,5 +20,16 @@ TEST_CASE(single_repository_scan)
     REQUIRE(urls[0].first.rev() == "main");
 }
 
+TEST_CASE(recursive_repository_scan) 
+{
+    auto test_data_path = hk::test_data_path();
+    auto repository_path = std::filesystem::canonical(test_data_path / "recursive_repository_scan");
+    auto repository = hk::repository{repository_path};
+
+    std::filesystem::remove_all(repository_path / "_hkdeps");
+    auto error = repository.recursive_scan_prologues(hk::repository_flags{});
+    REQUIRE(error.kind == '\0');
+    REQUIRE(error.code == 0);
+}
 
 };
