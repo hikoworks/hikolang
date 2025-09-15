@@ -15,6 +15,7 @@
 #include <filesystem>
 #include <fstream>
 #include <cctype>
+#include <cstring>
 #include <gsl/gsl>
 
 #if defined(_WIN32)
