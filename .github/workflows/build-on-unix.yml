@@ -33,10 +33,6 @@ jobs:
       VCPKG_BINARY_SOURCES: clear;file,${{github.workspace}}/vcpkg/binary-sources,readwrite
       VCPKG_FEATURE_FLAGS: binarycaching
 
-    defaults:
-      run:
-        shell: cmd
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
