@@ -6,7 +6,7 @@ include(FetchContent)
 
 # disable adding CTest build targets like "NightlyStart" (before ctest include)
 set_property(GLOBAL PROPERTY CTEST_TARGETS_ADDED 1)
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/cmake/CTestCustom.cmake.in" "CTestCustom.cmake" @ONLY)
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/CMake/CTestCustom.cmake.in" "CTestCustom.cmake" @ONLY)
 include(CTest)
 
 # Set the C++ standard to C++23
@@ -35,7 +35,7 @@ endif()
 
 find_package(ICU REQUIRED COMPONENTS i18n uc data)
 find_package(Microsoft.GSL CONFIG REQUIRED)
-find_package(LibGit2 CONFIG REQUIRED)
+find_package(libgit2 CONFIG REQUIRED)
 find_package(OpenSSL REQUIRED)
 
 add_library(hk_objects OBJECT

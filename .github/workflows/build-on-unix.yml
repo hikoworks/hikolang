@@ -60,7 +60,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: vcpkg/binary-sources/**/*.zip
-          key: vcpkg-cache-${{hashFiles('vcpkg.json', 'vcpkg/commit.txt')}}
+          key: vcpkg-cache-linux-${{hashFiles('vcpkg.json', 'vcpkg/commit.txt')}}
 
       - name: CMake - Configure
         run: cmake --preset=x64-linux .
