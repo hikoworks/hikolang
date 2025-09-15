@@ -39,16 +39,15 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Add clang-20 ubuntu repository
+      - name: Install development environment
         run: |
           wget https://apt.llvm.org/llvm.sh
           chmod 755 llvm.sh
           echo "" | sudo ./llvm.sh 20
-
-      - name: Install development environment
-        run: |
           sudo apt-get update
           sudo apt-get install -y perl autoconf-archive ninja-build cmake pkg-config clang-20 lldb-20 lld-20 clangd-20
+          sudo ln -f /usr/bin/clang-20 /usr/bin/clang
+          sudo ln -f /usr/bin/clang++-20 /usr/bin/clang++
 
       - name: Create vcpkg cache dir
         run: mkdir ${{env.VCPKG_DEFAULT_BINARY_CACHE}}
