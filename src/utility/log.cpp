@@ -3,6 +3,11 @@
 #if defined(_WIN32)
 #include <Windows.h>
 #endif
+#include <gsl/gsl>
+#include <cmath>
+#include <print>
+#include <cstdio>
+#include <string>
 
 namespace hk {
 
