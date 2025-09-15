@@ -58,7 +58,7 @@ jobs:
           key: vcpkg-cache-${{hashFiles('vcpkg.json', 'vcpkg/commit.txt')}}
 
       - name: CMake - Configure
-        run: cmake --preset=x64-windows .
+        run: cmake --preset=x64-linux .
 
       - name: Save vcpkg binary-cache
         uses: actions/cache/save@v4
@@ -69,10 +69,10 @@ jobs:
           key: ${{steps.restore-vcpkg-cache.outputs.cache-primary-key}}
 
       - name: CMake - Build (Debug)
-        run: cmake --build --preset=x64-windows-dbg --parallel 1 .
+        run: cmake --build --preset=x64-linux-dbg --parallel 1 .
 
       - name: CMake - Build (Release)
-        run: cmake --build --preset=x64-windows-rel --parallel 1 .
+        run: cmake --build --preset=x64-linux-rel --parallel 1 .
 
       - name: Run tests (Debug)
         working-directory: ${{env.DEBUG_BUILD_DIR}}
