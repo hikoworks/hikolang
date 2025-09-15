@@ -16,7 +16,7 @@ TEST_CASE(single_repository_scan)
 
     auto urls = std::ranges::to<std::vector>(repository.remote_repositories());
     REQUIRE(urls.size() == 1);
-    REQUIRE(urls[0].first.url() == "https://github.com/hikogui/hikolang-tests-a.git");
+    REQUIRE(urls[0].first.url() == "https://github.com/hikogui/hikolang-test-a.git");
     REQUIRE(urls[0].first.rev() == "main");
 }
 
