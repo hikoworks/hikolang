@@ -27,12 +27,12 @@ jobs:
     runs-on: windows-2022
 
     env:
-      DEBUG_BUILD_DIR: ${{github.workspace}}/out/build/x64-windows/Debug
-      RELEASE_BUILD_DIR: ${{github.workspace}}/out/build/x64-windows/Release
-      INSTALL_DIR: ${{github.workspace}}/out/install
-      VCPKG_ROOT: ${{github.workspace}}/vcpkg
-      VCPKG_DEFAULT_BINARY_CACHE: ${{github.workspace}}/vcpkg/binary-sources
-      VCPKG_BINARY_SOURCES: clear;file,${{github.workspace}}/vcpkg/binary-sources,readwrite
+      DEBUG_BUILD_DIR: ${{github.workspace}}\out\build\x64-windows\Debug
+      RELEASE_BUILD_DIR: ${{github.workspace}}\out\build\x64-windows\Release
+      INSTALL_DIR: ${{github.workspace}}\out\install
+      VCPKG_ROOT: ${{github.workspace}}\vcpkg
+      VCPKG_DEFAULT_BINARY_CACHE: ${{github.workspace}}\vcpkg\binary-sources
+      VCPKG_BINARY_SOURCES: clear;file,${{github.workspace}}\vcpkg\binary-sources,readwrite
       VCPKG_FEATURE_FLAGS: binarycaching
 
     defaults:
@@ -63,8 +63,8 @@ jobs:
         id: restore-vcpkg-cache
         uses: actions/cache/restore@v4
         with:
-          path: vcpkg/binary-sources/**/*.zip
-          key: vcpkg-cache-${{hashFiles('vcpkg.json', 'vcpkg/commit.txt')}}
+          path: vcpkg\binary-sources\**\*.zip
+          key: vcpkg-cache-${{hashFiles('vcpkg.json', 'vcpkg\commit.txt')}}
 
       - name: CMake - Configure
         run: cmake --preset=x64-windows .
@@ -74,7 +74,7 @@ jobs:
         id: save-vcpkg-cache
         if: always() && steps.restore-vcpkg-cache.outputs.cache-hit != 'true'
         with:
-          path: vcpkg/binary-sources/**/*.zip
+          path: vcpkg\binary-sources\**\*.zip
           key: ${{steps.restore-vcpkg-cache.outputs.cache-primary-key}}
 
       - name: CMake - Build (Debug)
@@ -96,15 +96,15 @@ jobs:
         if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
         with:
           files: |
-            ${{env.DEBUG_BUILD_DIR}}/hktests-dbg.xml
-            ${{env.RELEASE_BUILD_DIR}}/hktests-rel.xml
+            ${{env.DEBUG_BUILD_DIR}}\hktests-dbg.xml
+            ${{env.RELEASE_BUILD_DIR}}\hktests-rel.xml
 
       - name: Publish Test Results to Codecov
         if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: codecov/test-results-action@v1
         with:
           token: ${{secrets.CODECOV_TOKEN}}
-          files: ${{env.DEBUG_BUILD_DIR}}/hktests-dbg.xml
+          files: ${{env.DEBUG_BUILD_DIR}}\hktests-dbg.xml
 
       - name: Generate CodeCoverage Report
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
