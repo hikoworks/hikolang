@@ -39,6 +39,11 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Install development environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y perl autoconf-archive ninja-build cmake pkg-config
+
       - name: Create vcpkg cache dir
         run: mkdir ${{env.VCPKG_DEFAULT_BINARY_CACHE}}
 
