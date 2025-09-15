@@ -49,7 +49,9 @@
       "name": "x64-linux",
       "inherits": "defaults",
       "cacheVariables": {
-        "VCPKG_TARGET_TRIPLET": "x64-linux"
+        "VCPKG_TARGET_TRIPLET": "x64-linux",
+	      "CMAKE_CXX_COMPILER": "clang++-20",
+	      "CMAKE_C_COMPILER": "clang-20"
       },
       "condition": {
         "type": "equals",
