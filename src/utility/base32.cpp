@@ -1,6 +1,7 @@
 
 #include "base32.hpp"
 #include <cassert>
+#include <cstdint>
 
 namespace hk {
 
