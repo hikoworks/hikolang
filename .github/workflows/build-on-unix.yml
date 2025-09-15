@@ -54,11 +54,11 @@ jobs:
           sudo ln -f /usr/bin/clang-20 /usr/bin/clang
           sudo ln -f /usr/bin/clang++-20 /usr/bin/clang++
 
-      - name: Install development environment (MacOS)
-        if: matrix.os.on == 'macos-26'
-        run: |
-          sudo ln -f $(brew --prefix llvm@20)/bin/clang /usr/bin/clang
-          sudo ln -f $(brew --prefix llvm@20)/bin/clang++ /usr/bin/clang++
+      #- name: Install development environment (MacOS)
+      #  if: matrix.os.on == 'macos-26'
+      #  run: |
+      #    sudo ln -f $(brew --prefix llvm@20)/bin/clang /usr/bin/clang
+      #    sudo ln -f $(brew --prefix llvm@20)/bin/clang++ /usr/bin/clang++
 
       - name: Create vcpkg cache dir
         run: mkdir ${{env.VCPKG_DEFAULT_BINARY_CACHE}}
