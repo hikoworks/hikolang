@@ -3,7 +3,7 @@
 #include "utility/file_buffer.hpp"
 #include "utility/file_cursor.hpp"
 #include "utility/lazy_vector.hpp"
-#include "utility/unit_test.hpp"
+#include "test_utilities/paths.hpp"
 #include <hikotest/hikotest.hpp>
 
 TEST_SUITE(tokenizer_suite) {
@@ -78,7 +78,7 @@ TEST_CASE(integer_0X2A)
 
 TEST_CASE(short_file_file)
 {
-    auto test_data_path = hk::test_data_path();
+    auto test_data_path = test::test_data_path();
     auto path = test_data_path / "simple.hkm";
     auto cursor = hk::file_cursor{path};
 

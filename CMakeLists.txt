@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.25)
 project(hikolang LANGUAGES C CXX)
+configure_file("src/test_utilities/paths.cpp.in" "src/test_utilities/paths.cpp" @ONLY)
+
 include(FetchContent)
 
 # disable adding CTest build targets like "NightlyStart" (before ctest include)
@@ -172,10 +174,10 @@ if(BUILD_TESTING)
         "${CMAKE_CURRENT_SOURCE_DIR}/src/repository/repository_tests.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer/tokenizer_tests.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/git_tests.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/unit_test.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/unit_test.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/strings_tests.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/unicode_tests.cpp"
+        "${CMAKE_CURRENT_BINARY_DIR}/src/test_utilities/paths.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/test_utilities/paths.hpp"
     )
     #target_compile_definitions(hktests PRIVATE ${LLVM_DEFINITIONS})
     #target_link_libraries(hktests PRIVATE ${llvm_libs})
@@ -198,13 +200,6 @@ if(BUILD_TESTING)
         target_compile_options(hktests PRIVATE -fsanitize=address)
         target_link_options(hktests PRIVATE -fsanitize=address)
     endif()
-
-    add_custom_command(
-        TARGET hktests POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-                ${CMAKE_SOURCE_DIR}/test_data
-                ${CMAKE_BINARY_DIR}/test_data
-    )
 
     add_test(NAME hktests COMMAND hktests)
 endif()

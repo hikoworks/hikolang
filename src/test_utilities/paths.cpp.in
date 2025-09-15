@@ -1,0 +1,17 @@
+
+#include "test_utilities/paths.hpp"
+
+namespace test {
+
+[[nodiscard]] std::filesystem::path source_path()
+{
+    auto source_path_ = std::filesystem::path("@CMAKE_CURRENT_SOURCE_DIR@");
+    return std::filesystem::canonical(source_path_);
+}
+
+[[nodiscard]] std::filesystem::path test_data_path()
+{
+    return source_path() / "test_data";
+}
+
+}

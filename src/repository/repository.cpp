@@ -12,16 +12,15 @@
 
 namespace hk {
 
-repository::repository(std::filesystem::path path) : _path(std::move(path))
+repository::repository(std::filesystem::path path, repository_url remote) : remote(remote), path(std::move(path))
 {
-    assert(std::filesystem::canonical(_path) == _path);
 }
 
 void repository::scan_prologues(repository_flags flags)
 {
     untouch(false);
 
-    auto first = std::filesystem::recursive_directory_iterator{_path};
+    auto first = std::filesystem::recursive_directory_iterator{path};
     auto last = std::filesystem::recursive_directory_iterator{};
 
     auto visited = vector_set<std::filesystem::path>{};
@@ -71,17 +70,16 @@ void repository::scan_prologues(repository_flags flags)
     untouch(true);
 }
 
-error_code repository::recursive_scan_prologues(repository_flags flags)
+void repository::recursive_scan_prologues(repository_flags flags)
 {
-    auto todo = std::map<repository_url, error_location>{};
-    auto done = std::map<repository_url, error_location>{};
+    auto todo = std::vector<std::pair<repository_url, error_location>>{};
 
     scan_prologues(flags);
     for (auto item : remote_repositories()) {
-        todo.insert(std::move(item));
+        todo.push_back(std::move(item));
     }
 
-    auto hkdeps_path = _path / "_hkdeps";
+    auto hkdeps_path = path / "_hkdeps";
 
     auto ec = std::error_code{};
     if (not std::filesystem::create_directory(hkdeps_path, ec) and ec) {
@@ -89,36 +87,40 @@ error_code repository::recursive_scan_prologues(repository_flags flags)
         std::terminate();
     }
 
+    // The mark will be used to see if a child repository was already processed.
+    for (auto &repo : child_repositories()) {
+        repo->mark = false;
+    }
+
     while (not todo.empty()) {
-        auto child_repo_url_node = todo.extract(todo.begin());
-        auto [it, inserted, _] = done.insert(std::move(child_repo_url_node));
-        if (not inserted) {
+        auto [child_remote, import_errors] = std::move(todo.back());
+        todo.pop_back();
+
+        auto child_local_path = hkdeps_path / child_remote.directory();
+        auto &child_repo = get_child_repository(child_remote, child_local_path);
+        if (child_repo.mark) {
             continue;
         }
 
-        assert(it != done.end());
-        auto child_repo_path = hkdeps_path / it->first.directory();
-        auto &child_repo = get_child_repository(it->first);
-        if (not child_repo.repository) {
-            if (auto r = git_checkout_or_clone(it->first, child_repo_path, flags); r != git_error::ok) {
-                auto short_hkdeps = std::format("_hkdeps/{}", it->first.directory());
-                return it->second.add(error::could_not_clone_repository, it->first.url(), it->first.rev(), short_hkdeps, r).error();
-            }
+        child_repo.mark = true;
+        if (auto r = git_checkout_or_clone(child_remote, child_local_path, flags); r != git_error::ok) {
+            auto short_hkdeps = std::format("_hkdeps/{}", child_remote.directory());
+            // TODO #1 All failing import statements of a single repository should be marked with an error.
+            import_errors.add(error::could_not_clone_repository, child_remote.url(), child_remote.rev(), short_hkdeps, r);
+            erase_child_repository(child_remote);
+            continue;
+        }
 
-            child_repo.repository = std::make_unique<repository>(child_repo_path);
-            child_repo.repository->scan_prologues(flags);
-            for (auto item : child_repo.repository->remote_repositories()) {
-                todo.insert(std::move(item));
-            }
+        child_repo.scan_prologues(flags);
+        for (auto item : child_repo.remote_repositories()) {
+            todo.push_back(std::move(item));
         }
     }
 
     // Remove internal repositories not in 'done'.
     std::erase_if(_child_repositories, [&](auto const& item) {
-        return not done.contains(item.url);
+        return not item->mark;
     });
-
-    return hk::error_code{};
 }
 
 void repository::untouch(bool remove)
@@ -145,7 +147,7 @@ void repository::untouch(bool remove)
 
 [[nodiscard]] repository::module_type& repository::get_module(std::filesystem::path const& module_path)
 {
-    assert(is_subpath(module_path, _path));
+    assert(is_subpath(module_path, path));
 
     auto it = std::lower_bound(_modules.begin(), _modules.end(), module_path, [](auto const& item, auto const& key) {
         return item.path < key;
@@ -156,16 +158,28 @@ void repository::untouch(bool remove)
     return *it;
 }
 
-[[nodiscard]] repository::child_repository_type& repository::get_child_repository(repository_url const& url)
+[[nodiscard]] repository& repository::get_child_repository(repository_url const& remote, std::filesystem::path child_path)
 {
     auto it =
-        std::lower_bound(_child_repositories.begin(), _child_repositories.end(), url, [](auto const& item, auto const& key) {
-            return item.url < key;
+        std::lower_bound(_child_repositories.begin(), _child_repositories.end(), remote, [](auto const& item, auto const& key) {
+            return item->remote < key;
         });
-    if (it == _child_repositories.end() or it->url != url) {
-        it = _child_repositories.insert(it, child_repository_type{url});
+    if (it == _child_repositories.end() or (*it)->remote != remote) {
+        it = _child_repositories.insert(it, std::make_unique<repository>(child_path, remote));
     }
-    return *it;
+    return **it;
+}
+
+void repository::erase_child_repository(repository_url const& remote)
+{
+    auto it =
+        std::lower_bound(_child_repositories.begin(), _child_repositories.end(), remote, [](auto const& item, auto const& key) {
+            return item->remote < key;
+        });
+
+    if (it != _child_repositories.end() and (*it)->remote == remote) {
+        _child_repositories.erase(it);
+    }
 }
 
 repository::module_type::module_type(std::filesystem::path path) : path(std::move(path))

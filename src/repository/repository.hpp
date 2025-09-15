@@ -15,7 +15,24 @@ namespace hk {
 
 class repository {
 public:
-    repository(std::filesystem::path path);
+    /** The remote url to the repository.
+     */
+    repository_url remote = {};
+
+    /** The path to the repository.
+     */
+    std::filesystem::path path = {};
+
+    /** A flag for algorithms to check if a repository was visited.
+     */
+    bool mark = false;
+
+    /** Construct a repository.
+     * 
+     * @param path The disk location of the repository.
+     * @param remote The remote location of the repository.
+     */
+    repository(std::filesystem::path path, repository_url remote = repository_url{});
 
     /** Scan the prologue of each *.hkm in the repository.
      * 
@@ -27,9 +44,14 @@ public:
      * 
      * @param force Force scanning even on files that were already parsed.
      */
-    error_code recursive_scan_prologues(repository_flags flags);
+    void recursive_scan_prologues(repository_flags flags);
 
     [[nodiscard]] generator<std::pair<repository_url, error_location>> remote_repositories() const;
+
+    [[nodiscard]] std::vector<std::unique_ptr<repository>> const& child_repositories() const noexcept
+    {
+        return _child_repositories;
+    }
 
 private:
     struct module_type {
@@ -49,22 +71,17 @@ private:
         module_type(std::filesystem::path path);
     };
 
-    struct child_repository_type {
-        repository_url url;
-        std::unique_ptr<repository> repository;
-    };
-
-    /** The path to the repository.
-     */
-    std::filesystem::path _path;
-
-    /** modules, sorted by path.
+    /** modules.
+     * 
+     * @note sorted by path.
      */
     std::vector<module_type> _modules;
 
     /** The root repository also has a list of child repositories.
+     * 
+     * @note sorted by url.
      */
-    std::vector<child_repository_type> _child_repositories;
+    std::vector<std::unique_ptr<repository>> _child_repositories;
 
     /** Unset the touch flag on all modules.
      * 
@@ -80,13 +97,19 @@ private:
      */
     [[nodiscard]] module_type &get_module(std::filesystem::path const& path);
 
-    /** Get or make a child repository based on the repository_url.
+    /** Get or make a child repository based on the remote.
      * 
-     * @note It is UNDEFINED BEHAVIOR if @a path is not canonical or is not
-     *       inside the repository.
-     * @param path The path the module.
+     * @param remote URL of the remote repository.
+     * @param child_path The local path to the repository.
+     * @return A reference to the repository object.
      */
-    [[nodiscard]] child_repository_type &get_child_repository(repository_url const& url);
+    [[nodiscard]] repository& get_child_repository(repository_url const& remote, std::filesystem::path child_path);
+
+    /** Remove the child repository based on the remote.
+     * 
+     * @param remote URL of the remote repository.
+     */
+    void erase_child_repository(repository_url const& remote);
 
 };
 

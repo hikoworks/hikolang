@@ -3,7 +3,7 @@
 
 #pragma once
 
-namespace hk {
+namespace test {
 
 [[nodiscard]] std::filesystem::path test_data_path();
 

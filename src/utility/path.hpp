@@ -50,6 +50,16 @@ public:
         return _path;
     }
 
+    [[nodiscard]] std::filesystem::path const& operator*() const noexcept
+    {
+        return path();
+    }
+
+    operator std::filesystem::path const&() const noexcept
+    {
+        return path();
+    }
+
 private:
     inline static std::mutex _mutex;
     std::filesystem::path _path;
