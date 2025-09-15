@@ -5,6 +5,7 @@
 #include <format>
 #include <mutex>
 #include <map>
+#include <atomic>
 
 namespace hk {
 
