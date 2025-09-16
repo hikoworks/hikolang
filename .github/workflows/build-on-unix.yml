@@ -56,7 +56,9 @@ jobs:
 
       - name: Install development environment (MacOS)
         if: matrix.os.on == 'macos-26'
-        run: brew install autoconf autoconf-archive
+        run: |
+          brew update
+          brew install automake autoconf autoconf-archive
 
       - name: Create vcpkg cache dir
         run: mkdir ${{env.VCPKG_DEFAULT_BINARY_CACHE}}
