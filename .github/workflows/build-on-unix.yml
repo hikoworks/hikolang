@@ -59,7 +59,7 @@ jobs:
         run: |
           brew update
           brew install automake autoconf autoconf-archive
-          sudo dtruss cmake -GNinja . | grep -i ninja
+          sudo dtruss cmake -GNinja . 2>&1 | grep -i ninja
 
       - name: Create vcpkg cache dir
         run: mkdir ${{env.VCPKG_DEFAULT_BINARY_CACHE}}
