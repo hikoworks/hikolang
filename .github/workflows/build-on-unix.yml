@@ -17,7 +17,7 @@ on:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build-and-test:
@@ -74,10 +74,17 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: vcpkg/binary-sources/**/*.zip
-          key: vcpkg-cache-${{matrix.os.tripple}}-${{hashFiles('vcpkg.json', 'vcpkg/commit.txt')}}
+          key: vcpkg-cache-${{matrix.os.tripple}}-${{hashFiles('vcpkg.json', 'vcpkg/commit.txt')}}-1
+
+      # MacOS installation has a bug where it doesn't set CMAKE_MAKE_PROGRAM
+      # even though CMake does find ninja during startup.
+      - name: CMake - Configure (MacOS)
+        if: matrix.os.on == 'macos-26'
+        run: cmake -D "CMAKE_MAKE_PROGRAM=/opt/homebrew/bin/ninja" --preset=${{matrix.os.tripple}} .
 
       - name: CMake - Configure
-        run: cmake -D "CMAKE_MAKE_PROGRAM=/opt/homebrew/bin/ninja" --preset=${{matrix.os.tripple}} .
+        if: matrix.os.on != 'macos-26'
+        run: cmake --preset=${{matrix.os.tripple}} .
 
       - name: Save vcpkg binary-cache
         uses: actions/cache/save@v4

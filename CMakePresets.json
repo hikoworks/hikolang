@@ -62,8 +62,7 @@
       "inherits": "defaults",
       "cacheVariables": {
         "CMAKE_OSX_ARCHITECTURES": "arm64",
-        "VCPKG_TARGET_TRIPLET": "arm64-osx",
-        "FOOCMAKE_MAKE_PROGRAM": "/opt/homebrew/bin/ninja"
+        "VCPKG_TARGET_TRIPLET": "arm64-osx"
       },
       "condition": {
         "type": "equals",
