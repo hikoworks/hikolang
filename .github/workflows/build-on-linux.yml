@@ -1,5 +1,5 @@
 
-name: "Build on UNIX"
+name: "Linux"
 on:
   push:
     branches:
@@ -14,16 +14,12 @@ concurrency:
 
 jobs:
   build-and-test:
-    strategy:
-      matrix:
-        os: [{tripple: x64-linux, on: ubuntu-24.04}, {tripple: arm64-osx, on: macos-26}]
-
-    name: ${{matrix.os.tripple}}
-    runs-on: ${{matrix.os.on}}
+    name: x64-linux
+    runs-on: ubuntu-24.04
 
     env:
-      DEBUG_BUILD_DIR: ${{github.workspace}}/out/build/${{matrix.os.tripple}}/Debug
-      RELEASE_BUILD_DIR: ${{github.workspace}}/out/build/${{matrix.os.tripple}}/Release
+      DEBUG_BUILD_DIR: ${{github.workspace}}/out/build/x64-linux/Debug
+      RELEASE_BUILD_DIR: ${{github.workspace}}/out/build/x64-linux/Release
       INSTALL_DIR: ${{github.workspace}}/out/install
       VCPKG_ROOT: ${{github.workspace}}/vcpkg
       VCPKG_DEFAULT_BINARY_CACHE: ${{github.workspace}}/vcpkg/binary-sources
@@ -36,8 +32,7 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install development environment (Ubuntu)
-        if: matrix.os.on == 'ubuntu-24.04'
+      - name: Install development environment
         run: |
           wget https://apt.llvm.org/llvm.sh
           chmod 755 llvm.sh
@@ -45,11 +40,6 @@ jobs:
           sudo apt-get install -y perl autoconf-archive ninja-build cmake pkg-config clang-20 lldb-20 lld-20 clangd-20
           sudo ln -f /usr/bin/clang-20 /usr/bin/clang
           sudo ln -f /usr/bin/clang++-20 /usr/bin/clang++
-
-      - name: Install development environment (MacOS)
-        if: matrix.os.on == 'macos-26'
-        run: |
-          brew install automake autoconf autoconf-archive
 
       - name: Create vcpkg cache dir
         run: mkdir ${{env.VCPKG_DEFAULT_BINARY_CACHE}}
@@ -67,17 +57,10 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: vcpkg/binary-sources/**/*.zip
-          key: vcpkg-cache-${{matrix.os.tripple}}-${{hashFiles('vcpkg.json', 'vcpkg/commit.txt')}}-1
-
-      # MacOS installation has a bug where it doesn't set CMAKE_MAKE_PROGRAM
-      # even though CMake does find ninja during startup.
-      - name: CMake - Configure (MacOS)
-        if: matrix.os.on == 'macos-26'
-        run: cmake -D "CMAKE_MAKE_PROGRAM=/opt/homebrew/bin/ninja" --preset=${{matrix.os.tripple}} .
+          key: vcpkg-cache-x64-linux-${{hashFiles('vcpkg.json', 'vcpkg/commit.txt')}}-1
 
       - name: CMake - Configure
-        if: matrix.os.on != 'macos-26'
-        run: cmake --preset=${{matrix.os.tripple}} .
+        run: cmake --preset=x64-linux .
 
       - name: Save vcpkg binary-cache
         uses: actions/cache/save@v4
@@ -88,10 +71,10 @@ jobs:
           key: ${{steps.restore-vcpkg-cache.outputs.cache-primary-key}}
 
       - name: CMake - Build (Debug)
-        run: cmake --build --preset=${{matrix.os.tripple}}-dbg --parallel 1 .
+        run: cmake --build --preset=x64-linux-dbg --parallel 1 .
 
       - name: CMake - Build (Release)
-        run: cmake --build --preset=${{matrix.os.tripple}}-rel --parallel 1 .
+        run: cmake --build --preset=x64-linux-rel --parallel 1 .
 
       - name: Run tests (Debug)
         working-directory: ${{env.DEBUG_BUILD_DIR}}
