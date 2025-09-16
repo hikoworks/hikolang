@@ -1,5 +1,6 @@
 # hikolang
-[![Build on Windows](https://github.com/hikogui/hikolang/actions/workflows/build-on-windows.yml/badge.svg?branch=main)](https://github.com/hikogui/hikolang/actions/workflows/build-on-windows.yml)
+[![Windows](https://github.com/hikogui/hikolang/actions/workflows/build-on-windows.yml/badge.svg?branch=main)](https://github.com/hikogui/hikolang/actions/workflows/build-on-windows.yml)
+[![Windows](https://github.com/hikogui/hikolang/actions/workflows/build-on-unix.yml/badge.svg?branch=main)](https://github.com/hikogui/hikolang/actions/workflows/build-on-unix.yml)
 [![Version](https://img.shields.io/badge/dynamic/json?url=https://raw.githubusercontent.com/hikogui/hikolang/main/vcpkg.json&label=Latest%20Version&query=$[%27version%27]&color=blue)](https://github.com/hikogui/hikolang/releases/latest)
 [![License](https://img.shields.io/github/license/hikogui/hikolang.svg)](https://github.com/hikogui/hikolang/blob/main/LICENSE)
 [![Coverage](https://codecov.io/github/hikogui/hikolang/graph/badge.svg?token=P95N8UFH1D)](https://codecov.io/github/hikogui/hikolang)
