@@ -77,8 +77,6 @@ jobs:
           key: vcpkg-cache-${{matrix.os.tripple}}-${{hashFiles('vcpkg.json', 'vcpkg/commit.txt')}}
 
       - name: CMake - Configure
-        env:
-          CMAKE_MAKE_PROGRAM: /opt/brew/bin/ninja
         run: cmake --preset=${{matrix.os.tripple}} .
 
       - name: Save vcpkg binary-cache
