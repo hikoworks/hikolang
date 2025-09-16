@@ -59,6 +59,7 @@ jobs:
         run: |
           brew update
           brew install automake autoconf autoconf-archive
+          echo $PATH
 
       - name: Create vcpkg cache dir
         run: mkdir ${{env.VCPKG_DEFAULT_BINARY_CACHE}}
