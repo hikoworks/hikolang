@@ -49,7 +49,6 @@ jobs:
           wget https://apt.llvm.org/llvm.sh
           chmod 755 llvm.sh
           echo "" | sudo ./llvm.sh 20
-          sudo apt-get update
           sudo apt-get install -y perl autoconf-archive ninja-build cmake pkg-config clang-20 lldb-20 lld-20 clangd-20
           sudo ln -f /usr/bin/clang-20 /usr/bin/clang
           sudo ln -f /usr/bin/clang++-20 /usr/bin/clang++
@@ -57,9 +56,7 @@ jobs:
       - name: Install development environment (MacOS)
         if: matrix.os.on == 'macos-26'
         run: |
-          brew update
           brew install automake autoconf autoconf-archive
-          sudo dtruss cmake -GNinja . 2>&1 | grep -i ninja
 
       - name: Create vcpkg cache dir
         run: mkdir ${{env.VCPKG_DEFAULT_BINARY_CACHE}}
@@ -80,7 +77,7 @@ jobs:
           key: vcpkg-cache-${{matrix.os.tripple}}-${{hashFiles('vcpkg.json', 'vcpkg/commit.txt')}}
 
       - name: CMake - Configure
-        run: cmake --preset=${{matrix.os.tripple}} .
+        run: cmake -D "CMAKE_MAKE_PROGRAM=/opt/homebrew/bin/ninja" --preset=${{matrix.os.tripple}} .
 
       - name: Save vcpkg binary-cache
         uses: actions/cache/save@v4

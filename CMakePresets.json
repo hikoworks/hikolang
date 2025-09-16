@@ -63,7 +63,7 @@
       "cacheVariables": {
         "CMAKE_OSX_ARCHITECTURES": "arm64",
         "VCPKG_TARGET_TRIPLET": "arm64-osx",
-        "CMAKE_MAKE_PROGRAM": "/opt/homebrew/bin/ninja"
+        "FOOCMAKE_MAKE_PROGRAM": "/opt/homebrew/bin/ninja"
       },
       "condition": {
         "type": "equals",
