@@ -1,0 +1,28 @@
+
+class long {
+    ref? _value : __builtin_limb = 0
+    var _capacity : __builtin_u32 = 0
+    var _size : __builtin_u32 = 0
+
+    fn __deinit__(ref self := long) {
+        if (self._capacity != 0) {
+            std.dealloc(std.get_addr(self._value), self._capacity);
+        }
+    }
+
+    fn __init_copy__(ref self := long, view other := long) {
+        if (other._capacity == 0) {
+            std.set_addr(self._value, std.get_addr(other._value))
+            self._capacity = 0
+            self._size = 0
+        } else {
+            var [ptr, actual_capacity] = std.allocate(other._size * std.get_size(__buildin_limb))
+            std.set_addr(self._value, ptr)
+            self._capacity = actual_capacity
+            self._size = other._size
+
+            std.memcpy(std.get_addr(self._value), std.get_addr(other._value), other._size * std.get_size(__buildin_limb))
+        }
+    }
+}
+

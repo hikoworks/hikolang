@@ -27,11 +27,11 @@ endif()
 # Find LLVM (required components: core, support, etc.)
 # vcpkg.json dependency example:
 #     { "name": "llvm", "default-features": false, "features": ["default-targets"] }
-#find_package(LLVM CONFIG REQUIRED)
-#message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
-#message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+find_package(LLVM CONFIG REQUIRED)
+message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 # Optionally, for LLVM dynamic libraries
-#llvm_map_components_to_libnames(llvm_libs core support)
+llvm_map_components_to_libnames(llvm_libs core support)
 
 
 find_package(ICU REQUIRED COMPONENTS i18n uc data)
@@ -132,7 +132,7 @@ add_library(hk_objects OBJECT
 )
 
 target_include_directories(hk_objects PRIVATE "${CMAKE_SOURCE_DIR}/src")
-#target_include_directories(hk_objects PRIVATE "${LLVM_INCLUDE_DIRS}")
+target_include_directories(hk_objects PRIVATE "${LLVM_INCLUDE_DIRS}")
 target_include_directories(hk_objects PRIVATE "${ICU_INCLUDE_DIRS}")
 
 

@@ -2,7 +2,7 @@
 
 ## Syntax
 
-`let` __|__ `var` __|__ `ref` __|__ `view`
+__(__ `let` __|__ `var` __|__ `ref` __|__ `view` __)__ `?`__?__
 
 ## Semantics
 The storage-modifier is used to specify the storage class of a variable or argument.
