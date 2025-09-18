@@ -27,7 +27,8 @@ void repository::scan_prologues(repository_flags flags)
     for (auto it = first; it != last; ++it) {
         auto const& entry = *it;
 
-        if (entry.path().filename().string().starts_with(".")) {
+        auto const start_of_filename = entry.path().filename().string()[0];
+        if (start_of_filename == '.' or start_of_filename == '_') {
             // Do not recursively scan hidden directories.
             if (entry.is_directory()) {
                 it.disable_recursion_pending();

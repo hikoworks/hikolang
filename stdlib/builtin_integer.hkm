@@ -1,0 +1,16 @@
+
+module builtin.integer;
+
+fn __literal(str: string) -> __builtin_i64
+    explicit
+{
+    var r : __builtin_i64
+
+    llvm {
+        %tmp = i64 0
+        store i64 %tmp, i64* %r.addr
+    }
+
+    return r
+}
+
