@@ -181,7 +181,7 @@ template<typename... Args>
             }
 
         } else if (t == '{' or t == '[' or t == '(') {
-            if (auto r = q.push_back_overflow(std::move(t))) {
+            if (auto r = q.push_back_overflow(t)) {
                 co_yield std::move(r).value();
             }
             bracket_stack.push_back(t.simple_value());

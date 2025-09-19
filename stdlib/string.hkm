@@ -1,0 +1,6 @@
+
+class string {
+    var data : __builtin_ptr = 0
+    var capacity : __builtin_i32 = 0
+    var size : __builtin_i32 = 
+}

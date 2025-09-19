@@ -14,7 +14,10 @@
 	      "CMAKE_C_COMPILER": "clang"
       },
       "environment": {
-        "VCPKG_BINARY_SOURCES": "clear;files,${sourceDir}/vcpkg/binary-sources,readwrite"
+        "VCPKG_ROOT": "${sourceDir}/vcpkg",
+        "VCPKG_DEFAULT_BINARY_CACHE": "${sourceDir}/vcpkg/binary-sources",
+        "VCPKG_BINARY_SOURCES": "clear;files,${sourceDir}/vcpkg/binary-sources,readwrite",
+        "VCPKG_FEATURE_FLAGS": "binarycaching"
       }
     },
     {

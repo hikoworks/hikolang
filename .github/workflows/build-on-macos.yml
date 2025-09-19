@@ -21,10 +21,6 @@ jobs:
       DEBUG_BUILD_DIR: ${{github.workspace}}/out/build/arm64-osx/Debug
       RELEASE_BUILD_DIR: ${{github.workspace}}/out/build/arm64-osx/Release
       INSTALL_DIR: ${{github.workspace}}/out/install
-      VCPKG_ROOT: ${{github.workspace}}/vcpkg
-      VCPKG_DEFAULT_BINARY_CACHE: ${{github.workspace}}/vcpkg/binary-sources
-      VCPKG_BINARY_SOURCES: clear;file,${{github.workspace}}/vcpkg/binary-sources,readwrite
-      VCPKG_FEATURE_FLAGS: binarycaching
 
     steps:
       - name: Checkout Code
@@ -35,16 +31,15 @@ jobs:
       - name: Install development environment
         run: brew install automake autoconf autoconf-archive
 
-      - name: Create vcpkg cache dir
-        run: mkdir ${{env.VCPKG_DEFAULT_BINARY_CACHE}}
-
       - name: Get vcpkg commit id
         working-directory: vcpkg
         run: git rev-parse HEAD >commit.txt
 
       - name: Install vcpkg
         working-directory: vcpkg
-        run: ./bootstrap-vcpkg.sh
+        run: |
+          ./bootstrap-vcpkg.sh
+          mkdir binary-sources
 
       - name: Restore vcpkg binary-cache
         id: restore-vcpkg-cache
