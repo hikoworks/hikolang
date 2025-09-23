@@ -1,0 +1,9 @@
+
+module nl.hikolang.return42 application "return42"
+
+
+fn main() -> __builtin_i32
+    ccc
+{
+    return 42
+}
