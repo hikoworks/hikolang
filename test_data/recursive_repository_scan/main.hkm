@@ -3,14 +3,3 @@ module nl.hikolang.recursive_repository_scan.main application "psmain"
 
 import git "https://github.com/hikogui/hikolang-test-a.git" "main"
 
-fn main() -> __builtin_i32
-{
-    var r : __builtin_i32
-
-    llvm {
-        %tmp = i32 42
-        store i32 %tmp, i32* %r.addr
-    }
-
-    return r
-}

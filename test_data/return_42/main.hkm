@@ -1,0 +1,14 @@
+
+module nl.hikolang.return42 application "return42"
+
+fn main() -> __builtin_i32
+{
+    var r : __builtin_i32
+
+    llvm {
+        %tmp = i32 42
+        store i32 %tmp, i32* %r.addr
+    }
+
+    return r
+}
