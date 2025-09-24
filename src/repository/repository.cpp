@@ -54,9 +54,13 @@ void repository::scan_prologues(repository_flags flags)
         }
 
         auto& m = get_module(module_path);
-        m.touched = true;
+        m.keep_module= true;
 
-        if (m.ast and m.time == entry.last_write_time() and not to_bool(flags & repository_flags::force_scan)) {
+        if (m.time == std::filesystem::file_time_type{} or m.time != entry.last_write_time() or to_bool(flags & repository_flags::force_scan)) {
+            m.state = module_type::state_type::out_of_date;
+        }
+
+        if (m.state >= module_type::state_type::prologue) {
             // The prologue for this module has already been scanned.
             continue;
         }
@@ -68,7 +72,38 @@ void repository::scan_prologues(repository_flags flags)
         }
     }
 
-    untouch(true);
+    clean_unused_modules();
+}
+
+void repository::parse_modules(parse_context &c, module_type::state_type new_state)
+{
+    assert(new_state != module_type::state_type::out_of_date);
+
+    auto it = _modules.begin();
+    while (it != _modules.end()) {
+        if (not std::filesystem::exists(it->path)) {
+            // Remove the module if the file no longer exists.
+            it = _modules.erase(it);
+            continue;
+        }
+
+        auto const last_write_time = std::filesystem::last_write_time(it->path);
+        if (it->time == std::filesystem::file_time_type{} or it->time != last_write_time) {
+            // If the file is modified, reset the state of the module.
+            it->state = module_type::state_type::out_of_date;
+        }
+
+        if (it->state < new_state) {
+            auto cursor = file_cursor(it->path);
+            if (auto r = parse_module(cursor, new_state == module_type::state_type::prologue)) {
+                it->ast = std::move(r);
+            }
+        }
+
+        it->time = last_write_time;
+        it->state = new_state;
+        ++it;
+    }
 }
 
 void repository::recursive_scan_prologues(repository_flags flags)

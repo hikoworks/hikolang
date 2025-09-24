@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include "parse_context.hpp"
 #include "ast/module_node.hpp"
 #include "error/error_list.hpp"
 #include "utility/repository_url.hpp"
@@ -46,6 +47,14 @@ public:
      */
     void recursive_scan_prologues(repository_flags flags);
 
+    /** Parse the files in the repository.
+     * 
+     * Create a full AST tree
+     * 
+     * @param c Context for parsing.
+     */
+    void parse(parse_context &c);
+
     [[nodiscard]] generator<std::pair<repository_url, error_location>> remote_repositories() const;
 
     [[nodiscard]] std::vector<std::unique_ptr<repository>> const& child_repositories() const noexcept
@@ -55,7 +64,18 @@ public:
 
 private:
     struct module_type {
+        enum class state_type {
+            /** The file has not been parsed yet, possibly because it is out of date.
+             */
+            out_of_date,
+
+            prologue,
+            parsed,
+        };
+
         std::filesystem::path path;
+
+        state_type state = state_type::idle;
 
         /** This is the timestamp of the file when it was parsed.
          */
