@@ -12,18 +12,34 @@
 
 namespace hk {
 
-repository::repository(std::filesystem::path path, repository_url remote) : remote(remote), path(std::move(path))
-{
-}
+repository::repository(std::filesystem::path path, repository_url remote) : remote(remote), path(std::move(path)) {}
 
 void repository::scan_prologues(repository_flags flags)
 {
-    untouch(false);
+    auto must_sort = gather_modules();
 
+    auto context = parse_context{};
+    must_sort |= parse_modules(context, module_type::state_type::prologue, flags);
+
+    if (must_sort) {
+        sort_modules();
+    }
+}
+
+bool repository::gather_modules()
+{
     auto first = std::filesystem::recursive_directory_iterator{path};
     auto last = std::filesystem::recursive_directory_iterator{};
 
-    auto visited = vector_set<std::filesystem::path>{};
+    // Keep track of modules that we have (partially) compiled.
+    // So that we can remove modules that no longer exist on the filesystem.
+    auto modified = false;
+    auto existing_module_paths = vector_set<std::filesystem::path>{};
+    for (auto& m : _modules) {
+        existing_module_paths.add(m.path);
+    }
+
+    auto visited_directories = vector_set<std::filesystem::path>{};
     for (auto it = first; it != last; ++it) {
         auto const& entry = *it;
 
@@ -37,7 +53,7 @@ void repository::scan_prologues(repository_flags flags)
         }
 
         auto module_path = std::filesystem::canonical(entry.path());
-        if (not visited.add(module_path)) {
+        if (not visited_directories.add(module_path)) {
             // This directory has already been visited; a potential symlink loop.
             if (entry.is_directory()) {
                 it.disable_recursion_pending();
@@ -53,44 +69,53 @@ void repository::scan_prologues(repository_flags flags)
             continue;
         }
 
-        auto& m = get_module(module_path);
-        m.keep_module= true;
-
-        if (m.time == std::filesystem::file_time_type{} or m.time != entry.last_write_time() or to_bool(flags & repository_flags::force_scan)) {
-            m.state = module_type::state_type::out_of_date;
-        }
-
-        if (m.state >= module_type::state_type::prologue) {
-            // The prologue for this module has already been scanned.
-            continue;
-        }
-
-        auto cursor = file_cursor(module_path);
-        if (auto r = parse_module(cursor, true)) {
-            m.ast = std::move(r);
-            m.time = entry.last_write_time();
+        if (not existing_module_paths.contains_and_erase(module_path)) {
+            // The module did not exist yet.
+            _modules.emplace_back(module_path);
+            modified = true;
         }
     }
 
-    clean_unused_modules();
+    // Remove any modules where the on-disk file is missing.
+    for (auto const& p : existing_module_paths) {
+        auto const count = std::erase_if(_modules, [&p](auto const& item) {
+            return item.path == p;
+        });
+        assert(count <= 1);
+        modified |= count == 1;
+    }
+
+    return modified;
 }
 
-void repository::parse_modules(parse_context &c, module_type::state_type new_state)
+void repository::sort_modules()
+{
+
+}
+
+bool repository::parse_modules(parse_context& c, module_type::state_type new_state, repository_flags flags)
 {
     assert(new_state != module_type::state_type::out_of_date);
 
+    auto modified = false;
+
+    // It is expected that _modules is sorted in compilation order,
+    // it is also possible for the file to be removed.
     auto it = _modules.begin();
     while (it != _modules.end()) {
-        if (not std::filesystem::exists(it->path)) {
-            // Remove the module if the file no longer exists.
+        auto ec = std::error_code{};
+        auto const last_write_time = std::filesystem::last_write_time(it->path, ec);
+        if (ec) {
+            std::println(stderr, "Could not get date from file `{}`: {}", it->path.string(), ec.message());
             it = _modules.erase(it);
             continue;
         }
 
-        auto const last_write_time = std::filesystem::last_write_time(it->path);
-        if (it->time == std::filesystem::file_time_type{} or it->time != last_write_time) {
+        if (to_bool(flags & repository_flags::force_scan) or it->time == std::filesystem::file_time_type{} or
+            it->time != last_write_time) {
             // If the file is modified, reset the state of the module.
             it->state = module_type::state_type::out_of_date;
+            modified = true;
         }
 
         if (it->state < new_state) {
@@ -104,6 +129,8 @@ void repository::parse_modules(parse_context &c, module_type::state_type new_sta
         it->state = new_state;
         ++it;
     }
+
+    return modified;
 }
 
 void repository::recursive_scan_prologues(repository_flags flags)
@@ -124,7 +151,7 @@ void repository::recursive_scan_prologues(repository_flags flags)
     }
 
     // The mark will be used to see if a child repository was already processed.
-    for (auto &repo : child_repositories()) {
+    for (auto& repo : child_repositories()) {
         repo->mark = false;
     }
 
@@ -133,7 +160,7 @@ void repository::recursive_scan_prologues(repository_flags flags)
         todo.pop_back();
 
         auto child_local_path = hkdeps_path / child_remote.directory();
-        auto &child_repo = get_child_repository(child_remote, child_local_path);
+        auto& child_repo = get_child_repository(child_remote, child_local_path);
         if (child_repo.mark) {
             continue;
         }
@@ -157,19 +184,6 @@ void repository::recursive_scan_prologues(repository_flags flags)
     std::erase_if(_child_repositories, [&](auto const& item) {
         return not item->mark;
     });
-}
-
-void repository::untouch(bool remove)
-{
-    auto it = _modules.begin();
-    while (it != _modules.end()) {
-        if (not it->touched) {
-            it = _modules.erase(it, it + 1);
-        } else {
-            it->touched = false;
-            ++it;
-        }
-    }
 }
 
 [[nodiscard]] generator<std::pair<repository_url, error_location>> repository::remote_repositories() const

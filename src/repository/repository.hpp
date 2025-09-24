@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "parse_context.hpp"
+#include "parser/parse_context.hpp"
 #include "ast/module_node.hpp"
 #include "error/error_list.hpp"
 #include "utility/repository_url.hpp"
@@ -47,14 +47,6 @@ public:
      */
     void recursive_scan_prologues(repository_flags flags);
 
-    /** Parse the files in the repository.
-     * 
-     * Create a full AST tree
-     * 
-     * @param c Context for parsing.
-     */
-    void parse(parse_context &c);
-
     [[nodiscard]] generator<std::pair<repository_url, error_location>> remote_repositories() const;
 
     [[nodiscard]] std::vector<std::unique_ptr<repository>> const& child_repositories() const noexcept
@@ -75,7 +67,7 @@ private:
 
         std::filesystem::path path;
 
-        state_type state = state_type::idle;
+        state_type state = state_type::out_of_date;
 
         /** This is the timestamp of the file when it was parsed.
          */
@@ -103,11 +95,28 @@ private:
      */
     std::vector<std::unique_ptr<repository>> _child_repositories;
 
-    /** Unset the touch flag on all modules.
+    /** Gather all modules in the repository.
      * 
-     * @param remove Remove modules if already not touched.
+     * This finds all the files with the `.hkm` extension.
+     * It excludes any files and directories that start with a dot `.` or
+     * underscore `_`.
+     * 
+     * @retval true The list of modules have changed; the list of modules
+     *              must be sorted.
      */
-    void untouch(bool remove);
+    bool gather_modules();
+
+    /** Sort modules in compilation order.
+     */
+    void sort_modules();
+
+    /** Parse all the modules in a repository.
+     * 
+     * @pre `sort_modules()` may need to be called.
+     * @param context The parse context.
+     * @param new_state Parse the modules upto this state.
+     */
+    bool parse_modules(parse_context &context, module_type::state_type new_state, repository_flags flags);
 
     /** Get or make a module based on the path.
      * 
