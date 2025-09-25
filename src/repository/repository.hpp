@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include "module_list.hpp"
 #include "parser/parse_context.hpp"
 #include "ast/module_node.hpp"
 #include "error/error_list.hpp"
@@ -55,39 +56,13 @@ public:
     }
 
 private:
-    struct module_type {
-        enum class state_type {
-            /** The file has not been parsed yet, possibly because it is out of date.
-             */
-            out_of_date,
-
-            prologue,
-            parsed,
-        };
-
-        std::filesystem::path path;
-
-        state_type state = state_type::out_of_date;
-
-        /** This is the timestamp of the file when it was parsed.
-         */
-        std::filesystem::file_time_type time;
-
-        std::unique_ptr<ast::module_node> ast;
-
-        /** This flag is used to determine if a module has been removed from
-         * the filesystem.
-         */
-        bool touched = false;
-
-        module_type(std::filesystem::path path);
-    };
+    
 
     /** modules.
      * 
      * @note sorted by path.
      */
-    std::vector<module_type> _modules;
+    module_list _modules;
 
     /** The root repository also has a list of child repositories.
      * 
@@ -116,7 +91,7 @@ private:
      * @param context The parse context.
      * @param new_state Parse the modules upto this state.
      */
-    bool parse_modules(parse_context &context, module_type::state_type new_state, repository_flags flags);
+    bool parse_modules(parse_context &context, module_t::state_type new_state, repository_flags flags);
 
     /** Get or make a module based on the path.
      * 
@@ -124,7 +99,7 @@ private:
      *       inside the repository.
      * @param path The path the module.
      */
-    [[nodiscard]] module_type &get_module(std::filesystem::path const& path);
+    [[nodiscard]] module_t &get_module(std::filesystem::path const& path);
 
     /** Get or make a child repository based on the remote.
      * 

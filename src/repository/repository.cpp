@@ -19,7 +19,7 @@ void repository::scan_prologues(repository_flags flags)
     auto must_sort = gather_modules();
 
     auto context = parse_context{};
-    must_sort |= parse_modules(context, module_type::state_type::prologue, flags);
+    must_sort |= parse_modules(context, module_t::state_type::prologue, flags);
 
     if (must_sort) {
         sort_modules();
@@ -71,18 +71,14 @@ bool repository::gather_modules()
 
         if (not existing_module_paths.contains_and_erase(module_path)) {
             // The module did not exist yet.
-            _modules.emplace_back(module_path);
+            _modules.insert(module_path);
             modified = true;
         }
     }
 
     // Remove any modules where the on-disk file is missing.
     for (auto const& p : existing_module_paths) {
-        auto const count = std::erase_if(_modules, [&p](auto const& item) {
-            return item.path == p;
-        });
-        assert(count <= 1);
-        modified |= count == 1;
+        _modules.erase(p);
     }
 
     return modified;
@@ -93,9 +89,9 @@ void repository::sort_modules()
 
 }
 
-bool repository::parse_modules(parse_context& c, module_type::state_type new_state, repository_flags flags)
+bool repository::parse_modules(parse_context& c, module_t::state_type new_state, repository_flags flags)
 {
-    assert(new_state != module_type::state_type::out_of_date);
+    assert(new_state != module_t::state_type::out_of_date);
 
     auto modified = false;
 
@@ -111,21 +107,21 @@ bool repository::parse_modules(parse_context& c, module_type::state_type new_sta
             continue;
         }
 
-        if (to_bool(flags & repository_flags::force_scan) or it->time == std::filesystem::file_time_type{} or
-            it->time != last_write_time) {
+        if (to_bool(flags & repository_flags::force_scan) or it->parse_time == std::filesystem::file_time_type{} or
+            it->parse_time != last_write_time) {
             // If the file is modified, reset the state of the module.
-            it->state = module_type::state_type::out_of_date;
+            it->state = module_t::state_type::out_of_date;
             modified = true;
         }
 
         if (it->state < new_state) {
             auto cursor = file_cursor(it->path);
-            if (auto r = parse_module(cursor, new_state == module_type::state_type::prologue)) {
+            if (auto r = parse_module(cursor, new_state == module_t::state_type::prologue)) {
                 it->ast = std::move(r);
             }
         }
 
-        it->time = last_write_time;
+        it->parse_time = last_write_time;
         it->state = new_state;
         ++it;
     }
@@ -195,19 +191,6 @@ void repository::recursive_scan_prologues(repository_flags flags)
     }
 }
 
-[[nodiscard]] repository::module_type& repository::get_module(std::filesystem::path const& module_path)
-{
-    assert(is_subpath(module_path, path));
-
-    auto it = std::lower_bound(_modules.begin(), _modules.end(), module_path, [](auto const& item, auto const& key) {
-        return item.path < key;
-    });
-    if (it == _modules.end() or it->path != module_path) {
-        it = _modules.insert(it, module_type{module_path});
-    }
-    return *it;
-}
-
 [[nodiscard]] repository& repository::get_child_repository(repository_url const& remote, std::filesystem::path child_path)
 {
     auto it =
@@ -230,11 +213,6 @@ void repository::erase_child_repository(repository_url const& remote)
     if (it != _child_repositories.end() and (*it)->remote == remote) {
         _child_repositories.erase(it);
     }
-}
-
-repository::module_type::module_type(std::filesystem::path path) : path(std::move(path))
-{
-    assert(std::filesystem::canonical(this->path) == this->path);
 }
 
 } // namespace hk
