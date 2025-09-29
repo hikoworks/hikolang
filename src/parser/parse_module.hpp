@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include "parser_context.hpp"
 #include "ast/module_node.hpp"
 #include "utility/file_cursor.hpp"
 
@@ -15,7 +16,7 @@ namespace hk {
  * @param only_prologue If true, only parse the prologue of the module (declaration and imports).
  * @return A parsed module, or what was parsed.
  */
-[[nodiscard]] ast::module_node_ptr parse_module(hk::file_cursor& c, bool only_prologue);
+[[nodiscard]] ast::module_node_ptr parse_module(hk::file_cursor& c, parser_context &c, bool only_prologue);
 
 
 }

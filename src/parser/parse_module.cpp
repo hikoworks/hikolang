@@ -9,7 +9,7 @@
 namespace hk {
 
 
-[[nodiscard]] ast::module_node_ptr parse_module(token_iterator& it, bool only_prologue)
+[[nodiscard]] ast::module_node_ptr parse_module(token_iterator& it, parser_context &context, bool only_prologue)
 {
     auto const first = it->first;
     auto r = std::make_unique<ast::module_node>(first);
@@ -44,14 +44,14 @@ namespace hk {
     return r;
 }
 
-[[nodiscard]] ast::module_node_ptr parse_module(hk::file_cursor& c, bool only_prologue)
+[[nodiscard]] ast::module_node_ptr parse_module(hk::file_cursor& c, parser_context &context, bool only_prologue)
 {
     
     auto token_generator = hk::tokenize(c);
     auto lazy_tokens = lazy_vector{token_generator.cbegin(), token_generator.cend()};
 
     auto it = lazy_tokens.cbegin();
-    auto m = parse_module(it, only_prologue);
+    auto m = parse_module(it, context, only_prologue);
     m->upstream_paths = c.upstream_paths();
     return m;
 }
