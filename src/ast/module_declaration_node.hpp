@@ -22,12 +22,6 @@ public:
         library
     };
 
-    /** The path to the module file.
-     * 
-     * This is the path to the file that contains the module declaration.
-     */
-    std::filesystem::path path = {};
-
     /** The type of module declaration.
      * 
      * This indicates the kind of module declaration, e.g. a module, package, application, or library.

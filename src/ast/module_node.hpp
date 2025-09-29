@@ -31,11 +31,6 @@ public:
      */
     std::vector<std::filesystem::path> upstream_paths;
 
-    /** Date when the module was parsed.
-     * This is updated when the module parsing is completed.
-     */
-    std::chrono::system_clock::time_point parsed_at = {};
-
     /** The state of the module node.
      * 
      * This is used to track the state of the module node during parsing.
