@@ -2,22 +2,34 @@
 
 ## Syntax
 
-`import` [_fully_qualified_name_](fully_qualified_name.md) __(__ `as` [_identifier_](identifier.md) __)?__
+`import` [_fully_qualified_name_](fully_qualified_name.md)
+  __(__ `in` __(__ [_fully_qualified_name_](fully_qualified_name.md) __|__ `*` __))?__
 [_compile_condition_](compile_condition.md)__?__ `;`
 
 ## Semantics
 
-Imports a module, so that its functions, types and variables can be used in the
-current file.
+Imports a module, so that its symbols can be used from the current file.
 
 The [_fully_qualified_name_](fully_qualified_name.md) is the name of the module
-to import. The optional `as` clause allows the module to be made available under
-a shorter name to make the code more readable.
+to import:
+ - if prefixed with `.` then it is an absolute named-module.
+ - relative to the current module, or
+ - relative to root, when not found.
 
-If the module is located in a different repository, then the repository must be
-imported using a `git` or `zip` by at least one file in the current repository.
-Likely this in done in a `application` or `package` file.
+The optional `in` clause allows the module to be made available under
+a different name:
+ - relative to the current module,
+ - if prefixed with `.` then it is an absolute named-module,
+ - if `*` then all symbols are imported into the current module.
 
-When you import a module all sub-modules are imported as well; accessible through
-the sub-names. This holds when the module is renamed through the `as` part.
+If there are no conflicts you may import multiple modules `in`-to the same
+module.
+
+If the module is located in a different repository, then:
+ - that repository must be imported using a `import git` or `import zip`,
+   by at least one file in the current repository, and
+ - the module is a sub-module of a package in that repository.
+
+When you import a module all sub-modules are imported as well; accessible
+through the sub-names. This holds when the module is renamed with `in`.
 
