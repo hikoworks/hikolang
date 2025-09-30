@@ -17,29 +17,6 @@ class module_node : public node {
 public:
     using node::node;
 
-    enum class state_type {
-        idle,
-        prologue,
-        parsed,
-    };
-
-    /** List of errors found.
-     */
-    mutable error_list errors;
-
-    /** The path to the module file.
-     */
-    std::vector<std::filesystem::path> upstream_paths;
-
-    /** The state of the module node.
-     * 
-     * This is used to track the state of the module node during parsing.
-     * 
-     * - `idle`: The module node was not parsed.
-     * - `prologue`: The prologue of the module has been parsed.
-     * - `parsed`: The module was fully parsed.
-     */
-    state_type state = state_type::idle;
     
     module_declaration_node_ptr declaration;
     std::vector<import_declaration_node_ptr> imports;

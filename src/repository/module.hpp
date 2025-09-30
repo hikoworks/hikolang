@@ -32,6 +32,14 @@ struct module_t {
      */
     std::filesystem::path path;
 
+    /** The full name of the module.
+     */
+    fqname name;
+
+    /** The version of the module.
+     */
+    semantic_version version;
+
     /** This is the timestamp of the file when it was parsed.
      * 
      * This is used to detect if the file has been modified since it was last
@@ -42,6 +50,14 @@ struct module_t {
     /** State denoting the progress of parsing and compiling the module.
      */
     state_type state = state_type::out_of_date;
+
+    /** List of errors found.
+     */
+    mutable error_list errors;
+
+    /** The path to the module file.
+     */
+    std::vector<std::filesystem::path> upstream_paths;
 
     /** The abstract syntax tree of the module.
      */

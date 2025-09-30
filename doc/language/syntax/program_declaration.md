@@ -2,7 +2,9 @@
 
 ## Syntax
 
-`program` [_string_literal_](string_literal.md) [_compile_condition_](compile_condition.md)__?__ `;`
+`program` [_string_literal_](string_literal.md)
+    [_version_literal_](version_literal.md)__?__
+    [_compile_condition_](compile_condition.md)__?__ `;`
 
 
 ## Semantics
@@ -15,10 +17,20 @@ target platform.
 Any variables and functions are declared in the root namespace. Typically the
 function `main()` is the entry-point of a program.
 
+
+### Version (optional)
+
+If a version number is given, then the program has a version number, this
+version number can be refelected within the application, and may be used for
+a `--version` command line argument.
+
+The version has no meaning within the compilation process.
+
+
+### Compile condition (optional)
+
 The optional [_compile_condition_](compile_condition.md) is evaluated during the
 prologue-scan phase of compilation, this checks if the file should be compiled.
-If no [_compile_condition_](compile_condition.md) is specified then the program
-is compiled during the `build`-step.
 
 Multiple files may have the same name, only if the conditional
 compilation is mutually exclusive. If a file has a `fallback` condition, it will
