@@ -1,18 +1,20 @@
 
-#include "import_declaration_node.hpp"
+#include "node.hpp"
 
 namespace hk::ast {
 
-class import_library_declaration_node : public import_declaration_node {
+class import_library_declaration_node : public node {
 public:
-    using import_declaration_node::import_declaration_node;
+    using node::node;
 
     import_library_declaration_node(file_location first, file_location last, std::filesystem::path path) :
-        import_declaration_node(first, last), path(path)
+        node(first, last), path(path)
     {
     }
 
     std::filesystem::path path;
 };
+
+using module_node_ptr = std::unique_ptr<import_module_declaration_node>;
 
 } // namespace hk::ast
