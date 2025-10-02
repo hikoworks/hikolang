@@ -17,8 +17,7 @@ public:
 
     enum class kind_type {
         module,
-        package,
-        application,
+        program,
         library
     };
 
@@ -42,13 +41,13 @@ public:
      */
     semantic_version version = {};
 
-    /** Output filename
+    /** The stem of the filename of a library or program.
      *
      * This is the filename where the module will be compiled to.
      * 
      * @note Valid when the module is an application or library.
      */
-    std::string output_filename = {};
+    std::string filename_stem = {};
 
     /** The compilation condition.
      * 
