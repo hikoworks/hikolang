@@ -57,6 +57,9 @@ template<typename... Args>
         } else if (c[0] == '*' and c[1] == '/') {
             co_yield make_error(c, 2, "Unexpected end of comment; found '*/' without a matching '/*'. ");
 
+        } else if (auto t = parse_superscript_integer(c)) {
+            co_yield std::move(t).value();
+
         } else if (auto t = parse_number(c)) {
             co_yield std::move(t).value();
 
@@ -234,6 +237,21 @@ template<typename... Args>
                 doc_text.clear();
             }
 
+            if (auto r = q.push_back_overflow(std::move(t))) {
+                co_yield std::move(r).value();
+            }
+
+        } else if (t == token::superscript_integer_literal) {
+            // Insert a to-the-power-of operator.
+            auto power_op = t;
+            power_op.kind = token::_operator;
+            power_op.text = "**";
+            if (auto r = q.push_back_overflow(std::move(power_op))) {
+                co_yield std::move(r).value();
+            }
+
+            // Convert to a normal integer.
+            t.kind = token::integer_literal;
             if (auto r = q.push_back_overflow(std::move(t))) {
                 co_yield std::move(r).value();
             }

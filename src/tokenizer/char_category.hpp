@@ -156,6 +156,30 @@ namespace hk {
     return false;
 }
 
+/** Is a code-point a superscript-digit.
+ * 
+ * Digits are defined based on the radix:
+ *  - Radix 10: `⁰` to `⁹`
+ * 
+ * @param cp The code-point to check.
+ * @param radix The radix to check against, defaults to 10.
+ * @retval true if the code-point is a digit in the given radix.
+ */
+[[nodiscard]] constexpr bool is_superscript_digit(char32_t cp) noexcept
+{
+    return
+        cp == U'⁰' or
+        cp == U'¹' or
+        cp == U'²' or
+        cp == U'³' or
+        cp == U'⁴' or
+        cp == U'⁵' or
+        cp == U'⁶' or
+        cp == U'⁷' or
+        cp == U'⁸' or
+        cp == U'⁹';
+}
+
 /** Is a code-point an exponent prefix.
  * 
  * An exponent prefix is used in floating-point numbers to indicate the exponent part.

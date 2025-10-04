@@ -114,7 +114,7 @@ Note: since low level functions are written as inline-assembly, inline-assembly 
 ## Extensible syntax
 ### Custom operators
 The language allows you to define custom operators. This is done by registering a
-a keyword or pattern-syntax, arity, precedence and associativity, and a function that
+a keyword or pattern-syntax, precedence and associativity, and a function that
 will be called when the operator is used.
 
 ### Custom literals

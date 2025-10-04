@@ -1,0 +1,116 @@
+
+module std.si_units
+
+/** International System of Units (SI)
+ *
+ * This defines the SI unit-space including its base-units.
+ * This forms a exponent-tuple which is used to handle derived units.
+ */ 
+syntax unit si (s, m, g * 1'000, A, K, mol, cd)
+
+syntax unit si prefix Q 10³⁰
+syntax unit si prefix R 10²⁷
+syntax unit si prefix Y 10²⁴
+syntax unit si prefix Z 10²¹
+syntax unit si prefix E 10¹⁸
+syntax unit si prefix P 10¹⁵
+syntax unit si prefix T 10¹²
+syntax unit si prefix G 10⁹
+syntax unit si prefix M 10⁶
+syntax unit si prefix k 10³
+syntax unit si prefix h 10²
+syntax unit si prefix da 10¹
+syntax unit si prefix d 10⁻¹
+syntax unit si prefix c 10⁻²
+syntax unit si prefix m 10⁻³
+syntax unit si prefix μ 10⁻⁶
+syntax unit si prefix n 10⁻⁹
+syntax unit si prefix p 10⁻¹²
+syntax unit si prefix f 10⁻¹⁵
+syntax unit si prefix a 10⁻¹⁸
+syntax unit si prefix z 10⁻²¹
+syntax unit si prefix y 10⁻²⁴
+syntax unit si prefix r 10⁻²⁷
+syntax unit si prefix q 10⁻³⁰
+
+/** Frequency
+ */
+syntax unit Hz = s⁻¹
+
+/** Force
+ */
+syntax unit N = kg m s⁻²
+
+/** Pressure
+ */
+syntax unit Pa = kg m⁻¹ s⁻²
+
+/** Energy
+ */
+syntax unit J = kg m² s⁻²
+
+/** Power
+ */
+syntax unit W = kg m² s⁻³
+
+/** Electric charge
+ */
+syntax unit C = s A
+
+/** Electric potential difference
+ */
+syntax unit V = kg m² s⁻³ A⁻¹
+
+/** Capacitance.
+ */
+syntax unit F = kg⁻¹ m² s⁴ A⁻¹
+
+/** Electrical Reistance
+ */
+syntax unit ohm = kg m² s⁻³ A⁻²
+
+/** Electrical conductance
+ */
+syntax unit S = kg⁻¹ m⁻² s³ A²
+
+/** Magnetic flux
+ */
+syntax unit Wb = kg m² s⁻² A⁻¹
+
+/** Magnetic flux density
+ */
+syntax unit T = kg s⁻² A⁻¹
+
+/** Inductance
+ */
+syntax unit H = kg m² s⁻² A⁻²
+
+/** Celsius temperature
+ */
+syntax unit °C = K - 272.15
+
+/** Luminous flux
+ */
+syntax unit lm = cd sr
+
+/** Illuminance
+ */
+syntax unit lx = cd sr m⁻²
+
+/** Avtivity referred to a radionuclide
+ */
+syntax unit Bq = s⁻¹
+
+/** Absorbed dose
+ */
+syntax unit Gy = m² s⁻²
+
+/** Dose equivalent
+ */
+syntax unit Sv = m² s⁻¹
+
+/** Cataluctic activity
+ */
+syntax unit kat = mol s⁻¹
+
+

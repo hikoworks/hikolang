@@ -1,0 +1,43 @@
+
+module std.us_units
+import std.si_units
+
+/** inch
+ */
+syntax unit in = 25.4 mm
+
+/** foot
+ */
+syntax unit ft = 12 in
+
+/** yard
+ */
+syntax unit yd = 3 ft
+
+/** mile
+ */
+syntax unit mi = 1760 yd
+
+/** league
+ */
+syntax unit le = 3 mi
+
+/** Nautical mile
+ */
+syntax unit nmi = 1,852 m
+
+/** Typographical point
+ */
+syntax unit p = 1/72 inch
+
+/** Typographical pica
+ */
+syntax unit P = 12 p
+
+/** twentieth of a point
+ */
+syntax unit twip = 1/20 p
+
+/** thousandth of an inch
+ */
+syntax unit mil = 1/1000 in

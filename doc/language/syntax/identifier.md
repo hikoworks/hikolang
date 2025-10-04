@@ -2,8 +2,11 @@
 
 ## Syntax
 Identifiers follow the Unicode UAX #31 (Unicode Identifier and Syntax)
-rules for identifiers. This languages adds the underscore `_` character as part
-of ID_Start. Identifiers are case sensitive.
+rules for identifiers. Identifiers are case-sensitive. The following characters are added
+as part of ID_Start:
+ - `_` (UNDERSCORE)
+ - `°` (DEGREE SIGN) This is used for units.
+
 
 ## Semantics
 Identifiers are used to name variables, functions, namespaces, types and

@@ -7,7 +7,7 @@ namespace hk {
 
 [[nodiscard]] std::optional<token> parse_identifier(file_cursor& c)
 {
-    if (not is_identifier_start(c[0])) {
+    if (not (is_identifier_start(c[0]) or c[0] == U'°')) {
         return std::nullopt;
     }
 
@@ -16,7 +16,7 @@ namespace hk {
     ++c;
 
     while (true) {
-        if (not is_identifier_continue(c[0])) {
+        if (not (is_identifier_continue(c[0]) or c[0] == U'°')) {
             // End of identifier, including end of file.
             r.last = c.location();
             return r.normalize_and_security_check();

@@ -84,8 +84,10 @@ Identifiers are used to name variables, functions, namespaces, types and
 keywords.
 
 Identifiers follow the Unicode UAX #31 (Unicode Identifier and Syntax)
-rules for identifiers. This languages adds the underscore `_` character as part
-of ID_Start. Identifiers are case sensitive.
+rules for identifiers. Identifiers are case sensitive. The following characters
+are added to ID_Start:
+ - `_` UNDERSCORE
+ - `°` DEGREE SIGN: This is used for units like °C and °F, or ° (angle).
 
 For security purposes, it is a reportable error when an identifier violates the
 following rules:
@@ -154,19 +156,19 @@ escape sequences.
 ### Integers
 Integers are whole numbers that can be positive or negative. Integers can be
 of the following formats:
- - [+-]?[0-9']+ - Decimal format.
- - [+-]?0[bB][01']+ - Binary format.
- - [+-]?0[oO][0-7']+ - Octal format.
- - [+-]?0[dD][0-9']+ - Decimal format.
- - [+-]?0[xX][0-9a-fA-F']+ - Hexadecimal format.
+ - `[+-]?[0-9']+` - Decimal format.
+ - `[+-]?0[bB][01']+` - Binary format.
+ - `[+-]?0[oO][0-7']+` - Octal format.
+ - `[+-]?0[dD][0-9']+` - Decimal format.
+ - `[+-]?0[xX][0-9a-fA-F']+` - Hexadecimal format.
 
 The length of the integer literal is unlimited.
 
 ### Floats
 Floats are numbers that can be positive or negative. Floats can be of the
 following formats:
- - [+-]?[0-9]+[.][0-9]*([eE][+-]?[0-9]+)? - Decimal format.
- - [+-]?[.][0-9]+([eE][+-]?[0-9]+)? - Decimal format starting with decimal point.
+ - `[+-]?[0-9]+[.][0-9]*([eE][+-]?[0-9]+)?` - Decimal format.
+ - `[+-]?[.][0-9]+([eE][+-]?[0-9]+)?` - Decimal format starting with decimal point.
 
 The length of the float literal is unlimited.
 
@@ -213,13 +215,13 @@ Comments come in several forms:
 The comment text itself has a specific format, this is documented in
 documentation.md.
 
-### Whitespace
+## Whitespace
 Whitespace is used to separate tokens. Whitespace is not considered a token.
 
 Whitespace characters are defined by Pattern_White_Space from Unicode UAX #31
 (Unicode Identifier and Syntax).
 
-### Semicolon
+## Semicolon
 Each statement in the source code is ended by a semicolon `;`.
 
 Modern languages have mostly eliminated the need for semicolons at the end
@@ -231,7 +233,7 @@ The following rules are used to handle semicolons `;`:
    * there are tokens on the line that are not terminated with a semicolon `;`, and
    * the bracket stack is empty or its top is a brace `{`.
 
-### Semicolon and comma handling
+## Semicolon and comma handling
 The semicolon `;` and `,` are used to separate statements, expressions and
 arguments.
 
@@ -256,8 +258,17 @@ The following rules apply to semicolons and commas:
  - A comman `,` or semicolon `;` that directly preceding a closing bracket
    `}`, `]`, `)` or end-of-file is removed.
 
+## Syntactic Sugar
 
-### Errors
+### super-script integers
+The tokenizer will recognise an superscript-integer-literal in the following format:
+ - `[⁺⁻]?[⁰¹²³⁴⁵⁶⁷⁸⁹]+`
+
+This token is translated into `**` power-operator-token and a normal integer-literal.
+
+This is useful for describing SI-units expressions.
+
+## Errors
 
 The tokenizer will report the following errors:
  - Invalid UTF-8 sequence.

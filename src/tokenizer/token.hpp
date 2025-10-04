@@ -31,6 +31,7 @@ public:
         character_literal,
         quote_literal,
         integer_literal,
+        superscript_integer_literal,
         float_literal,
         version_literal,
         line_directive,
@@ -53,6 +54,7 @@ public:
     static constexpr kind_type character_literal = kind_type::character_literal;
     static constexpr kind_type quote_literal = kind_type::quote_literal;
     static constexpr kind_type integer_literal = kind_type::integer_literal;
+    static constexpr kind_type superscript_integer_literal = kind_type::superscript_integer_literal;
     static constexpr kind_type float_literal = kind_type::float_literal;
     static constexpr kind_type version_literal = kind_type::version_literal;
     static constexpr kind_type line_directive = kind_type::line_directive;

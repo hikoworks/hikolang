@@ -1,0 +1,60 @@
+
+module std.operators
+
+syntax suffix ++ 2'000'000 __post_increment__
+syntax suffix -- 2'000'000 __post_decrement__
+syntax ltr . 2'000'000 __member__
+
+syntax prefix ++ 3'000'000 __increment__
+syntax prefix -- 3'000'000 __decrement__
+syntax prefix + 3'000'000 __pos__
+syntax prefix - 3'000'000 __neg__
+syntax prefix not 3'000'000 __not__
+syntax prefix ~ 3'000'000 __bit_not__
+
+syntax ltr ** 4'000'000 __pow__
+
+syntax ltr * 5'000'000 __mul__
+syntax ltr / 5'000'000 __div__
+syntax ltr % 5'000'000 __mod__
+
+syntax ltr + 6'000'000 __add__
+syntax ltr - 6'000'000 __sub__
+
+syntax ltr << 7'000'000 __shl__
+syntax ltr >> 7'000'000 __shr__
+
+syntax ltr <=> 8'000'000 __cmp__
+
+syntax ltr < 9'000'000 __lt__
+syntax ltr <= 9'000'000 __le__
+syntax ltr > 9'000'000 __gt__
+syntax ltr >= 9'000'000 __ge__
+
+syntax ltr == 10'000'000 __eq__
+syntax ltr != 10'000'000 __ne__
+
+syntax ltr & 11'000'000 __bit_and__
+
+syntax ltr ^ 12'000'000 __bit_xor__
+
+syntax ltr | 13'000'000 __bit_or__
+
+syntax ltr and 14'000'000 __and__
+
+syntax ltr xor 15'000'000 __xor__
+
+syntax ltr or 16'000'000 __or__
+
+syntax prefix yield 17'000'000 __yield__
+syntax rtl = 17'000'000 __assign__
+syntax rtl += 17'000'000 __inplace_add__
+syntax rtl -= 17'000'000 __inplace_sub__
+syntax rtl *= 17'000'000 __inplace_mul__
+syntax rtl /= 17'000'000 __inplace_div__
+syntax rtl %= 17'000'000 __inplace_mod__
+syntax rtl <<= 17'000'000 __inplace_shl__
+syntax rtl >>= 17'000'000 __inplace_shr__
+syntax rtl &= 17'000'000 __inplace_and__
+syntax rtl ^= 17'000'000 __inplace_xor__
+syntax rtl |= 17'000'000 __inplace_or__

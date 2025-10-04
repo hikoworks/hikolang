@@ -26,6 +26,7 @@ namespace hk {
 [[nodiscard]] std::optional<token> parse_line_comment(file_cursor& c);
 [[nodiscard]] std::optional<token> parse_line_directive(file_cursor& c);
 [[nodiscard]] std::optional<token> parse_number(file_cursor& c);
+[[nodiscard]] std::optional<token> parse_superscript_integer(file_cursor& c);
 [[nodiscard]] std::optional<token> parse_operator(file_cursor& c);
 [[nodiscard]] std::optional<token> parse_scram_directive(file_cursor& c);
 [[nodiscard]] std::optional<token> parse_string(file_cursor& c);
