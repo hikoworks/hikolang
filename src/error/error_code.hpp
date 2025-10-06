@@ -2,6 +2,7 @@
 #pragma once
 
 #include "utility/fixed_string.hpp"
+#include <exception>
 #include <stdexcept>
 #include <cstdint>
 #include <string_view>
