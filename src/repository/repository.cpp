@@ -2,10 +2,10 @@
 #include "repository.hpp"
 #include "utility/path.hpp"
 #include "utility/vector_set.hpp"
-#include "utility/file_cursor.hpp"
+#include "tokenizer/file_cursor.hpp"
 #include "utility/git.hpp"
 #include "error/errors.hpp"
-#include "parser/parse_module.hpp"
+#include "parser/parse_top.hpp"
 #include <cassert>
 #include <algorithm>
 #include <map>
@@ -18,8 +18,8 @@ void repository::scan_prologues(repository_flags flags)
 {
     auto must_sort = gather_modules();
 
-    auto context = parse_context{};
-    must_sort |= parse_modules(context, module_t::state_type::prologue, flags);
+    auto ctx = parse_context{};
+    must_sort |= parse_modules(ctx, module_t::state_type::prologue, flags);
 
     if (must_sort) {
         sort_modules();
@@ -89,7 +89,7 @@ void repository::sort_modules()
 
 }
 
-bool repository::parse_modules(parse_context& c, module_t::state_type new_state, repository_flags flags)
+bool repository::parse_modules(parse_context& ctx, module_t::state_type new_state, repository_flags flags)
 {
     assert(new_state != module_t::state_type::out_of_date);
 
@@ -116,9 +116,16 @@ bool repository::parse_modules(parse_context& c, module_t::state_type new_state,
 
         if (it->state < new_state) {
             auto cursor = file_cursor(it->path);
-            if (auto r = parse_module(cursor, new_state == module_t::state_type::prologue)) {
-                it->ast = std::move(r);
+            auto const only_prologue = new_state == module_t::state_type::prologue;
+
+            ctx.e = {};
+            if (auto r = parse_top(cursor, ctx, only_prologue)) {
+                it->ast = std::move(r).value();
+            } else {
+                it->ast = nullptr;
             }
+
+            it->errors = std::exchange(ctx.e, {});
         }
 
         it->parse_time = last_write_time;
@@ -185,8 +192,9 @@ void repository::recursive_scan_prologues(repository_flags flags)
 [[nodiscard]] generator<std::pair<repository_url, error_location>> repository::remote_repositories() const
 {
     for (auto const& m : _modules) {
-        for (auto repo : m.ast->remote_repositories()) {
-            co_yield std::move(repo);
+        for (auto const& remote_repository : m.ast->remote_repositories) {
+            auto const el = error_location{m.errors, remote_repository->first, remote_repository->last};
+            co_yield std::pair{remote_repository->url, el};
         }
     }
 }

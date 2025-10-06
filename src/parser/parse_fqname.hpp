@@ -2,6 +2,7 @@
 #pragma once
 
 #include "parse_result.hpp"
+#include "parse_context.hpp"
 #include "utility/fqname.hpp"
 #include "error/error_list.hpp"
 #include "tokenizer/token_vector.hpp"
@@ -15,6 +16,6 @@ namespace hk {
  * @param leading_dot Parse fully qualified names that can start with a dot.
  * @return A optional fully qualified name.
  */
-[[nodiscard]] parse_result<fqname> parse_fqname(token_iterator& it, error_list& e, bool leading_dot = true);
+[[nodiscard]] parse_result<fqname> parse_fqname(token_iterator& it, parse_context &ctx, bool leading_dot);
 
 }

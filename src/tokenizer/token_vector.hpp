@@ -3,6 +3,7 @@
 
 #include "token.hpp"
 #include "utility/lazy_vector.hpp"
+#include "utility/generator.hpp"
 
 namespace hk {
 

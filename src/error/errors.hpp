@@ -16,9 +16,11 @@ E(missing_git_rev, "E0108: Expecting a branch string literal after 'git' keyword
 E(missing_zip_path, "E0109: Expect a path string literal after 'zip' keyword in a import-declaration.");
 E(missing_lib_path, "E0110: Expect a path string literal after 'lib' keyword in a import-declaration.");
 E(missing_as_name, "E0111: Expected a name after 'as' keyword in a import-declaration.");
-E(missing_import_name, "E0112: Expected fully qualified name after 'import' keyword in a import-declaration.");
+E(missing_module_name, "E0112: Expected fully qualified module name.");
+E(missing_top_declaration, "E0113: Expected a 'module', 'program' or 'library' declaration at the top of the file.");
 
 E(invalid_fqname, "E0201: Fully qualified name is invalid.");
+E(invalid_prologue_statement, "E0202: Invalid prologue statement.");
 
 E(could_not_clone_repository, "E0300: Could not clone repository '{}' rev '{}' into '{}': {}.");
 }

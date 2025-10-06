@@ -1,7 +1,9 @@
 
 #pragma once
 
-#include "ast/module_node.hpp"
+#include "ast/top_node.hpp"
+#include "utility/semantic_version.hpp"
+#include "error/error_list.hpp"
 #include <filesystem>
 #include <memory>
 
@@ -61,7 +63,7 @@ struct module_t {
 
     /** The abstract syntax tree of the module.
      */
-    std::unique_ptr<ast::module_node> ast;
+    std::unique_ptr<ast::top_node> ast;
 
     module_t(std::filesystem::path path);
 };

@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "utility/file_location.hpp"
+#include "tokenizer/file_location.hpp"
 #include "error_list.hpp"
 
 namespace hk {

@@ -3,7 +3,7 @@
 
 #include "error_item.hpp"
 #include "error_code.hpp"
-#include "utility/file_location.hpp"
+#include "tokenizer/file_location.hpp"
 #include "utility/fixed_string.hpp"
 #include <vector>
 #include <format>

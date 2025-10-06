@@ -1,47 +1,31 @@
 
-#include "parsers.hpp"
+#include "parse_library_declaration.hpp"
 #include "tokenizer/token_parsers.hpp"
 #include "error/errors.hpp"
 
 namespace hk {
 
-[[nodiscard]] parse_result_ptr<ast::module_declaration_node> parse_module_declaration(token_iterator& it, error_list& e)
+[[nodiscard]] parse_result_ptr<ast::library_declaration_node> parse_library_declaration(token_iterator& it, parse_context &ctx)
 {
     auto const first = it[0].first;
 
-    auto kind = ast::module_declaration_node::kind_type{};
-    if (*it == "module") {
-        kind = ast::module_declaration_node::kind_type::module;
-    } else if (*it == "program") {
-        kind = ast::module_declaration_node::kind_type::program;
-    } else if (*it == "library") {
-        kind = ast::module_declaration_node::kind_type::library;
-    } else {
+    if (*it != "library") {
         return tokens_did_not_match;
     }
     ++it;
 
-    auto r = std::make_unique<ast::module_declaration_node>(first);
+    auto r = std::make_unique<ast::library_declaration_node>(first);
 
-    if (kind == ast::module_declaration_node::kind_type::module) {
-        if (auto node = parse_fqname(it, e)) {
-            r->name = std::move(node).value();
-        } else if (node.error()) {
-            return std::unexpected{node.error()};
-        } else {
-            return e.add(first, it->last, error::missing_module_declaration_name);
-        }
-
-    } else if (*it == token::string_literal) {
-        r->filename_stem = it->text();
+    if (*it == token::string_literal) {
+        r->filename_stem = std::move(it->text);
         ++it;
 
     } else {
-        return e.add(first, it->last, error::missing_filename_stem);
+        return ctx.e.add(first, it->last, error::missing_filename_stem);
     }
 
     if (*it == token::version_literal) {
-        r->version = it->version_literal();
+        r->version = it->version_value();
         ++it;
     }
 
@@ -52,15 +36,15 @@ namespace hk {
 
     } else if (*it == "if") {
         ++it;
-        return e.add(first, it->last, error::unimplemented_module_declaration_if);
+        return ctx.e.add(first, it->last, error::unimplemented);
     }
 
-    if (*it == ';') {
-        ++it;
-        return r;
+    if (*it != ';') {
+        return ctx.e.add(first, it->last, error::missing_semicolon);
     }
 
-    return e.add(first, it->last, error::missing_semicolon);
+    ++it;
+    return r;
 }
 
 } // namespace hk

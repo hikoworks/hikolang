@@ -10,8 +10,6 @@ namespace hk::ast {
 
 class library_declaration_node : public node {
 public:
-    using node::node;
-
     /** The stem of the filename of the library.
      *
      * This is the filename where the module will be compiled to.
@@ -33,6 +31,10 @@ public:
     expression_node_ptr condition = nullptr;
 
     bool is_fallback = false;
+
+    library_declaration_node(file_location first) : node(first) {}
 };
+
+using library_declaration_node_ptr = std::unique_ptr<library_declaration_node>;
 
 }

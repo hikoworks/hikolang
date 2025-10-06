@@ -1,23 +1,25 @@
 
+#pragma once
+
+
 #include "node.hpp"
+#include "utility/fqname.hpp"
 
 namespace hk::ast {
 
 class import_module_declaration_node : public node {
 public:
-    using node::node;
-
-    import_module_declaration_node(file_location first, file_location last, fqname name, fqname as) :
-        node(first, last), name(name), as(as)
+    import_module_declaration_node(file_location first) :
+        node(first)
     {
     }
 
-    fqname name;
-    fqname as;
+    fqname name = {};
+    fqname as = {};
 
 private:
 };
 
-using module_node_ptr = std::unique_ptr<import_module_declaration_node>;
+using import_module_declaration_node_ptr = std::unique_ptr<import_module_declaration_node>;
 
 } // namespace hk::ast

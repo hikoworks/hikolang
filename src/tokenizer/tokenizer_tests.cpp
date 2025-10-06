@@ -1,7 +1,7 @@
 
 #include "tokenizer.hpp"
+#include "file_cursor.hpp"
 #include "utility/file_buffer.hpp"
-#include "utility/file_cursor.hpp"
 #include "utility/lazy_vector.hpp"
 #include "test_utilities/paths.hpp"
 #include <hikotest/hikotest.hpp>

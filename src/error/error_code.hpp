@@ -2,7 +2,6 @@
 #pragma once
 
 #include "utility/fixed_string.hpp"
-#include "utility/char_category.hpp"
 #include <stdexcept>
 #include <cstdint>
 #include <string_view>
@@ -41,7 +40,7 @@ struct error_code {
         while (it != str.end()) {
             if (*it == ':') {
                 return;
-            } else if (is_digit(*it)) {
+            } else if (*it >= '0' and *it <= '9') {
                 code *= 10;
                 code += *it - '0';
                 ++it;

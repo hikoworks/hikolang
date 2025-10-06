@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "path.hpp"
 #include "char_category.hpp"
+#include "utility/path.hpp"
 #include <cstddef>
 #include <cstdint>
 

@@ -2,7 +2,7 @@
 #pragma once
 
 #include "token.hpp"
-#include "utility/file_cursor.hpp"
+#include "file_cursor.hpp"
 #include <cstddef>
 #include <optional>
 

@@ -1,6 +1,5 @@
 
 #include "semantic_version.hpp"
-#include "char_category.hpp"
 
 namespace hk {
 
@@ -29,7 +28,7 @@ semantic_version::semantic_version(std::string_view version) :
         if (it == end) {
             return;
 
-        } else if (is_digit(*it)) {
+        } else if (*it >= '0' and *it <= '9') {
             major *= 10;
             major += *it - '0';
             ++it;
@@ -58,7 +57,7 @@ minor_version:
             }
             goto patch_version;
 
-        } else if (is_digit(*it)) {
+        } else if (*it >= '0' and *it <= '9') {
             minor *= 10;
             minor += *it - '0';
             ++it;
@@ -86,7 +85,7 @@ patch_version:
             }
             return;
             
-        } else if (is_digit(*it)) {
+        } else if (*it >= '0' and *it <= '9') {
             patch *= 10;
             patch += *it - '0';
             ++it;

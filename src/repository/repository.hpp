@@ -3,8 +3,8 @@
 
 #include "module_list.hpp"
 #include "parser/parse_context.hpp"
-#include "ast/module_node.hpp"
 #include "error/error_list.hpp"
+#include "error/error_location.hpp"
 #include "utility/repository_url.hpp"
 #include "utility/repository_flags.hpp"
 #include "utility/generator.hpp"
@@ -88,10 +88,10 @@ private:
     /** Parse all the modules in a repository.
      * 
      * @pre `sort_modules()` may need to be called.
-     * @param context The parse context.
+     * @param ctx The parse context.
      * @param new_state Parse the modules upto this state.
      */
-    bool parse_modules(parse_context &context, module_t::state_type new_state, repository_flags flags);
+    bool parse_modules(parse_context &ctx, module_t::state_type new_state, repository_flags flags);
 
     /** Get or make a module based on the path.
      * 

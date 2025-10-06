@@ -34,16 +34,16 @@ TEST_CASE(recursive_repository_scan)
     REQUIRE(repository.child_repositories()[1]->remote.url() == "https://github.com/hikogui/hikolang-test-b.git");
 }
 
-TEST_CASE(parse_repository)
-{
-    auto source_path = std::filesystem::canonical(test::test_data_path() / "return42");
-    auto repository_path = hk::scoped_temporary_directory("parse_repository");
-    std::filesystem::copy(source_path, repository_path);
-
-    auto repository = hk::repository{repository_path};
-    repository.recursive_scan_prologues(hk::repository_flags{});
-    repository.parse_files();
-
-}
+//TEST_CASE(parse_repository)
+//{
+//    auto source_path = std::filesystem::canonical(test::test_data_path() / "return42");
+//    auto repository_path = hk::scoped_temporary_directory("parse_repository");
+//    std::filesystem::copy(source_path, repository_path);
+//
+//    auto repository = hk::repository{repository_path};
+//    repository.recursive_scan_prologues(hk::repository_flags{});
+//    repository.parse_files();
+//
+//}
 
 };

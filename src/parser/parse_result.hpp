@@ -2,6 +2,7 @@
 #pragma once
 
 #include "ast/node.hpp"
+#include "error/error_code.hpp"
 #include <memory>
 #include <expected>
 #include <concepts>

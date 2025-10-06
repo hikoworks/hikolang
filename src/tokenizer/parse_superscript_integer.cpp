@@ -13,7 +13,7 @@ namespace hk {
         return std::nullopt;
     }
 
-    auto r = token{c.location(), token::super_integer_literal};
+    auto r = token{c.location(), token::superscript_integer_literal};
 
     if (c[0] == U'⁺') {
         r.append('+');

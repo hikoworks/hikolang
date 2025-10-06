@@ -1,8 +1,8 @@
 
 #pragma once
 
+#include "file_location.hpp"
 #include "utility/unicode.hpp"
-#include "utility/file_location.hpp"
 #include "utility/semantic_version.hpp"
 #include <string>
 #include <string_view>

@@ -1,6 +1,6 @@
 
 #include "token_parsers.hpp"
-#include "utility/char_category.hpp"
+#include "char_category.hpp"
 #include <gsl/gsl>
 #include <cassert>
 

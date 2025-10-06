@@ -2,7 +2,7 @@
 
 ## Syntax
 
-`import` `lib` _lib-name_ [_semantic_version_]__?__ [_compile_condition_](compile_condition.md)__?__ `;`
+`import` `library` _lib-name_ [_semantic_version_]__?__ [_compile_condition_](compile_condition.md)__?__ `;`
 
 lib-name := [_string_literal_](string_literal.md)
 

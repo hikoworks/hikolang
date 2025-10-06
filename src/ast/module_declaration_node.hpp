@@ -13,8 +13,6 @@ namespace hk::ast {
 
 class module_declaration_node : public node {
 public:
-    using node::node;
-
     /** The name of the module.
      * 
      * This is the fully qualified name of the module, e.g. `com.example.my_module`.
@@ -42,6 +40,7 @@ public:
      */
     bool is_fallback = false;
 
+    module_declaration_node(file_location first) : node(first) {}
 
     /** The result of the compilation condition.
      */

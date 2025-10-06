@@ -1,11 +1,11 @@
 
-#include "parsers.hpp"
+#include "parse_program_declaration.hpp"
 #include "tokenizer/token_parsers.hpp"
 #include "error/errors.hpp"
 
 namespace hk {
 
-[[nodiscard]] parse_result_ptr<ast::program_declaration_node> parse_program_declaration(token_iterator& it, error_list& e)
+[[nodiscard]] parse_result_ptr<ast::program_declaration_node> parse_program_declaration(token_iterator& it, parse_context &ctx)
 {
     auto const first = it[0].first;
 
@@ -17,14 +17,14 @@ namespace hk {
     auto r = std::make_unique<ast::program_declaration_node>(first);
 
     if (*it == token::string_literal) {
-        r->filename_stem = it->text();
+        r->filename_stem = it->text;
         ++it;
     } else {
-        return e.add(first, it->last, error::missing_filename_stem);
+        return ctx.e.add(first, it->last, error::missing_filename_stem);
     }
 
     if (*it == token::version_literal) {
-        r->version = it->version_literal();
+        r->version = it->version_value();
         ++it;
     }
 
@@ -35,7 +35,7 @@ namespace hk {
 
     } else if (*it == "if") {
         ++it;
-        return e.add(first, it->last, error::unimplemented);
+        return ctx.e.add(first, it->last, error::unimplemented);
     }
 
     if (*it == ';') {
@@ -43,7 +43,7 @@ namespace hk {
         return r;
     }
 
-    return e.add(first, it->last, error::missing_semicolon);
+    return ctx.e.add(first, it->last, error::missing_semicolon);
 }
 
 } // namespace hk

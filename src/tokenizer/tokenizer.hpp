@@ -2,8 +2,8 @@
 #pragma once
 
 #include "token.hpp"
-#include "utility/file_cursor.hpp"
-#include "utility/char_category.hpp"
+#include "file_cursor.hpp"
+#include "char_category.hpp"
 #include "utility/module.hpp"
 #include "utility/generator.hpp"
 #include <concepts>

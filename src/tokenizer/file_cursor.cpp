@@ -1,7 +1,7 @@
 
 #include "file_cursor.hpp"
-#include "file.hpp"
 #include "char_category.hpp"
+#include "utility/file.hpp"
 #include <cassert>
 
 namespace hk {

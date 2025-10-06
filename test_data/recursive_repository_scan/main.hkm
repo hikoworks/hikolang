@@ -1,5 +1,5 @@
 
-module nl.hikolang.recursive_repository_scan.main application "psmain"
+program "psmain"
 
 import git "https://github.com/hikogui/hikolang-test-a.git" "main"
 
