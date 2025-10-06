@@ -1,8 +1,11 @@
 
 class long {
-    ref? _value : __builtin_limb = 0
-    var _capacity : __builtin_u32 = 0
-    var _size : __builtin_u32 = 0
+    union {
+        ref? _ptr : __builtin_limb = 0
+        var _value : __builin_i64
+    }
+    var _capacity : __builtin_i32 = 0
+    var _size : __builtin_i32 = 0
 
     fn __deinit__(ref self := long) {
         if (self._capacity != 0) {

@@ -1,6 +1,39 @@
 
 class string {
-    var data : __builtin_ptr = 0
-    var capacity : __builtin_i32 = 0
-    var size : __builtin_i32 = 
+    union {
+        struct {
+            ref? _ptr : __builtin_i8
+            var _size : __builtin_i32
+            var _capacity : __builtin_i32
+        }
+        struct {
+            var _sso : array[__builtin_i8, 15]
+            var _flags : __builtin_i8 = 0x8f
+        }
+    }
+
+    fn _sso() -> __builtin_i1
+    {
+        return __builtin_eq_i32(__builtin_and_i32(_flags, 0x80), 0);
+    }
+
+    pub fn size() -> __builtin_i32
+    {
+        if (_sso()) {
+            return __builtin_sub_i32(0x0f, __builtin_and_i32(_flags, 0x0f));
+        } else {
+            return _size;
+        }
+    }
+
+    pub fn data() -> ref? __builtin_i8
+    {
+        if (__sso()) {
+            return _sso.data();
+        } else {
+            return _ptr;
+        }
+    }
+
 }
+

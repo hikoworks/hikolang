@@ -44,6 +44,9 @@ This is the memory layout of a string:
    - little-endian: Shift left by 1 to get the capacity.
  - `Size` contains the length of the string (excluding nul-termination).
  - `Pointer` points to the start of the string.
+   - Bottom 3 bits can be used flags:
+     - Checked: If the string has been checked for UTF-8 validity
+     - UTF-8: The string is valid UTF-8
 
 ### Short String Optimization
 
