@@ -45,6 +45,31 @@ public:
         return std::unexpected{msg.code};
     }
 
+    /** Print error messages.
+     * 
+     * @param upstream_paths The paths for the error locations.
+     */
+    void print(std::vector<std::filesystem::path> const& upstream_paths)
+    {
+        for (auto const& e: *this) {
+            e.print(upstream_paths);
+        }
+    }
+
+    /** Print error messages.
+     * 
+     * @param upstream_paths The paths for the error locations.
+     */
+    [[nodiscard]] std::string to_string(std::vector<std::filesystem::path> const& upstream_paths)
+    {
+        auto s = std::string{};
+        for (auto const& e: *this) {
+            s += e.to_string(upstream_paths);
+            s += '\n';
+        }
+        return s;
+    }
+
 private:
 };
 

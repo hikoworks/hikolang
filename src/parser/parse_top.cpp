@@ -91,7 +91,6 @@ namespace hk {
 
     auto it = lazy_tokens.cbegin();
     if (auto top = parse_top(it, ctx, only_prologue)) {
-        //top->upstream_paths = c.upstream_paths();
         return top;
     } else if (top.error()) {
         return std::unexpected{top.error()};

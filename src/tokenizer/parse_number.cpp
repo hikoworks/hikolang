@@ -1,6 +1,7 @@
 
 
 #include "token_parsers.hpp"
+#include "char_category.hpp"
 
 
 namespace hk {

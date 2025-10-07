@@ -125,7 +125,9 @@ bool repository::parse_modules(parse_context& ctx, module_t::state_type new_stat
                 it->ast = nullptr;
             }
 
+            it->upstream_paths = cursor.upstream_paths();
             it->errors = std::exchange(ctx.e, {});
+            it->errors.print(it->upstream_paths);
         }
 
         it->parse_time = last_write_time;

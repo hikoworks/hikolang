@@ -2,10 +2,11 @@
 
 #pragma once
 
-#include "char_category.hpp"
 #include "utility/path.hpp"
 #include <cstddef>
 #include <cstdint>
+#include <vector>
+#include <filesystem>
 
 namespace hk {
 
@@ -83,10 +84,7 @@ struct file_location {
      * @param line The line number to set. The line number is 0-based, so 0 is
      *             the first line.
      */
-    void set_line(std::size_t line) noexcept
-    {
-        this->upstream_line = line < max_line ? line : max_line;
-    }
+    void set_line(std::size_t line) noexcept;
 
     /** Set the line number and file of the current location.
      *
@@ -99,12 +97,7 @@ struct file_location {
      * @param line The line number to set. The line number is 0-based, so 0 is
      *             the first line.
      */
-    void set_line(std::size_t file_index, std::size_t line)
-    {
-        assert(file_index <= max_file);
-        this->upstream_file = file_index;
-        set_line(line);
-    }
+    void set_line(std::size_t file_index, std::size_t line);
 
     /** Advance the file location by one code-point.
      *
@@ -118,41 +111,12 @@ struct file_location {
      * @param cp The code-point that was read.
      * @param cp2 The next code-point that was read, if available.
      */
-    void advance(char32_t cp, char32_t cp2) noexcept
-    {
-        if (is_vertical_space(cp, cp2)) {
-            if (line < max_line) {
-                ++line;
-            }
-            if (upstream_line < max_line) {
-                ++upstream_line;
-            }
-            utf8_column = 0;
-            utf16_column = 0;
-            utf32_column = 0;
+    void advance(char32_t cp, char32_t cp2) noexcept;
 
-        } else {
-            // UTF-8, check how many code-units are needed.
-            if (cp >= 0x01'0000) {
-                utf8_column = utf8_column < max_column - 3 ? utf8_column + 4 : max_column;
-            } else if (cp >= 0x0800) {
-                utf8_column = utf8_column < max_column - 2 ? utf8_column + 3 : max_column;
-            } else if (cp >= 0x0080) {
-                utf8_column = utf8_column < max_column - 1 ? utf8_column + 2 : max_column;
-            } else {
-                utf8_column = utf8_column < max_column ? utf8_column + 1 : max_column;
-            }
+    [[nodiscard]] std::string to_string(std::vector<std::filesystem::path> const& upstream_paths) const;
 
-            // UTF-16, check when surrogate pairs are needed.
-            if (cp >= 0x01'0000) {
-                utf16_column = utf16_column < max_column - 1 ? utf16_column + 2 : max_column;
-            } else {
-                utf16_column = utf16_column < max_column ? utf16_column + 1 : max_column;
-            }
+    [[nodiscard]] std::string to_string(std::filesystem::path const &path) const;
 
-            utf32_column = utf32_column < max_column ? utf32_column + 1 : max_column;
-        }
-    }
 };
 
 } // namespace hk

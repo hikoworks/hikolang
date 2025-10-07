@@ -19,10 +19,18 @@
  * enum only has named-values, it is not an integer.
  * function overloading, on both arguments (type and non-type) and return type.
 
+
 ## Safe integers
+
 All operations on integers will either:
- * always result in a mathematically correct result, or
- * the operation may throws an error that must be caught locally.
+ * Always have a mathematically correct result, or
+ * it may throw a error that must be caught locally.
+
+Errors that may be thrown by certain operations:
+ * Domain-errors such as division by zero, or sqrt of a
+   negative number.
+ * Narrow-error when explicitly casting to a smaller integer
+   range.
 
 The `int` template type automatically scales to fit the full
 result of an operation: 
@@ -45,14 +53,18 @@ and is allocated on the heap, and includes SIO (Short Integer Optimization).
 Real, rational and decimal types can be tagged with a unit, which is used
 for dimensional analysis.
 
-```
-let speed = 100.0 (km/h)
-let duration = 15.0 min
-let distance = speed * duration // 25.0 km
+Conversions between unit-systems like using a resolution value
+like `72.0 (px/in)` works as expected.
 
-fn convert(length : real #iso.length, dpi : real #(screen.length/iso.length)) -> real #screen.length
+```
+let duration = 15.0 min
+let speed = 100.0 (km/h)
+let distance = speed * duration
+let distance_in_km = distance / 1km
+
+fn convert(length : real #m, ppi : real #(px/in)) -> real #px
 {
-    return length * dpi
+    return length * ppi
 }
 ```
 

@@ -58,6 +58,10 @@ public:
     [[nodiscard]] constexpr std::string_view message() const noexcept { return _message; }
     [[nodiscard]] constexpr auto const& causes() const noexcept { return _causes; }
 
+    void print(std::vector<std::filesystem::path> const& upstream_paths) const;
+
+    [[nodiscard]] std::string to_string(std::vector<std::filesystem::path> const& upstream_paths) const;
+
 private:
     file_location _first = {};
     file_location _last = {};

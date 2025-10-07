@@ -1,0 +1,113 @@
+
+module std.base_integers
+
+class long
+{
+    union {
+        ref? _ptr
+        var _value : __builtin_i64
+    }
+    var _size : __builtin_i32
+    var _capacity : __builtin_i32
+
+    fn long(self := long)
+    {
+        self._value = 0
+        self._size = 0
+        self._capacity = 0
+    }
+
+    fn long(self := long, other : __builtin_int64)
+    {
+        self._value = other
+        self._size = 0
+        self._capacity = 0
+    }
+
+}
+
+class long_range
+{
+    var lo : long
+    var hi : long
+
+    fn is_signed(self : long_range) -> __builtin_i1
+    {
+        return self.lo < 0
+    }
+
+}
+
+class array[let value_type : type, let size : long]
+{
+
+}
+
+fn __int_bit_width(self : long_range) -> __builtin_i64
+{
+    let num_hi_bits = bit_width(self.hi)
+
+    if (not is_signed(self)) {
+        return num_hi_bits
+
+    } else {
+        let num_lo_bits = bit_width(~self.lo)
+        return max(num_lo_bits, num_hi_bits) + 1
+    }
+}
+
+
+fn __int_limb_type(range : long_range) -> type
+{
+    auto num_bits = __int_bit_width(range)
+    if (num_bits <= 1) {
+        return __builtin_u1
+    } else if (numb_bits <= 8) {
+        return __builtin_u8
+    } else if (numb_bits <= 16) {
+        return __builtin_u16
+    } else if (numb_bits <= 32) {
+        return __builtin_u32
+    } else if (numb_bits <= 64) {
+        return __builtin_u64
+    } else {
+        return __builtin_u64
+    }
+}
+
+fn __int_num_libs(range : long_range) -> __builtin_i32
+{
+    auto num_bits = __int_bit_width(range)
+    auto limb_type = __int_limb_type(range)
+    auto limb_size = limb_type.num_bits()
+
+    return (num_bits + limb_size - 1) / limb_size
+}
+
+class int[let range : long_range]
+{
+    let is_signed = range.lo < 0
+    let limb_type = __int_limb_type(range)
+    let num_limbs = __int_num_libs(range)
+
+    var limbs : array[limb_type, num_limbs]
+}
+
+// Note: The compiler blesses a closed-range of two integer literals as a long_range.
+
+let u1 = int[0..=1]
+let u8 = int[0..=255]
+let u16 = int[0..=65535]
+let u32 = int[0..=4294967295]
+let u64 = int[0..=18446744073709551615]
+let i8 = int[-128..=127]
+let i16 = int[-32768..=32768]
+let i32 = int[-2147483648..=2147483647]
+let i64 = int[-9223372036854775808..=9223372036854775807]
+
+fn long::size() -> u32
+{
+    return _size
+}
+
+

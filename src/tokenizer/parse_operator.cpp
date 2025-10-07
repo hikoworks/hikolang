@@ -1,5 +1,6 @@
 
 #include "token_parsers.hpp"
+#include "char_category.hpp"
 #include <format>
 #include <cassert>
 #include <cstdint>
