@@ -1,10 +1,10 @@
 # hikolang
-[![Windows](https://github.com/hikogui/hikolang/actions/workflows/build-on-windows.yml/badge.svg?branch=main)](https://github.com/hikogui/hikolang/actions/workflows/build-on-windows.yml)
-[![Linux](https://github.com/hikogui/hikolang/actions/workflows/build-on-linux.yml/badge.svg?branch=main)](https://github.com/hikogui/hikolang/actions/workflows/build-on-linux.yml)
-[![MacOS](https://github.com/hikogui/hikolang/actions/workflows/build-on-macos.yml/badge.svg?branch=main)](https://github.com/hikogui/hikolang/actions/workflows/build-on-macos.yml)
-[![Version](https://img.shields.io/badge/dynamic/json?url=https://raw.githubusercontent.com/hikogui/hikolang/main/vcpkg.json&label=Latest%20Version&query=$[%27version%27]&color=blue)](https://github.com/hikogui/hikolang/releases/latest)
-[![License](https://img.shields.io/github/license/hikogui/hikolang.svg)](https://github.com/hikogui/hikolang/blob/main/LICENSE)
-[![Coverage](https://codecov.io/github/hikogui/hikolang/graph/badge.svg?token=P95N8UFH1D)](https://codecov.io/github/hikogui/hikolang)
+[![Windows](https://github.com/hikoworks/hikolang/actions/workflows/build-on-windows.yml/badge.svg?branch=main)](https://github.com/hikoworks/hikolang/actions/workflows/build-on-windows.yml)
+[![Linux](https://github.com/hikoworks/hikolang/actions/workflows/build-on-linux.yml/badge.svg?branch=main)](https://github.com/hikoworks/hikolang/actions/workflows/build-on-linux.yml)
+[![MacOS](https://github.com/hikoworks/hikolang/actions/workflows/build-on-macos.yml/badge.svg?branch=main)](https://github.com/hikoworks/hikolang/actions/workflows/build-on-macos.yml)
+[![Version](https://img.shields.io/badge/dynamic/json?url=https://raw.githubusercontent.com/hikoworks/hikolang/main/vcpkg.json&label=Latest%20Version&query=$[%27version%27]&color=blue)](https://github.com/hikoworks/hikolang/releases/latest)
+[![License](https://img.shields.io/github/license/hikoworks/hikolang.svg)](https://github.com/hikoworks/hikolang/blob/main/LICENSE)
+[![Coverage](https://codecov.io/github/hikoworks/hikolang/graph/badge.svg?token=P95N8UFH1D)](https://codecov.io/github/hikoworks/hikolang)
 
  * Safe Integers
  * Unit System
