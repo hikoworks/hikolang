@@ -1,30 +1,12 @@
 
 module std.base_integers
 
-class long
-{
-    union {
-        ref? _ptr
-        var _value : __builtin_i64
-    }
-    var _size : __builtin_i32
-    var _capacity : __builtin_i32
+// array[T, N]
+// raw_ptr[T]
+//  .__get_index__(s, index)
+//  .__get_index__(s, index, type)
 
-    fn long(self := long)
-    {
-        self._value = 0
-        self._size = 0
-        self._capacity = 0
-    }
 
-    fn long(self := long, other : __builtin_int64)
-    {
-        self._value = other
-        self._size = 0
-        self._capacity = 0
-    }
-
-}
 
 class long_range
 {
@@ -40,7 +22,7 @@ class long_range
 
 class array[let value_type : type, let size : long]
 {
-
+    var[size] _data : value_type
 }
 
 fn __int_bit_width(self : long_range) -> __builtin_i64
@@ -90,7 +72,7 @@ class int[let range : long_range]
     let limb_type = __int_limb_type(range)
     let num_limbs = __int_num_libs(range)
 
-    var limbs : array[limb_type, num_limbs]
+    var[num_limbs] _limbs : limb_type
 }
 
 // Note: The compiler blesses a closed-range of two integer literals as a long_range.

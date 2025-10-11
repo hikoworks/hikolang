@@ -1,5 +1,5 @@
 
 program "psmain"
 
-import git "https://github.com/hikogui/hikolang-test-a.git" "main"
+import git "https://github.com/hikoworks/hikolang-test-a.git" "main"
 

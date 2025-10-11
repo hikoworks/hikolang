@@ -6,7 +6,7 @@
 TEST_SUITE(git_suite) {
 TEST_CASE(git_list)
 {
-    auto optional_list = hk::git_list("https://github.com/hikogui/hikolang-test-a.git");
+    auto optional_list = hk::git_list("https://github.com/hikoworks/hikolang-test-a.git");
     REQUIRE(static_cast<bool>(optional_list));
     auto list = std::move(optional_list).value();
     REQUIRE(not list.empty());
@@ -21,7 +21,7 @@ TEST_CASE(git_clone)
     using namespace std::literals;
 
     auto const tmp_dir = hk::scoped_temporary_directory("git_clone");
-    auto const git_url = "https://github.com/hikogui/hikolang-test-a.git"s;
+    auto const git_url = "https://github.com/hikoworks/hikolang-test-a.git"s;
     auto const git_rev = "main"s;
 
     auto const r = hk::git_clone(git_url, git_rev, tmp_dir.path());
@@ -33,7 +33,7 @@ TEST_CASE(git_clone_fail_wrong_url)
     using namespace std::literals;
 
     auto const tmp_dir = hk::scoped_temporary_directory("git_clone_fail_wrong_url");
-    auto const git_url = "https://github.com/hikogui/hikolang-test-none-existing.git"s;
+    auto const git_url = "https://github.com/hikoworks/hikolang-test-none-existing.git"s;
     auto const git_rev = "main"s;
 
     auto const r = hk::git_clone(git_url, git_rev, tmp_dir.path());
@@ -45,7 +45,7 @@ TEST_CASE(git_clone_fail_wrong_rev_name)
     using namespace std::literals;
 
     auto const tmp_dir = hk::scoped_temporary_directory("git_clone_fail_wrong_url");
-    auto const git_url = "https://github.com/hikogui/hikolang-test-a.git"s;
+    auto const git_url = "https://github.com/hikoworks/hikolang-test-a.git"s;
     auto const git_rev = "none_existing_name"s;
 
     auto const r = hk::git_clone(git_url, git_rev, tmp_dir.path());
@@ -60,7 +60,7 @@ TEST_CASE(git_clone_fail_wrong_rev_oid)
     using namespace std::literals;
 
     auto const tmp_dir = hk::scoped_temporary_directory("git_clone_fail_wrong_url");
-    auto const git_url = "https://github.com/hikogui/hikolang-test-a.git"s;
+    auto const git_url = "https://github.com/hikoworks/hikolang-test-a.git"s;
     auto const git_rev = "11111111111"s;
 
     auto const r = hk::git_clone(git_url, git_rev, tmp_dir.path());
@@ -75,7 +75,7 @@ TEST_CASE(git_fetch_and_update_tag)
     using namespace std::literals;
 
     auto const tmp_dir = hk::scoped_temporary_directory("git_fetch_and_update_tag");
-    auto const git_url = "https://github.com/hikogui/hikolang-test-a.git"s;
+    auto const git_url = "https://github.com/hikoworks/hikolang-test-a.git"s;
     auto const git_rev = "v1.0.0"s;
 
     // You can only directly clone a branch, specifying a tag will clone
@@ -92,7 +92,7 @@ TEST_CASE(git_fetch_and_update_commit)
     using namespace std::literals;
 
     auto const tmp_dir = hk::scoped_temporary_directory("git_fetch_and_update_commit");
-    auto const git_url = "https://github.com/hikogui/hikolang-test-a.git"s;
+    auto const git_url = "https://github.com/hikoworks/hikolang-test-a.git"s;
     auto const git_rev = "e5e6a25"s; // v1.0.0
 
     // You can only directly clone a branch, specifying a tag will clone
@@ -109,7 +109,7 @@ TEST_CASE(git_checkout_or_clone)
     using namespace std::literals;
 
     auto const tmp_dir = hk::scoped_temporary_directory("git_checkout_or_clone");
-    auto const git_url = "https://github.com/hikogui/hikolang-test-a.git"s;
+    auto const git_url = "https://github.com/hikoworks/hikolang-test-a.git"s;
     auto const git_rev1 = "v1.0.0"s;
     auto const git_rev2 = "v1.1.0"s;
 
@@ -145,7 +145,7 @@ TEST_CASE(git_checkout_or_clone_conflict)
     using namespace std::literals;
 
     auto const tmp_dir = hk::scoped_temporary_directory("git_checkout_or_clone_conflict");
-    auto const git_url = "https://github.com/hikogui/hikolang-test-a.git"s;
+    auto const git_url = "https://github.com/hikoworks/hikolang-test-a.git"s;
     auto const git_rev1 = "v1.0.0"s;
     auto const git_rev2 = "v1.1.0"s;
 

@@ -16,7 +16,7 @@ TEST_CASE(single_repository_scan)
 
     auto urls = std::ranges::to<std::vector>(repository.remote_repositories());
     REQUIRE(urls.size() == 1);
-    REQUIRE(urls[0].first.url() == "https://github.com/hikogui/hikolang-test-a.git");
+    REQUIRE(urls[0].first.url() == "https://github.com/hikoworks/hikolang-test-a.git");
     REQUIRE(urls[0].first.rev() == "main");
 }
 
@@ -30,8 +30,8 @@ TEST_CASE(recursive_repository_scan)
     repository.recursive_scan_prologues(hk::repository_flags{});
 
     REQUIRE(repository.child_repositories().size() == 2);
-    REQUIRE(repository.child_repositories()[0]->remote.url() == "https://github.com/hikogui/hikolang-test-a.git");
-    REQUIRE(repository.child_repositories()[1]->remote.url() == "https://github.com/hikogui/hikolang-test-b.git");
+    REQUIRE(repository.child_repositories()[0]->remote.url() == "https://github.com/hikoworks/hikolang-test-a.git");
+    REQUIRE(repository.child_repositories()[1]->remote.url() == "https://github.com/hikoworks/hikolang-test-b.git");
 }
 
 //TEST_CASE(parse_repository)

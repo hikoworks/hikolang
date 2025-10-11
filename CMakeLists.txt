@@ -20,7 +20,7 @@ endif()
 
 # Get the hikotest library for unit-testing if BUILD_TESTING is enabled.
 if(BUILD_TESTING)
-    FetchContent_Declare(hikotest GIT_REPOSITORY https://github.com/hikogui/hikotest.git GIT_TAG main)
+    FetchContent_Declare(hikotest GIT_REPOSITORY https://github.com/hikoworks/hikotest.git GIT_TAG main)
     FetchContent_MakeAvailable(hikotest)
 endif()
 
