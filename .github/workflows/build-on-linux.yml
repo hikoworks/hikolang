@@ -43,9 +43,11 @@ jobs:
 
       - name: Install vcpkg
         working-directory: vcpkg
-        run: |
-          ./bootstrap-vcpkg.sh
-          mkdir binary-sources
+        run: ./bootstrap-vcpkg.sh
+
+      - name: Create vcpkg cache
+        working-directory: vcpkg
+        run:  mkdir binary-sources
 
       - name: Restore vcpkg binary-cache
         id: restore-vcpkg-cache
