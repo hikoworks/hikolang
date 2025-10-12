@@ -29,7 +29,7 @@ jobs:
           submodules: recursive
 
       - name: Install development environment
-        run: brew install automake autoconf autoconf-archive
+        run: brew install automake autoconf autoconf-archive libtool
 
       - name: Get vcpkg commit id
         working-directory: vcpkg

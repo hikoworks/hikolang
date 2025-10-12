@@ -1,6 +1,47 @@
 
 module std.wide_arithmetic if endian == "little"
 
+fn wide_
+
+fn wide_copy(lhs : span[__builtin_limb], rhs : span[__builtin_limb])
+{
+    let size = __builtin_min(lhs.size(), rhs.size())
+
+    var tmp = 0 : __builtin_limb
+    for (; i != size; ++i) {
+        tmp = lhs[i] = rhs[i]
+    }
+
+    // Sign extend rhs.
+    tmp = __builtin_sra(tmp, sizeof(tmp) * 8 - 1)
+    for (; i < lhs.size(); ++i) {
+        lhs[i] = tmp
+    }
+
+    // Check overflow on truncation.
+    for (; i < rhs.size(); ++i) {
+        assert(rhs[i] == tmp)
+    }
+}
+
+fn wide_inplace_add(lhs : span[__builtin_limb], rhs : span[__builtin_limb])
+    pre(lhs.size() >= rhs.size())
+{
+    var c = 0 : __builtin_u1
+    var i = 0 : __builtin_u32
+    var tmp = 0 : __builtin_limb
+    for (; i != rhs.size(); ++i) {
+        tmp = rhs[i]
+        lhs[i], c = __builtin_add_carry(lhs[i], tmp, c)
+    }
+
+    // Sign extend rhs.
+    tmp = __builtin_sra(tmp, sizeof(tmp) * 8 - 1)
+    for (; i != lhs.size(); ++i) {
+        lhs[i], c = __builtin_add_carry(lhs[i], tmp, c)
+    }
+}
+
 /** Low level arbitrary wide integer add.
  *
  * @param lhs Left hand side of the add operator (sign extended)
