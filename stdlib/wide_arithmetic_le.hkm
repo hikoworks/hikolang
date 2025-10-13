@@ -3,17 +3,51 @@ module std.wide_arithmetic if endian == "little"
 
 fn wide_
 
+fn wide_bit_width(rhs : span[__builtin_limb]) -> __builtin_u64
+{
+    if (rhs.size() == 0) {
+        return 0
+    }
+
+    let sign = __builtin_sra(rhs[rhs.size() - 1], sizeof(__builtin_limb) * 8 - 1)
+
+    var i = rhs.size()
+    for (; i != 0; --i) {
+        var tmp = rhs[i - 1]
+        if (tmp != sign) {
+            if (sign != 0) {
+                tmp = __builtin_invert(tmp);
+            }
+
+            var num_bits = (i : __builtin_u64) * sizeof(__builtin_limb) * 8
+            return num_bits - __builtin_lcount_zero(tmp);
+        }
+    }
+
+    return 0
+}
+
+/** Make a copy of a signed integer.
+ *
+ * The lhs is sign extended
+ *
+ * @note It is UNDEFINED BEHAVIOUR to copy a integer that does not fit the
+ *       destination.
+ * @param lhs The destination
+ * @param rhs The source
+ */
 fn wide_copy(lhs : span[__builtin_limb], rhs : span[__builtin_limb])
 {
     let size = __builtin_min(lhs.size(), rhs.size())
 
     var tmp = 0 : __builtin_limb
+    var i = 0 : __builtin_u32
     for (; i != size; ++i) {
         tmp = lhs[i] = rhs[i]
     }
 
     // Sign extend rhs.
-    tmp = __builtin_sra(tmp, sizeof(tmp) * 8 - 1)
+    tmp = __builtin_sra(tmp, sizeof(__builtin_limb) * 8 - 1)
     for (; i < lhs.size(); ++i) {
         lhs[i] = tmp
     }
@@ -40,48 +74,5 @@ fn wide_inplace_add(lhs : span[__builtin_limb], rhs : span[__builtin_limb])
     for (; i != lhs.size(); ++i) {
         lhs[i], c = __builtin_add_carry(lhs[i], tmp, c)
     }
-}
-
-/** Low level arbitrary wide integer add.
- *
- * @param lhs Left hand side of the add operator (sign extended)
- * @param rhs Right hand side of the add operator (sign extended)
- * @param carry_in carry input
- * @param result The result of the add operator
- * @return carry_out carry output
- */
-fn wide_add(let lhs : span[__builtin_limb], let rhs: span[__builtin_limb], let carry_in: __builtin_u1, let result: span[__builtin_limb])
-    -> __builtin_u1
-    pre(lhs.size() <= result.size())
-    pre(rhs.size() <= result.size())
-    maybe_unused
-{
-    let min_size = min(lhs.size(), rhs.size());
-
-    var c = carry_in
-    var i = 0 : __builtin_u32
-    for (; i != min_size; ++i) {
-        result[i], c = __builtin_add_carry(lhs[i], rhs[i], c)
-    }
-
-    let lhs_extend = if (lhs.size() != 0) { __builtin_sra(lhs.back(), sizeof(T) * 8 - 1) } else { 0 : T }
-    let rhs_extend = if (rhs.size() != 0) { __builtin_sra(rhs.back(), sizeof(T) * 8 - 1) } else { 0 : T }
-
-    if (lhs.size() >= rhs.size()) {
-        for (; i != lhs.size(); ++i) {
-            result[i], c = __builtin_add_carry(lhs[i], rhs_extend, c)
-        }
-
-    } else {
-        for (; i != rhs.size(); ++i) {
-            result[i], c = __builtin_add_carry(lhs_extend, rhs[i], c)
-        }
-    }
-
-    for (; i != o.size(); ++i) {
-        result[i], c = __builtin_add_carry(lhs_extend, rhs_extend, c)
-    }
-
-    return c
 }
 
