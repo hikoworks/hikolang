@@ -1,0 +1,14 @@
+
+class raw_pointer[T : type] {
+    __builtin_pointer p
+
+    fn __index__(self : raw_pointer)
+    {
+        return __builtin_make(valuetypeof(self), T, p)
+    }
+
+    fn __index__(self : raw_pointer, i : __builtin_size)
+    {
+        return __builtin_make(valuetypeof(self), T, p + i * sizeof(T))
+    }
+}
