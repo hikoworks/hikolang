@@ -1,11 +1,18 @@
 
 module std.wide_arithmetic if endian == "little"
 
+/** Get the sign of a signed wide integer.
+ *
+ * @param a A pointer to the signed wide integer
+ * @param a_size The number of limbs in @a a.
+ * @return A limb with all bits set to '0' when positive and all bits set
+ *         to '1' when negative.
+ */
 fn wide_sign(
     let a : raw_ptr[__builtin_limb],
     let a_size : __builtin_size) -> __builtin_limb
 {
-    return __builtin_sra(rhs[size - 1], sizeof(__builtin_limb) * 8 - 1)
+    return __builtin_sra(a[a_size - 1], sizeof(__builtin_limb) * 8 - 1)
 }
 
 /** Count significant bits of an wide integer
@@ -24,7 +31,7 @@ fn wide_bit_width(
         let sign = wide_sign(a, a_size)
 
         for (var i = a_size; i != 0; --i) {
-            let tmp = rhs[i - 1]
+            let tmp = a[i - 1]
             if (tmp != sign) {
                 let num_bits = i * sizeof(__builtin_limb) * 8
                 return num_bits - __builtin_lcount_zero(tmp ^ sign)
@@ -42,7 +49,7 @@ fn wide_bit_width(
  * @param r Destination for the copied integer.
  * @param r_size The number of limbs of the destination.
  */
-fn wide_zero(
+fn wide_make_zero(
     let r : raw_ptr[__builtin_limb],
     let r_size : __builtin_size)
 {
@@ -69,16 +76,18 @@ fn wide_copy(
     let src_sign = wide_sign(srd, src_size)
 
     var i = 0 : __builtin_size
-    for (; i != __builtin_min(src_size, dst_size); ++i) {
+    while (i != __builtin_min(src_size, dst_size)) {
         dst[i] = src[i]
+        ++i
     }
 
-    for (; i < dst_size; ++i) {
+    while (i != dst_size) {
         dst[i] = src_sign
+        ++i
     }
 }
 
-/** NOT a signed wide integers.
+/** Invert a signed wide integers.
  *
  * @note If @a a_size is less than @a r_size, @a a will be sign extended.
  * @note If @a a_size or @a b_size is smaller than @a r_size, then @a a or @a b will be truncated.
@@ -87,7 +96,7 @@ fn wide_copy(
  * @param a The left hand side
  * @param a_size Size of @a a.
  */
-fn wide_not(
+fn wide_inv(
     let r : raw_ptr[__builtin_limb],
     let r_size : __builtin_size,
     let a : raw_ptr[__builtin_limb],
@@ -96,12 +105,14 @@ fn wide_not(
     let a_sign = wide_sign(a, a_size)
 
     var i = 0 : __builtin_size
-    for (; i != __builtin_min(r_size, a_size); ++i) {
+    while (i != __builtin_min(r_size, a_size)) {
         r[i] = ~a[i]
+        ++i
     }
 
-    for (; i < r_size; ++i) {
+    while (i != r_size) {
         r[i] = ~a_sign
+        ++i
     }
 }
 
@@ -124,12 +135,14 @@ fn wide_neg(
 
     var c = 1 : __builtin_u1
     var i = 0 : __builtin_size
-    for (; i != __builtin_min(r_size, a_size); ++i) {
+    while (i != __builtin_min(r_size, a_size)) {
         r[i], c = __builtin_add_carry(~a[i], 0, c)
+        ++i
     }
 
-    for (; i < r_size; ++i) {
+    while (i != r_size) {
         r[i], c = __builtin_add_carry(~a_sign, 0, c)
+        ++i
     }
 }
 
@@ -157,20 +170,25 @@ fn wide_and(
     let b_sign = wide_sign(b, b_size)
 
     var i = 0 : __builtin_size
-    for (; i != __builtin_min(r_size, a_size, b_size); ++i) {
+    while (i != __builtin_min(r_size, a_size, b_size)) {
         r[i] = a[i] & b[i]
+        ++i
     }
 
-    for (; i < __builtin_min(r_size, b_size); ++i) {
+    while (i != __builtin_min(r_size, b_size)) {
         r[i] = a_sign & b[i]
+        ++i
     }
 
-    for (; i < __builtin_min(r_size, a_size); ++i) {
+    // less-than check because b might be larger than a.
+    while (i < __builtin_min(r_size, a_size)) {
         r[i] = a[i] & b_sign
+        ++i
     }
 
-    for (; i < r_size; ++i) {
+    while (i != r_size) {
         r[i] = a_sign & b_sign
+        ++i
     }
 }
 
@@ -198,20 +216,25 @@ fn wide_or(
     let b_sign = wide_sign(b, b_size)
 
     var i = 0 : __builtin_size
-    for (; i != __builtin_min(r_size, a_size, b_size); ++i) {
+    while (i != __builtin_min(r_size, a_size, b_size)) {
         r[i] = a[i] | b[i]
+        ++i
     }
 
-    for (; i < __builtin_min(r_size, b_size); ++i) {
+    while (i != __builtin_min(r_size, b_size)) {
         r[i] = a_sign | b[i]
+        ++i
     }
 
-    for (; i < __builtin_min(r_size, a_size); ++i) {
+    // less-than check because b might be larger than a.
+    while (i < __builtin_min(r_size, a_size)) {
         r[i] = a[i] | b_sign
+        ++i
     }
 
-    for (; i < r_size; ++i) {
+    while (i != r_size) {
         r[i] = a_sign | b_sign
+        ++i
     }
 }
 
@@ -239,33 +262,62 @@ fn wide_xor(
     let b_sign = wide_sign(b, b_size)
 
     var i = 0 : __builtin_size
-    for (; i != __builtin_min(r_size, a_size, b_size); ++i) {
+    while (i != __builtin_min(r_size, a_size, b_size)) {
         r[i] = a[i] ^ b[i]
+        ++i
     }
 
-    for (; i < __builtin_min(r_size, b_size); ++i) {
+    while (i != __builtin_min(r_size, b_size)) {
         r[i] = a_sign ^ b[i]
+        ++i
     }
 
-    for (; i < __builtin_min(r_size, a_size); ++i) {
+    // less-than check because b might be larger than a.
+    while (i < __builtin_min(r_size, a_size)) {
         r[i] = a[i] ^ b_sign
+        ++i
     }
 
-    for (; i < r_size; ++i) {
+    while (i != r_size) {
         r[i] = a_sign ^ b_sign
+        ++i
     }
+
 }
 
 
-
-fn wide_sll(
-    let r : raw_ptr[__builtin_limb],
-    let r_size : __builtin_size,
+/** Inplace SLL (Shift Left Logical) a wide integer
+ *
+ * @param a Integer to shift
+ * @param a_size Number of limbs of @a a
+ * @param b Number of bits to shift
+ */
+fn wide_inplace_sll(
     let a : raw_ptr[__builtin_limb],
     let a_size : __builtin_size,
-    let b : __builting_size)
+    let b : __builtin_size)
 {
+    let limb_width = sizeof(__builtin_limb) * 8
+    let num_limbs_to_shift = b / limb_width
+    let num_bits_to_shift = b % limb_width
 
+    var i = a_size
+    while (i > num_limbs_to_shift + 1) {
+        let hi = a[i - 1 - num_limbs_to_shift] << num_bits_to_shift
+        let lo = a[i - 2 - num_limbs_to_shift] >> (limb_width - num_bits_to_shift)
+        a[i - 1] = hi | lo
+        --i
+    }
+
+    if (i > num_limbs_to_shift) {
+        a[i - 1] = a[i - 1 - num_limbs_to_shift] << num_bits_to_shift
+        --i
+    }
+
+    while (i != 0) {
+        a[i - 1] = 0
+        --i
+    }
 }
 
 /** Add two signed wide integers together.
@@ -295,20 +347,25 @@ fn wide_add(
     let b_sign = wide_sign(b, b_size)
 
     var i = 0 : __builtin_size
-    for (; i != __builtin_min(r_size, a_size, b_size); ++i) {
+    while (i != __builtin_min(r_size, a_size, b_size)) {
         r[i], c = __builtin_add_carry(a[i], b[i], c)
+        ++i
     }
 
-    for (; i < __builtin_min(r_size, b_size); ++i) {
+    while (i != __builtin_min(r_size, b_size)) {
         r[i], c = __builtin_add_carry(a_sign, b[i], c)
+        ++i
     }
 
-    for (; i < __builtin_min(r_size, a_size); ++i) {
+    // less-than check because b might be larger than a.
+    while (i < __builtin_min(r_size, a_size)) {
         r[i], c = __builtin_add_carry(a[i], b_sign, c)
+        ++i
     }
 
-    for (; i < r_size; ++i) {
+    while (i != r_size) {
         r[i], c = __builtin_add_carry(a_sign, b_sign, c)
+        ++i
     }
 }
 
@@ -338,20 +395,25 @@ fn wide_sub(
     let b_sign = wide_sign(b, b_size)
 
     var i = 0 : __builtin_size
-    for (; i != __builtin_min(r_size, a_size, b_size); ++i) {
+    while (i != __builtin_min(r_size, a_size, b_size)) {
         r[i], c = __builtin_sub_carry(a[i], b[i], c)
+        ++i
     }
 
-    for (; i < __builtin_min(r_size, b_size); ++i) {
+    while (i != __builtin_min(r_size, b_size)) {
         r[i], c = __builtin_sub_carry(a_sign, b[i], c)
+        ++i
     }
 
-    for (; i < __builtin_min(r_size, a_size); ++i) {
+    // less-than check because b might be larger than a.
+    while (i < __builtin_min(r_size, a_size)) {
         r[i], c = __builtin_sub_carry(a[i], b_sign, c)
+        ++i
     }
 
-    for (; i < r_size; ++i) {
+    while (i != r_size) {
         r[i], c = __builtin_sub_carry(a_sign, b_sign, c)
+        ++i
     }
 }
 
@@ -409,10 +471,11 @@ fn wide_cmp(
         }
     }
 
-    for (; != 0; --i) {
+    while (i != 0) {
         if (let r = wide_cmp_limb(a[i - 1], b[i - 1], sign); r != 0) {
             return r
         }
+        --i
     }
 
     return 0
@@ -450,7 +513,9 @@ fn wide_mul(
             ++r_i
         }
 
-        // Carry chain the rest of the accumulator.
+        // Carry chain one further into the accumulator.
+        // Since the limbs in the accumulator register has not gone this far
+        // we do not need to ripple carry.
         if (r_i < r_size) {
             r[r_i] = mul_carry
         }
@@ -461,3 +526,91 @@ fn wide_mul(
     }
 }
 
+fn wide_div_zero(
+    let rd : raw_ptr[__builtin_limb],
+    let rd_size : __builtin_size,
+    let rm : raw_ptr[__builtin_limb],
+    let rm_size : __builtin_size,
+    var b : raw_ptr[__builtin_limb],
+    var b_size : __builtin_size)
+{
+    if (wide_is_zero(b, b_size)) {
+        return 1
+    }
+
+    for (var i = 0 : __builtin_size; i != rd_size; ++i) {
+        rd[0] = 0
+    }
+    for (var i = 0 : __builtin_size; i != rm_size; ++i) {
+        rm[0] = 0
+    }
+
+    return 0
+}
+
+fn wide_div_fast(
+    let rd : raw_ptr[__builtin_limb],
+    let rd_size : __builtin_size,
+    let rm : raw_ptr[__builtin_limb],
+    let rm_size : __builtin_size,
+    var a : raw_ptr[__builtin_limb],
+    var a_size : __builtin_size,
+    var b : raw_ptr[__builtin_limb],
+    var b_size : __builtin_size)
+    -> __builtin_u1
+{
+    if (b[0] == 0) {
+        return 1;
+    }
+    rd[0], rm[0] = __builtin_idivmod(a[0], b[0])
+
+    let rd_sign = __builtin_sra(rd[0], sizeof(__builtin_limb) * 8 - 1)
+    for (var i = 1 : __builtin_size; i != rd_size; ++i) {
+        rd[i] = rd_sign
+    }
+
+    let rm_sign = __builtin_sra(rm[0], sizeof(__builtin_limb) * 8 - 1)
+    for (var i = 1 : __builtin_size; i != rm_size; ++i) {
+        rd[i] = rm_sign
+    }
+
+    return 0
+}
+
+fn wide_div_slow(
+    let rd : raw_ptr[__builtin_limb],
+    let rd_size : __builtin_size,
+    let rm : raw_ptr[__builtin_limb],
+    let rm_size : __builtin_size,
+    var a : raw_ptr[__builtin_limb],
+    var a_size : __builtin_size,
+    var b : raw_ptr[__builtin_limb],
+    var b_size : __builtin_size)
+    -> __builtin_u1
+{
+}
+
+fn wide_div(
+    let rd : raw_ptr[__builtin_limb],
+    let rd_size : __builtin_size,
+    let rm : raw_ptr[__builtin_limb],
+    let rm_size : __builtin_size,
+    var a : raw_ptr[__builtin_limb],
+    var a_size : __builtin_size,
+    var b : raw_ptr[__builtin_limb],
+    var b_size : __builtin_size)
+    -> __builtin_u1
+{
+    if (b_size == 0) {
+        return 1
+
+    } else if (a_size == 0) {
+        return wide_div_zero(rd, rd_size, rm, rm_size, b, b_size)
+
+    } else if (b_size == 1 and a_size == 1) {
+        return wide_div_fast(rd, rd_size, rm, rm_size, a, a_size, b, b_size)
+
+    } else {
+        return wide_div_slow(rd, rd_size, rm, rm_size, a, a_size, b, b_size)
+    }
+}
