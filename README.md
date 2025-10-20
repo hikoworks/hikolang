@@ -104,6 +104,25 @@ repositories.
 Directory structure within a repository is free-form; the compilation
 order is determined after scanning the prologue of each module (a file).
 
+## Compile-time allocations survive into runtime.
+Since a lot of code will be executed at compile-time it is likely that
+a lot of allocations will be executed. Especially since `int` type contains
+two `long` values for the range which may allocate. And all `int` literals
+are a `string`.
+
+So allocations during compilation must survive into the executable.
+
+ * Surviving allocation are compressed in a read-write `.alloc` section
+ * A automatic generated/manual `__pointer_discovery__()` method is used to
+   find all the pointers in the program.
+ * If an object has encoded/tagged pointers you can add a `__pointer_relocate()`
+   method.
+ * In case the read-write .section is relocated:
+    - The linker will rewrite the pointers, and
+    - `__pointer_relocate__()` will be called.
+ * The read-write `.alloc` section is part of the normal allocation,
+   allowing deallocation and reusing.
+
 ## Elaboration Phase
 Certain languages have a separate elaboration phase during compilation.
 

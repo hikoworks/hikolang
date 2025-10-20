@@ -15,6 +15,39 @@ fn wide_sign(
     return __builtin_sra(a[a_size - 1], sizeof(__builtin_limb) * 8 - 1)
 }
 
+fn wide_get_bit(
+    let a : raw_ptr[__builtin_limb],
+    let a_size : __builtin_size,
+    let i : __builtin_size) -> __builtin_u1
+{
+    let limb_width = sizeof(__builtin_limb) * 8
+    let limb_index = i / limb_width
+    let bit_index = i % limb_width
+
+    assert(limb_index < a_size, out_of_bound)
+    return (a[limb_index] >> bit_index) & 1
+}
+
+fn wide_set_bit(
+    let a : raw_ptr[__builtin_limb],
+    let a_size : __builtin_size,
+    let i : __builtin_size,
+    let value : __builtin_u1)
+{
+    let limb_width = sizeof(__builtin_limb) * 8
+    let limb_index = i / limb_width
+    let bit_index = i % limb_width
+
+    let pattern = (value : __builtin_limb) << bit_index
+    let mask = ~((1 : __builtin_limb) << bit_index)
+
+    assert(limb_index < a_size, out_of_bound)
+    var tmp = a[limb_index]
+    tmp &= mask
+    tmp |= pattern
+    a[limb_index] = tmp
+}
+
 /** Count significant bits of an wide integer
  *
  * This counts the number of significant bits, exclusive sign bit.
@@ -303,14 +336,14 @@ fn wide_inplace_sll(
 
     var i = a_size
     while (i > num_limbs_to_shift + 1) {
-        let hi = a[i - 1 - num_limbs_to_shift] << num_bits_to_shift
-        let lo = a[i - 2 - num_limbs_to_shift] >> (limb_width - num_bits_to_shift)
+        let hi = a[i - num_limbs_to_shift - 1] << num_bits_to_shift
+        let lo = a[i - num_limbs_to_shift - 2] >> (limb_width - num_bits_to_shift)
         a[i - 1] = hi | lo
         --i
     }
 
     if (i > num_limbs_to_shift) {
-        a[i - 1] = a[i - 1 - num_limbs_to_shift] << num_bits_to_shift
+        a[i - 1] = a[i - num_limbs_to_shift - 1] << num_bits_to_shift
         --i
     }
 
@@ -318,6 +351,104 @@ fn wide_inplace_sll(
         a[i - 1] = 0
         --i
     }
+}
+
+/** Inplace SRL (Shift Right Logical) a wide integer
+ *
+ * @param a Integer to shift
+ * @param a_size Number of limbs of @a a
+ * @param b Number of bits to shift
+ */
+fn wide_inplace_srl(
+    let a : raw_ptr[__builtin_limb],
+    let a_size : __builtin_size,
+    let b : __builtin_size)
+{
+    let limb_width = sizeof(__builtin_limb) * 8
+    let num_limbs_to_shift = b / limb_width
+    let num_bits_to_shift = b % limb_width
+
+    var i = 0 : __builtin_size
+    while (i < a_size - num_limbs_to_shift - 1) {
+        let lo = a[i + num_limbs_to_shift] >> num_bits_to_shift
+        let hi = a[i + num_limbs_to_shift + 1] << (limb_width - num_bits_to_shift)
+        a[i] = hi | lo
+        ++i
+    }
+
+    if (i < a_size - num_limbs_to_shift) {
+        a[i] = a[i + num_limbs_to_shift] >> num_bits_to_shift
+        ++i
+    }
+
+    while (i != a_size) {
+        a[i] = 0
+        ++i
+    }
+}
+
+/** Inplace SRA (Shift Right Arithmatic) a wide integer
+ *
+ * @param a Integer to shift
+ * @param a_size Number of limbs of @a a
+ * @param b Number of bits to shift
+ */
+fn wide_inplace_sra(
+    let a : raw_ptr[__builtin_limb],
+    let a_size : __builtin_size,
+    let b : __builtin_size)
+{
+    let sign = wide_sign(a, a_size)
+    let limb_width = sizeof(__builtin_limb) * 8
+    let num_limbs_to_shift = b / limb_width
+    let num_bits_to_shift = b % limb_width
+
+    var i = 0 : __builtin_size
+    while (i < a_size - num_limbs_to_shift - 1) {
+        let lo = a[i + num_limbs_to_shift] >> num_bits_to_shift
+        let hi = a[i + num_limbs_to_shift + 1] << (limb_width - num_bits_to_shift)
+        a[i] = hi | lo
+        ++i
+    }
+
+    if (i < a_size - num_limbs_to_shift) {
+        let lo = a[i + num_limbs_to_shift] >> num_bits_to_shift
+        let hi = sign << (limb_width - num_bits_to_shift)
+        a[i] = hi | lo
+        ++i
+    }
+
+    while (i != a_size) {
+        a[i] = sign
+        ++i
+    }
+}
+
+/** Inplace SLL (Shift Left Logical) a wide integer by 1.
+ *
+ * @param a Integer to shift
+ * @param a_size Number of limbs of @a a
+ * @param c Bit to append as the least significant bit
+ */
+fn wide_inplace_sll_one(
+    let a : raw_ptr[__builtin_limb],
+    let a_size : __builtin_size,
+    let c : __builtin_u1 = 0)
+    pre(a_size != 0)
+{
+    let limb_width = sizeof(__builtin_limb) * 8
+    let num_bits_to_shift = b % limb_width
+
+    var i = a_size
+    while (i > 1) {
+        let hi = a[i - num_limbs_to_shift - 1] << 1
+        let lo = a[i - num_limbs_to_shift - 2] >> (limb_width - 1)
+        a[i - 1] = hi | lo
+        --i
+    }
+
+    let hi = a[i - num_limbs_to_shift - 1] << 1
+    a[i - 1] = hi | c
 }
 
 /** Add two signed wide integers together.
@@ -534,18 +665,12 @@ fn wide_div_zero(
     var b : raw_ptr[__builtin_limb],
     var b_size : __builtin_size)
 {
-    if (wide_is_zero(b, b_size)) {
-        return 1
-    }
-
     for (var i = 0 : __builtin_size; i != rd_size; ++i) {
         rd[0] = 0
     }
     for (var i = 0 : __builtin_size; i != rm_size; ++i) {
         rm[0] = 0
     }
-
-    return 0
 }
 
 fn wide_div_fast(
@@ -557,11 +682,7 @@ fn wide_div_fast(
     var a_size : __builtin_size,
     var b : raw_ptr[__builtin_limb],
     var b_size : __builtin_size)
-    -> __builtin_u1
 {
-    if (b[0] == 0) {
-        return 1;
-    }
     rd[0], rm[0] = __builtin_idivmod(a[0], b[0])
 
     let rd_sign = __builtin_sra(rd[0], sizeof(__builtin_limb) * 8 - 1)
@@ -573,8 +694,6 @@ fn wide_div_fast(
     for (var i = 1 : __builtin_size; i != rm_size; ++i) {
         rd[i] = rm_sign
     }
-
-    return 0
 }
 
 fn wide_div_slow(
@@ -586,8 +705,40 @@ fn wide_div_slow(
     var a_size : __builtin_size,
     var b : raw_ptr[__builtin_limb],
     var b_size : __builtin_size)
-    -> __builtin_u1
 {
+    let limb_width = sizeof(__builtin_limb) * 8
+    let a_sign = wide_sign(a, a_size)
+    let b_sign = wide_sign(b, b_size)
+
+    wide_make_zero(rd, rd_size)
+    wide_make_zero(rm, rm_size)
+
+    if (a_sign) {
+        wide_neg(a, a_size)
+    }
+    if (b_sign) {
+        wide_neg(b, b_size)
+    }
+
+    for (var i = a_size * limb_width; i != 0; --i) {
+        let bit = wide_get_bit(a, a_size, i - 1)
+        wide_inplace_sll_one(rm, rm_size, bit)
+
+        if (wide_cmp(rm, rm_size, b, b_size) >= 0) {
+            wide_sub(rm, rm_size, rm, rm_size, b, b_size)
+            wide_set_bit(rd, rd_size, i - 1, 1)
+        }
+    }
+
+    if (a_sign != b_sign) {
+        wide_neg(rd, rd_size)
+    }
+    if (a_sign) {
+        wide_neg(a, a_size)
+    }
+    if (b_sign) {
+        wide_neg(b, b_size)
+    }
 }
 
 fn wide_div(
@@ -601,16 +752,16 @@ fn wide_div(
     var b_size : __builtin_size)
     -> __builtin_u1
 {
-    if (b_size == 0) {
+    if (wide_is_zero(b, b_size)) {
         return 1
-
-    } else if (a_size == 0) {
-        return wide_div_zero(rd, rd_size, rm, rm_size, b, b_size)
-
-    } else if (b_size == 1 and a_size == 1) {
-        return wide_div_fast(rd, rd_size, rm, rm_size, a, a_size, b, b_size)
-
-    } else {
-        return wide_div_slow(rd, rd_size, rm, rm_size, a, a_size, b, b_size)
     }
+    
+    if (wide_is_zero(a, a_size)) {
+        wide_div_zero(rd, rd_size, rm, rm_size, b, b_size)
+    } else if (b_size == 1 and a_size == 1) {
+        wide_div_fast(rd, rd_size, rm, rm_size, a, a_size, b, b_size)
+    } else {
+        wide_div_slow(rd, rd_size, rm, rm_size, a, a_size, b, b_size)
+    }
+    return 0
 }

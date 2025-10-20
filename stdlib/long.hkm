@@ -1,23 +1,31 @@
-class long
-{
-    let limb_type = __builtin_u64
-    let limb_size = limb_type.num_bits()
 
+module std.long
+import std.wide_arithmetic
+
+pub class long
+{
     union {
-        var _ptr : raw_ptr[limb_type]
-        var _value : limb_type
+        var _ptr : raw_pointer[__builtin_limb]
+        var _value : __builtin_limb
     }
     var _capacity : __builtin_u32
     var _size : __builtin_u32
 
-    pub fn long(self := long)
+    pub fn __deinit__(self := long)
+    {
+        if (_capacity) {
+            deallocate(self._ptr, self._capacity)
+        }
+    }
+
+    pub fn __init__(self := long)
     {
         self._value = 0
         self._capacity = 0
         self._size = 0
     }
 
-    pub fn long(self := long, other : __builtin_i64)
+    pub fn __init__(self := long, other : __builtin_i64)
     {
         self._value = other
         self._capacity = 0
@@ -28,27 +36,9 @@ class long
         }
     }
 
-    fn limb(self := long, index : __builtin_u32) -> ref limb_type
+    pub fn __add__(self := long, other : long)
     {
-        assert(index == 0, out_of_bound)
-
-        if (_capacity == 0) {
-            return _value
-        } else {
-            return _ptr[index]
-        }
-    }
-
-    fn bit_width(self := long) -> __builtin_u64
-    {
-        for (var i = self._size; i != 0; --i) {
-            let l = bit_width(self.limb(i - 1))
-            if (l != 0) {
-                return (i - 1) * self.limb_size + l
-            }
-        }
-
-        return 0
+        
     }
 }
 
