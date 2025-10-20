@@ -1,0 +1,19 @@
+
+class raw_ptr[T : type] {
+    __builtin_pointer p
+
+    fn __index__(self := raw_ptr)
+    {
+        return __builtin_dereference(valuetypeof(self), T, p)
+    }
+
+    fn __index__(self := raw_ptr, i : __builtin_size)
+    {
+        return __builtin_dereference(valuetypeof(self), T, p + i * sizeof(T))
+    }
+
+    fn __dereference__(self := raw_ptr)
+    {
+        return __builtin_dereference(valuetypeof(self), T, p)        
+    }
+}

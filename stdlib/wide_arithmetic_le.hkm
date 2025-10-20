@@ -75,6 +75,18 @@ fn wide_bit_width(
     return 0
 }
 
+fn wide_is_zero(
+    let a : raw_ptr[__builtin_limb],
+    let a_size : __builtin_size) -> __builtin_u1
+{
+    for (var i = 0 : __builtin_size; i != a_size; ++i) {
+        if (a[i] != 0) {
+            return 0
+        }
+    }
+    return 1
+}
+
 /** Make a signed integer zero.
  *
  * @note The number will be truncated if the dst is smaller than src.
