@@ -8,10 +8,28 @@ class allocation {
 }
 
 trait allocator {
+    /** Allocate bytes.
+     *
+     * @param size The minimum number of bytes to reserve.
+     * @return A allocation object with the pointer and the size that was
+     *         allocated.
+     */
     fn allocate(size : __builtin_size) -> allocation
 
+    /** Deallocate an allocation.
+     *
+     * @param object The allocation object.
+     */
     fn deallocate(object : allocation)
 
+    /** Deallocate an allocation.
+     *
+     * @param ptr The pointer to the start of the allocation.
+     * @param size The size of the allocation, should be between the requested
+     *             size and the actual size. This argument is used in a hint
+     *             to quickly find the allocation to remove. If size is zero,
+     *             the deallocation will be slow.
+     */
     fn deallocate(ptr : __builtin_pointer, size : __builtin_size)
     {
         return deallocate(allocation(ptr, size))

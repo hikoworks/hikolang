@@ -13,16 +13,23 @@ A module has a fully qualified unique name, the fully qualified names form a
 tree structure. The module tree structure does not have to follow the on-disk
 directory structure.
 
+Each module will automatically open the namespace with the name of the
+anchor-module, i.e. the ancestor module with a version number.
+
 
 ### Version (optional)
 
-If a version number is given, then all sub-modules within the same repository
-will get the same version.
+Every sub-module must have an ancestor module with a version number. A module
+with a version number is called an anchor-module. In each repository there may
+be zero or more anchor-modules.
 
-When a module has a version number, then the module of the same name may appear
-in two different repositories. Only the module with the highest version will be
-compiled. If there are two modules with an equal highest version, then the module
-with the repository-directory that alphabetically first is selected.
+A anchor-module with the same name may appear in multiple repositories the
+anchor-module with the largest version number will be selected when imported, if
+there are two modules with an equal highest version, then the module with the
+repository-directory that is alphabetically first is selected.
+
+If the module is part of the compiler's include-path, such as `std`, then the
+version number is treated as-if it is higher than any other.
 
 
 ### Compile condition (optional)

@@ -3,7 +3,6 @@
 ## Syntax
 
 `import` [_fully_qualified_name_](fully_qualified_name.md)
-    __(__ `in` __(__ [_fully_qualified_name_](fully_qualified_name.md) __|__ `*` __))?__
     [_compile_condition_](compile_condition.md)__?__ `;`
 
 
@@ -23,18 +22,6 @@ current repository.
 
 When you import a module all sub-modules are imported as well; accessible
 through the sub-names. This holds when the module is renamed with `in`.
-
-
-### In (optional)
-
-The optional `in` clause allows the module to be made available under
-a different name:
- - relative to the current module,
- - if prefixed with `.` then it is an absolute named-module,
- - if `*` then all symbols are imported into the current module.
-
-If there are no conflicts you may import multiple modules `in` the same module.
-
 
 ### Compile condition (optional)
 

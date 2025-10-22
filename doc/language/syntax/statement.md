@@ -3,6 +3,12 @@
 ## Syntax
 
 [_expression_](expression.md) `;` __|__
+[_namespace_](namespace.md) __|__
+[_class_](class.md) __|__
+[_enum_](enum.md) __|__
+[_trait_](trait.md) __|__
+[_union_](union.md) __|__
+[_function_](function.md) __|__
 [_return_](return.md) __|__
 [_result_](result.md) __|__
 [_yield_](yield.md) __|__

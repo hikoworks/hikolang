@@ -65,11 +65,11 @@ syntax unit V = kg m² s⁻³ A⁻¹
  */
 syntax unit F = kg⁻¹ m² s⁴ A⁻¹
 
-/** Electrical Reistance
+/** Electrical Resistance
  */
 syntax unit ohm = kg m² s⁻³ A⁻²
 
-/** Electrical conductance
+/** Electrical Conductance
  */
 syntax unit S = kg⁻¹ m⁻² s³ A²
 
@@ -97,7 +97,7 @@ syntax unit lm = cd sr
  */
 syntax unit lx = cd sr m⁻²
 
-/** Avtivity referred to a radionuclide
+/** Activity referred to a radionuclide
  */
 syntax unit Bq = s⁻¹
 
