@@ -7,28 +7,39 @@ class allocation {
     var size : __builtin_size
 }
 
-class allocator {
-    fn __init__() {}
-
-    fn __deinit__() virtual {}
-
-    fn allocate(size : __builtin_size)
-        -> allocation
-        virtual
-    {
-    }
+trait allocator {
+    fn allocate(size : __builtin_size) -> allocation
 
     fn deallocate(object : allocation)
-        virtual
-    {
-    }
 
     fn deallocate(ptr : __builtin_pointer, size : __builtin_size)
-        virtual
     {
         return deallocate(allocation(ptr, size))
     }
+}
 
+class default_allocator : allocator {
+    var _vtable : __builtin_vtable
 
+    fn __init__() {}
 
+    fn __deinit__() {}
+
+    fn allocate(size : __builtin_size) -> allocation
+    {
+        if (std.compile_condition.compiling) {
+            return __builtin_tracking_allocate(size)
+        } else {
+            trap not_implemented
+        }
+    }
+
+    fn deallocate(alloc : allocation)
+    {
+        if (std.compile_condition.compiling) {
+            return __builtin_tracking_deallocate(alloc)
+        } else {
+            trap not_implemented
+        }
+    }
 }
