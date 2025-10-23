@@ -1,0 +1,47 @@
+
+module std.bitmap_allocator
+import allocator
+
+// There are bitmap allocators for the following sizes:
+// 8, 16, 24, 32, 40, 48, 56, 64.
+//
+// A segment is at least 256 kbyte, the segments are allocated using
+// the mmap allocator. The segment itself can be carved into smaller
+// segments.
+//
+// The first segment would contain a:
+//  - 64 kbyte: main directory
+//  - 32 kbyte: 8 byte segment
+//  - 64 kbyte: 16 byte segment
+//  - 96 kbyte: 24 byte segment
+//
+//  | object size | segment size | stride size | # strides | # objects |
+//  | -----------:| ------------:| -----------:| ---------:| ---------:|
+//  |           8 |          k |         512 |        64 |        63 |
+//  |          16 |          64k |        1024 |        64 |        63 |
+//
+
+// A page for 8 byte objects is 32kbyte:
+//  - 64 strides
+//  - Each stride is 512 bytes
+//    -  1x 64 bit bitmap
+//    - 63x 8 byte objects
+//
+// A page for 16 byte objects is 64kbyte:
+//  - 64 strides
+//  - Each stride is
+
+private class bitmap_allocator_stride[object_size : __builtin_size] {
+    var bitmap : atomic[__builtin_u64]
+    var object : array[__builtin_u8, object_size * 64]
+}
+
+private class bitmap_allocator_page[object_size : __builtin_size] {
+    var bitmap : atomic[__builtin_u64]
+    var strides : array[bitmap_allocator_stride[object_size], 64]
+}
+
+class bitmap_allocator : allocator {
+
+}
+
