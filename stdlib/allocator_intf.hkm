@@ -1,0 +1,62 @@
+
+
+module std.allocator_intf
+import raw_ptr
+
+interface allocator_intf {
+    class allocate_r {
+        var ptr : __builtin_pointer
+        var size : __builtin_size
+    }
+
+    /** Allocate bytes.
+     *
+     * @param size The minimum number of bytes to reserve.
+     * @return A allocation object with the pointer and the size that was
+     *         allocated.
+     */
+    fn allocate(size : __builtin_size) -> allocate_r
+
+    /** Allocate object.
+     *
+     * @param T type of the object.
+     * @return A pointer to an non-constructed object.
+     */
+    fn allocate(T : type) -> raw_prt[T]
+    {
+        var a = allocate(sizeof(T))
+        return raw_ptr(a)
+    }
+
+    /** Allocate object.
+     *
+     * @param T type of the object.
+     * @return A pointer to an non-constructed object.
+     */
+    fn allocate(T : type) -> span[T]
+    {
+        var a = allocate(sizeof(T) * size)
+        return span(a.ptr, a.size / sizeof(T))
+    }
+
+    /** Deallocate an allocation.
+     *
+     * @param ptr The pointer to the start of the allocation.
+     * @param size The size of the allocation, should be between the requested
+     *             size and the actual size. This argument is used in a hint
+     *             to quickly find the allocation to remove. If size is zero,
+     *             the deallocation will be slow.
+     */
+    fn deallocate(ptr : __builtin_pointer, size : __builtin_size)
+
+    fn deallocate(ptr : raw_ptr)
+    {
+        return deallocate(ptr.raw(), sizeof(ptr.value_type))
+    }
+
+    fn deallocate(s : span)
+    {
+        return deallocate(s.data().raw(), sizeof(s.value_type) * s.size())
+    }
+}
+

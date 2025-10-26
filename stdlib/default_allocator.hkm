@@ -1,0 +1,36 @@
+
+module std.default_allocator
+import allocator_intf
+
+class default_allocator : allocator_intf {
+    var _vtable : __builtin_vtable
+
+    fn __init__() {}
+
+    fn __deinit__() {}
+
+    fn allocate(size : __builtin_size) -> allocator_intf::allocate_r
+    {
+        var r = allocator_intf::allocate_r()
+        r.size = size
+
+        if (std.ccondition.compiling) {
+            r.ptr = __builtin_tracking_malloc(size)
+        } else {
+            r.ptr = __builtin_malloc(size)
+        }
+        if (not r.ptr) {
+            trap bad_alloc
+        }
+        return r
+    }
+
+    fn deallocate(ptr : __builtin_pointer, size : __builtin_size)
+    {
+        if (std.ccondition.compiling) {
+            return __builtin_tracking_free(ptr)
+        } else {
+            return __builtin_free(ptr)
+        }
+    }
+}

@@ -1,0 +1,14 @@
+
+module std.utility
+
+enum value_category {
+    ref,
+    view,
+    copied,
+    moved
+}
+
+fn value_category_of(object) -> value_category
+{
+    return __builtin_value_category_of(object)
+}

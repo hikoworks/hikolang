@@ -1,11 +1,12 @@
 
 module std.long
 import std.wide_arithmetic
+import std.unsafe_span
 
 pub class long
 {
     union {
-        var _ptr : raw_pointer[__builtin_limb]
+        var _ptr : unsafe_span[__builtin_limb]
         var _value : __builtin_limb
     }
     var _capacity : __builtin_u32

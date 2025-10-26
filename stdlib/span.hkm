@@ -1,0 +1,58 @@
+
+module std.span
+import utility
+import unsafe_span
+
+class span[T : __builtin_type]
+{
+    let value_type = T
+    var _ptr : __builtin_ptr = 0
+    var _size : __builtin_size = 0
+
+    fn __init__(self : span[T], ptr : __builtin_ptr, size : __builtin_size)
+    {
+        self._ptr = ptr
+        self._size = size
+    }
+
+    fn __init__(self : span[T], other : unsafe_span[T], size : __builtin_size)
+    {
+        self._ptr = other._ptr
+        self._size = size
+    }
+
+    fn unsafe(self : span[T]) -> unsafe_span[T]
+    {
+        return unsafe_span[T](self._ptr)
+    }
+
+    fn __index__(self : span[T], i : __builtin_size)
+    {
+        require(i < _size, out_of_bound)
+        return self.unsafe()[i]
+    }
+
+    fn unsafe_first(self : span[T])
+    {
+        return self.unsafe()[0]
+    }
+
+    fn unsafe_last(self : span[T])
+    {
+        return self.unsafe()[_size - 1]
+    }
+
+    fn first(self : span[T])
+    {
+        require(_size != 0, out_of_bound)
+        return unsafe_first()
+    }
+
+    fn last(self : span[T])
+    {
+        require(_size != 0, out_of_bound)
+        return unsafe_last()
+    }
+}
+
+

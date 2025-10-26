@@ -1,0 +1,19 @@
+
+module std.unsafe_span
+import utility
+
+class unsafe_span[T : __builtin_type]
+{
+    let value_type = T
+    var _ptr : __builtin_ptr = 0
+
+    fn __init__(self : unsafe_span[T], ptr : __builtin_ptr)
+    {
+        self._ptr = ptr
+    }
+
+    fn __index__(self : unsafe_span[T], i : __builtin_size)
+    {
+        return __builtin_dereference(value_category_of(self), T, _ptr + i * sizeof(T))
+    }
+}

@@ -41,7 +41,17 @@ private class bitmap_allocator_page[object_size : __builtin_size] {
     var strides : array[bitmap_allocator_stride[object_size], 64]
 }
 
-class bitmap_allocator : allocator {
+class bitmap_allocator {
+
+    allocate(allocater : allocater_intf, var size : __builtin_size) -> allocation
+    {
+        size = (size + 7) / 8
+        if (size == 0) {
+            trap invalid_argument
+        } else if (size == 1) {
+            
+        }
+    }
 
 }
 
