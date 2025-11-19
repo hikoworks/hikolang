@@ -5,7 +5,7 @@
 `import`\
     `eval` _generator_call_\
     `from` [_fully_qualified_name_](fully_qualified_name.md)\
-    [_compile_condition_](compile_condition.md)__?__ `;`
+    [_build_guard_](build_guard.md)__?__ `;`
 
 _generator_call_ := [_fully_qualified_name_](fully_qualified_name.md)\
     `(` *generator_argument-list*__?__ `)`
@@ -29,7 +29,7 @@ cannot: import repositories, or set the module's version number.
 > generation.
 
 The `eval`-call's arguments are expressions with the same limitations as the
-expression of a [_compile_condition_](compile_condition.md).
+expression of a [_build_guard_](build_guard.md).
 
 The `from` module is temporarily imported (its symbols are only available during
 evaluation of the current statement) to get access to the generator function.
@@ -49,9 +49,9 @@ current repository.
 
 
 
-### Compile condition (optional)
+### Build guard (optional)
 
-The optional [_compile_condition_](compile_condition.md) is evaluated during the
+The optional [_build_guard_](build_guard.md) is evaluated during the
 prologue-scan phase of compilation, this checks if the file should be compiled.
 
 Multiple files may have the same name, only if the conditional

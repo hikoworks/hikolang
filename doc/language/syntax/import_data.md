@@ -2,7 +2,7 @@
 
 ## Syntax
 
-`import` `data` _file-path_ `in` _variable-name_ [_compile_condition_](compile_condition.md)__?__ `;`
+`import` `data` _file-path_ `in` _variable-name_ [_build_guard_](build_guard.md)__?__ `;`
 
 file-path := [_string_literal_](string_literal.md)
 

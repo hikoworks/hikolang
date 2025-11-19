@@ -3,7 +3,7 @@
 ## Syntax
 
 `import` [_fully_qualified_name_](fully_qualified_name.md)
-    [_compile_condition_](compile_condition.md)__?__ `;`
+    [_build_guard_](build_guard.md)__?__ `;`
 
 
 ## Semantics
@@ -23,9 +23,9 @@ current repository.
 When you import a module all sub-modules are imported as well; accessible
 through the sub-names. This holds when the module is renamed with `in`.
 
-### Compile condition (optional)
+### Build guard (optional)
 
-The optional [_compile_condition_](compile_condition.md) is evaluated during the
+The optional [_build_guard_](build_guard.md) is evaluated during the
 prologue-scan phase of compilation, this checks if the file should be compiled.
 
 Multiple files may have the same name, only if the conditional

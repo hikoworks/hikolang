@@ -2,7 +2,7 @@
 
 ## Syntax
 
-`import` `zip` _zip-url_ [_compile_condition_](compile_condition.md)__?__ `;`
+`import` `zip` _zip-url_ [_build_guard_](build_guard.md)__?__ `;`
 
 zip-url := [_string_literal_](string_literal.md)
 

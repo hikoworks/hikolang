@@ -2,7 +2,7 @@
 
 ## Syntax
 
-`import` `git` _git-url_ *git-rev*__?__ [_compile_condition_](compile_condition.md)__?__ `;`
+`import` `git` _git-url_ *git-rev*__?__ [_build_guard_](build_guard.md)__?__ `;`
 
 git-url := [_string_literal_](string_literal.md)
 
