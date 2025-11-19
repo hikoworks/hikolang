@@ -4,7 +4,7 @@
 
 `program` [_string_literal_](string_literal.md)
     [_version_literal_](version_literal.md)__?__
-    [_build_guard_](build_guard.md)__?__ `;`
+    [_guard_expression_](guard_expression.md)__?__ `;`
 
 
 ## Semantics
@@ -29,7 +29,7 @@ The version has no meaning within the compilation process.
 
 ### Build guard (optional)
 
-The optional [_build_guard_](build_guard.md) is evaluated during the
+The optional [_guard_expression_](guard_expression.md) is evaluated during the
 prologue-scan phase of compilation, this checks if the file should be compiled.
 
 Multiple files may have the same name, only if the conditional

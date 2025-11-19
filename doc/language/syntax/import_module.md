@@ -2,13 +2,14 @@
 
 ## Syntax
 
-`import` [_fully_qualified_name_](fully_qualified_name.md)
-    [_build_guard_](build_guard.md)__?__ `;`
+`import` [_relative_fqname_](relative_fqname.md)
+    `public`__?__
+    __(__ `if` [_guard_expression_](guard_expression.md) __)?__ `;`
 
 
 ## Semantics
 
-Imports a module, so that its symbols can be used from the current file.
+Imports a module, so that its symbols can be used from the current module.
 
 Searching for modules in the following order:
  - Treat the name as relative to the current module, in the current repository.
@@ -20,14 +21,13 @@ If the module is located in a different repository, then that repository must be
 imported using a `import git` or `import zip`, by at least one file in the
 current repository.
 
-When you import a module all sub-modules are imported as well; accessible
-through the sub-names. This holds when the module is renamed with `in`.
+### Public (optional)
+
+If the `public` attribute is added, all the symbols of the imported module
+will be available by subsequent imports of the current module. 
 
 ### Build guard (optional)
 
-The optional [_build_guard_](build_guard.md) is evaluated during the
-prologue-scan phase of compilation, this checks if the file should be compiled.
-
-Multiple files may have the same name, only if the conditional
-compilation is mutually exclusive. If a file has a `fallback` condition, it will
-be used if no other file with the same name is compiled.
+The optional [_guard_expression_](guard_expression.md) is evaluated during the
+prologue-scan phase of compilation, this checks if the `import` statment
+should be processed or ignored.

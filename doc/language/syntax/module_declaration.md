@@ -2,16 +2,16 @@
 
 ## Syntax
 
-`module` [_fully_qualified_name_](fully_qualified_name.md)
+`module` [_fqname_](fqname.md)
     [_version_literal_](version_literal.md)__?__
-    [_build_guard_](build_guard.md)__?__ `;`
+    __(__ `if` [_guard_expression_](guard_expression.md) __|__ `fallback` __)?__
+    `;`
 
 
 ## Semantics
 
-A module has a fully qualified unique name, the fully qualified names form a
-tree structure. The module tree structure does not have to follow the on-disk
-directory structure.
+A module has a [_fqname_](fqname.md), the name forms a tree structure. The
+module tree structure does not have to follow the on-disk directory structure.
 
 Each module will automatically open the namespace with the name of the
 anchor-module, i.e. the ancestor module with a version number.
@@ -34,9 +34,16 @@ version number is treated as-if it is higher than any other.
 
 ### Build guard (optional)
 
-The optional [_build_guard_](build_guard.md) is evaluated during the
+The optional [_guard_expression_](guard_expression.md) is evaluated during the
 prologue-scan phase of compilation, this checks if the file should be compiled.
+Multiple files may have the same module-name, only if the conditional
+compilation is mutually exclusive.
 
-Multiple files may have the same name, only if the conditional
-compilation is mutually exclusive. If a file has a `fallback` condition, it will
-be used if no other file with the same name is compiled.
+There are three different guards:
+
+ - No guard expression: Compile the file.
+ - `if` [_guard_expression_](guard_expression.md): Compile the file if the expression
+   yields true.
+ - `fallback`: Compile the file if none of the other files with the same
+   module-name has been compiled.
+

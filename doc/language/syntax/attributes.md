@@ -2,15 +2,15 @@
 
 ## Syntax
 
-[_fully_qualified_name_](fully_qualified_name.md) __(__ `(` [_argument_list_](argument_list.md) `)` __)?__
+[_fqname_](fqname.md) __(__ `(` [_argument_list_](argument_list.md) `)` __)?__
 
 ## Semantics
 
-If the [_fully_qualified_name_](fully_qualified_name.md) is a single name,
+If the [_fqname_](fqname.md) is a single name,
 then this attribute is required. A required attribute must be handled by the compiler.
 If the compiler does not know how to handle the attribute it is an error.
 
-If the [_fully_qualified_name_](fully_qualified_name.md) has the `std` prefix
+If the [_fqname_](fqname.md) has the `std` prefix
 it is a well-known optional attribute. These attributes don't change the semantic
 meaning of the program, instead they are directives to the compiler to create
 better code.

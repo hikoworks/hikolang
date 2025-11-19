@@ -2,7 +2,8 @@
 
 ## Syntax
 
-`import` `git` _git-url_ *git-rev*__?__ [_build_guard_](build_guard.md)__?__ `;`
+`import` `git` _git-url_ *git-rev*__?__
+    __(__ `if` [_guard_expression_](guard_expression.md) __)?__ `;`
 
 git-url := [_string_literal_](string_literal.md)
 
@@ -44,6 +45,12 @@ A _tag_ is expected to not change and therefor no update is done. You
 can override this using the `--force-update` compiler option.
 
 A cleanup is needed when the source files are updated, as out-of-repository
-files had been created by those source files. With the `--force-clean` will
+files may have been created by those source files. With the `--force-clean` will
 clean these files even if the repository has not been updated.
+
+### Build guard (optional)
+
+The optional [_guard_expression_](guard_expression.md) is evaluated during the
+prologue-scan phase of compilation, this checks if the `import` statment
+should be processed or ignored.
 

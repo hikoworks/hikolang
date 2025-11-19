@@ -4,7 +4,7 @@
 
 `namespace` _namespace-name_ `;`
 
-_namespace-name_ := [_fully_qualified_name_](fully_qualitified_name.md)
+_namespace-name_ := [_fqname_](fully_qualitified_name.md)
 
 
 ## Semantics

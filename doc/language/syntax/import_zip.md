@@ -2,7 +2,8 @@
 
 ## Syntax
 
-`import` `zip` _zip-url_ [_build_guard_](build_guard.md)__?__ `;`
+`import` `zip` _zip-url_
+    __(__ `if` [_guard_expression_](guard_expression.md) __)?__ `;`
 
 zip-url := [_string_literal_](string_literal.md)
 
@@ -17,3 +18,9 @@ The _string_literal_ is the URL of the zip file to download.
 > [!NOTE]
 > It is not an error if the zip-file fails to download or extract,
 > unless none of the repositories satisfy module-import requirements.
+
+### Build guard (optional)
+
+The optional [_guard_expression_](guard_expression.md) is evaluated during the
+prologue-scan phase of compilation, this checks if the `import` statment
+should be processed or ignored.

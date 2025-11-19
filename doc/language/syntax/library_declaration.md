@@ -2,7 +2,7 @@
 
 ## Syntax
 
-`library` [_string_literal_](string_literal.md) [_version_literal_](version_literal.md) [_build_guard_](build_guard.md)__?__ `;`
+`library` [_string_literal_](string_literal.md) [_version_literal_](version_literal.md) [_guard_expression_](guard_expression.md)__?__ `;`
 
 
 ## Semantics
@@ -22,9 +22,9 @@ The compiler will automatically create:
  - A header file for C/C++ that matches the ABI of the exposed functions and
    variables.
 
-The optional [_build_guard_](build_guard.md) is evaluated during the
+The optional [_guard_expression_](guard_expression.md) is evaluated during the
 prologue-scan phase of compilation, this checks if the file should be compiled.
-If no [_build_guard_](build_guard.md) is specified then the program
+If no [_guard_expression_](guard_expression.md) is specified then the program
 is compiled during the `build`-step.
 
 Multiple files may have the same name, only if the conditional
