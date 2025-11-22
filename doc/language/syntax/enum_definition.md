@@ -2,8 +2,6 @@
 
 ## Syntax
 
-A statement which is syntactic sugar for a enum-definition and variable declaration expression.
-
 `enum` [_relative_fqname_](relative_fqname.md)
     __(__ `[` [_argument_list_](argument_list.md) `]` __)?__
     __(__ `(` [_type_list_](type_list.md) `)` __)?__
@@ -19,10 +17,34 @@ A statement which is syntactic sugar for a enum-definition and variable declarat
 The following is the optional type.
 
 ```
-enum optional [T : type] {
-    none,
-    some(T)
+enum optional[T : type] {
+    none;
+    some(T);
 };
+
+interface nonable {
+    fn __none__(self : nonable);
+    fn __set_none__(self : nonable);
+}
+
+class ref[T : type] (nonable) {
+    __builtin_ptr _p;
+
+    fn __none__(self := ref[T]) {
+        return self._p == 0
+    }
+
+    fn __set_none__(self := ref[T]) {
+        self._p = 0
+    }
+};
+
+
+enum optional[T : nonable] {
+    none(T) {if __none__($0); set __set_none__($0)};
+    some(T);
+};
+
 ```
 
 ```
