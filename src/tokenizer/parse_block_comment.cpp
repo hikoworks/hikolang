@@ -7,7 +7,7 @@
 
 namespace hk {
 
-[[nodiscard]] std::optional<token> parse_block_comment(file_cursor& c)
+[[nodiscard]] std::optional<token> parse_block_comment(char const*& p)
 {
     enum class state_type {
         start,
@@ -17,54 +17,54 @@ namespace hk {
         text
     };
 
-    if (c[0] != '/' or c[1] != '*') {
+    auto location = p;
+
+    if (p[0] != '/' or p[1] != '*') {
         return std::nullopt;
     }
-    auto r = token{c.location(), token::comment};
-    c += 2;
+    auto r = token{location, token::comment};
+    p += 2;
 
-    if (c[0] == '*') {
+    if (p[0] == '*') {
         r.kind = token::documentation;
-        ++c;
+        ++p;
     }
 
     auto line_start = false;
-
-    auto state = state_type::start;
-    while (not c.end_of_file()) {
-        if (c[0] == '*' and c[1] == '/') {
+    while (p[0] != '\0') {
+        if (p[0] == '*' and p[1] == '/') {
             // End of block comment.
-            c += 2;
-            r.last = c.location();
+            p += 2;
+            r.last = p;
             return r;
 
-        } else if (line_start and c[0] == '*' and is_horizontal_space(c[1], c[2])) {
-            // Skip the leading '*' and horizontal space after it.
-            ++c;
+        } else if (line_start and p[0] == '*' and is_horizontal_space_advance(p)) {
+            // Skip the leading '*' and a single horizontal space after it.
+            ++p;
             line_start = false;
 
-        } else if (line_start and c[0] == '*') {
+        } else if (line_start and p[0] == '*') {
             // Skip the leading '*'.
             line_start = false;
 
-        } else if (line_start and is_horizontal_space(c[0], c[1])) {
+        } else if (line_start and is_horizontal_space_advance(p)) {
             // Skip all leading spaces before an optional '*'.
 
-        } else if (is_vertical_space(c[0], c[1])) {
-            // Don't eat the vertical space, so that the tokenizer can insert a semicollon if needed.
+        } else if (is_vertical_space_advance(p)) {
+            // Don't eat the vertical space, so that the tokenizer can insert a semicolon if needed.
             if (r.kind != token::empty) {
                 r.append('\n');
             }
             line_start = true;
 
         } else if (r.kind != token::empty) {
-            r.append(c[0]);
+            r.append(p[0]);
         }
 
-        ++c;
+        ++p;
     }
 
-    return r.make_error(c.location(), "Unterminated block comment; expected '*/' at the end of the comment.");
+    return r.make_error(location, "Unterminated block comment; expected '*/' at the end of the comment.");
 }
 
 }

@@ -24,7 +24,7 @@ template<typename... Args>
     return r;
 }
 
-[[nodiscard]] static hk::generator<token> simple_tokenize(char const*& c)
+[[nodiscard]] static hk::generator<token> simple_tokenize(char const* c)
 {
     enum class state_type {
         normal,

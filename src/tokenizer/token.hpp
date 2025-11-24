@@ -63,11 +63,11 @@ public:
 
     /** The location in the file where the first character of a token is located.
      */
-    file_location first = {};
+    char const *first = nullptr;
 
     /** One position after the location of the last character of the token.
      */
-    file_location last = {};
+    char const *last = nullptr;
 
     kind_type kind = kind_type::empty;
 
@@ -91,7 +91,7 @@ public:
      *
      * @param first The location of the first character of the token.
      */
-    constexpr token(file_location const &first) noexcept :
+    constexpr token(char const *first) noexcept :
         first(first), last(first), kind(kind_type::empty)
     {
     }
@@ -101,7 +101,7 @@ public:
      * @param first The location of the first character of the token.
      * @param kind The kind of the token.
      */
-    constexpr token(file_location const &first, kind_type kind) noexcept :
+    constexpr token(char const *first, kind_type kind) noexcept :
         first(first), last(first), kind(kind)
     {
     }
@@ -126,14 +126,13 @@ public:
      * @param c The character of the token.
      * @return A token representing the single character.
      */
-    constexpr token(file_location const &first, char c) noexcept :
-        first(first), last(first), kind(kind_type::simple), text(1, c)
+    constexpr token(char const *first, char c) noexcept :
+        first(first), last(first + 1), kind(kind_type::simple), text(1, c)
     {
         assert(static_cast<uint8_t>(c) <= 0x7f);
         assert(c != '\v');
         assert(c != '\f');
         assert(c != '\r');
-        last.advance(c, '\0');
     }
 
 
@@ -219,7 +218,7 @@ public:
     /** Convert this token into an error.
      */
     template<typename... Args>
-    token &make_error(file_location last, std::format_string<Args...> fmt, Args &&...args)
+    token &make_error(char const* last, std::format_string<Args...> fmt, Args &&...args)
     {
         this->kind = kind_type::error;
         this->text = std::format(std::move(fmt), std::forward<Args>(args)...);
