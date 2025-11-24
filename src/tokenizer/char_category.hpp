@@ -12,6 +12,36 @@
 
 namespace hk {
 
+char32_t advance_cp(char const*& p) noexcept
+{
+    auto cu = static_cast<uint8_t>(*p++);
+    if (cu & 0x80 == 0) {
+        return static_cast<char32_t>(cu);
+    }
+
+    auto n = std::countl_one(cu);
+    cu <<= n;
+    cu >>= n;
+    auto cp = static_cast<char32_t>(cu);
+
+    while (--n) {
+        cp <<= 6;
+        cp |= static_cast<char32_t>(*p++) & 0x3f;
+    }
+    return cp;
+}
+
+void advance_cp(char const*& p, size_t n)
+{
+    assert(n != 0);
+    do {
+        assert(*p != '\0');
+        do {
+            ++p;
+        } while ((*p & 0xc0) == 0x80);
+    } while (--n);
+}
+
 /** Is a code-point a vertical space.
  * 
  * A vertical space includes:
@@ -23,24 +53,22 @@ namespace hk {
  *  - `\u2028` (Line Separator)
  *  - `\u2029` (Paragraph Separator)
  * 
- * @param cp The code-point to check.
- * @param cp2 The next code-point, if available, to check for CR followed by LF.
- * @retval true if the code-point is a vertical space.
+ * @param c A pointer to the characters to read (+2 lookahead)
+ * @return Number of code-units to skip. or 0 if not a vertical-space.
  */
-[[nodiscard]] constexpr bool is_vertical_space(char32_t cp, char32_t cp2) noexcept
+[[nodiscard]] constexpr bool is_vertical_space(char const* c) noexcept
 {
-    if (cp == '\r') {
-        if (cp2 == '\n') {
-            // Ignore the CR, it will be picked up when the LF is processed.
-            return false;
-        } else {
-            // A lone CR is considered a vertical space.
-            // This is to support old style MacOS line endings.
-            return true;
-        }
+    if (c[0] == '\n' or c[0] == '\v' or c[0] == '\f') {
+        return 1;
+    } else if (c[0] == '\r' and c[1] != '\n') {
+        return 1; // lone CR on old style MacOS
+    } else if (c[0] == 0xc2 and c[1] == 0x85) {
+        return 2; // U+0085
+    } else if (c[0] == 0xe2 and c[1] == 0x80 and (c[2] == 0xa8 or c[2] == 0xa9)) {
+        return 3; // U+2028 or U+2029
+    } else {
+        return 0;
     }
-
-    return cp == '\n' or cp == '\v' or cp == '\f' or cp == U'\u0085' or cp == U'\u2028' or cp == U'\u2029';
 }
 
 /** Is a code-point a horizontal space.

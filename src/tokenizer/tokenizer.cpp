@@ -24,7 +24,7 @@ template<typename... Args>
     return r;
 }
 
-[[nodiscard]] static hk::generator<token> simple_tokenize(hk::file_cursor& c)
+[[nodiscard]] static hk::generator<token> simple_tokenize(char const*& c)
 {
     enum class state_type {
         normal,
@@ -32,10 +32,11 @@ template<typename... Args>
     };
 
     state_type state = state_type::normal;
-    while (not c.end_of_file()) {
-        if (is_vertical_space(c[0], c[1])) {
-            co_yield {c.location(), '\n'};
-            ++c;
+    while (c != '\0') {
+        auto const location = c;
+        if (auto const advance = is_vertical_space(c)) {
+            co_yield {location, '\n'};
+            c += advance;
 
         } else if (is_horizontal_space(c[0], c[1]) or is_ignoreable(c[0])) {
             ++c;
