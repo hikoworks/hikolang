@@ -12,27 +12,30 @@
 
 namespace hk {
 
-[[nodiscard]] std::optional<token> parse_operator(file_cursor& c)
+[[nodiscard]] token parse_operator(char const*& p)
 {
-    if (not is_pattern_syntax(c[0])) {
+    auto const [cp, n] = get_cp(p);
+    if (not is_pattern_syntax(cp)) {
         // Not an operator, return empty.
-        return std::nullopt;
+        return {};
     }
 
-    auto r = token{c.location(), token::_operator};
-    r.append(c[0]);
-    ++c;
+    auto r = token{p, token::_operator};
+    p += n;
 
-    while (true) {
-        if (not is_pattern_syntax(c[0])) {
+    while (p[0] != '\0') {
+        auto const [cp, n] = get_cp(p);
+        if (not is_pattern_syntax(cp)) {
             // End of operator, including end of file.
-            r.last = c.location();
+            r.set_last(p);
             return r;
         }
 
-        r.append(c[0]);
-        ++c;
+        p += n;
     }
+
+    r.set_last(p);
+    return r;
 }
 
 } // namespace hk

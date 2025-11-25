@@ -7,35 +7,31 @@
 
 namespace hk {
 
-[[nodiscard]] std::optional<token> parse_line_comment(file_cursor& c)
+[[nodiscard]] token parse_line_comment(char const*& p)
 {
-    if (c[0] != '/' or c[1] != '/') {
-        return std::nullopt;
+    if (p[0] != '/' or p[1] != '/') {
+        return {};
     }
-    
-    auto r = token{c.location(), token::comment};
-    c += 2; // Skip the two slashes.
+    auto r = token{p += 2, token::comment};
 
-    if (c[0] == '/') {
-        r.kind = token::documentation;
-        ++c; // Skip the third slash.
+    if (p[0] == '/') {
+        r = token{++p, token::documentation};
     }
 
-    if (c[0] == '<') {
-        // This is a documentation comment in front of a token.
-        r.kind = token::back_documentation;
-        ++c; // Skip the '<' character.
+    if (p[0] == '<') {
+        r = token{++p, token::back_documentation};
     }
 
-    while (true) {
-        if (is_vertical_space(c[0], c[1]) or c.end_of_file()) {
-            // Don't eat the vertical space, so that the tokenizer can insert a semicolon if needed.
-            r.last = c.location();
+    for (; p[0] != '\0'; ++p) {
+        if (is_vertical_space(p)) {
+            // Don't consume the vertical space, so that the tokenizer can insert a semicolon if needed.
+            r.set_last(p);
             return r;
         }
-        r.append(c[0]);
-        ++c;
     }
+
+    r.set_last(p);
+    return r;
 }
 
 }

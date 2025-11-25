@@ -7,64 +7,29 @@
 
 namespace hk {
 
-[[nodiscard]] std::optional<token> parse_block_comment(char const*& p)
+[[nodiscard]] token parse_block_comment(char const*& p)
 {
-    enum class state_type {
-        start,
-        whitespace,
-        star,
-        star_space,
-        text
-    };
-
-    auto location = p;
+    auto r = token{};
 
     if (p[0] != '/' or p[1] != '*') {
-        return std::nullopt;
+        return {};
     }
-    auto r = token{location, token::comment};
-    p += 2;
+    auto r = token{p += 2, token::comment};
 
     if (p[0] == '*') {
-        r.kind = token::documentation;
-        ++p;
+        r = token{++p, token::documentation};
     }
 
-    auto line_start = false;
-    while (p[0] != '\0') {
+    for (; p[0] != '\0'; ++p) {
         if (p[0] == '*' and p[1] == '/') {
             // End of block comment.
+            r.set_last(p);
             p += 2;
-            r.last = p;
             return r;
-
-        } else if (line_start and p[0] == '*' and is_horizontal_space_advance(p)) {
-            // Skip the leading '*' and a single horizontal space after it.
-            ++p;
-            line_start = false;
-
-        } else if (line_start and p[0] == '*') {
-            // Skip the leading '*'.
-            line_start = false;
-
-        } else if (line_start and is_horizontal_space_advance(p)) {
-            // Skip all leading spaces before an optional '*'.
-
-        } else if (is_vertical_space_advance(p)) {
-            // Don't eat the vertical space, so that the tokenizer can insert a semicolon if needed.
-            if (r.kind != token::empty) {
-                r.append('\n');
-            }
-            line_start = true;
-
-        } else if (r.kind != token::empty) {
-            r.append(p[0]);
         }
-
-        ++p;
     }
 
-    return r.make_error(location, "Unterminated block comment; expected '*/' at the end of the comment.");
+    return r.make_error(p, token::missing_end_of_block_comment_error);
 }
 
 }

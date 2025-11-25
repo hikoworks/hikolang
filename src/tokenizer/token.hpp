@@ -4,6 +4,7 @@
 #include "file_location.hpp"
 #include "utility/unicode.hpp"
 #include "utility/semantic_version.hpp"
+#include <gsl/gsl>
 #include <string>
 #include <string_view>
 #include <cstddef>
@@ -15,9 +16,20 @@ namespace hk {
 
 class token {
 public:
-    enum class kind_type {
+    enum class kind_type : uint8_t {
         empty,
-        error,
+        missing_end_of_block_comment_error,
+        unmatched_closing_bracket_error,
+        missing_closing_bracket_error,
+        line_directive_eof_error,
+        invalid_exponent_error,
+        unterminated_string_literal_error,
+        invalid_replacement_character_error,
+        invalid_surrogate_code_point_error,
+        invalid_code_point_error,
+        unexpected_character_error,
+        unexpected_end_of_comment_error,
+        missing_open_bracket_error,
         simple,
         identifier,
         tag,
@@ -30,6 +42,9 @@ public:
         string_literal,
         character_literal,
         quote_literal,
+        raw_string_literal,
+        raw_character_literal,
+        raw_quote_literal,
         integer_literal,
         superscript_integer_literal,
         float_literal,
@@ -40,7 +55,18 @@ public:
     };
 
     static constexpr kind_type empty = kind_type::empty;
-    static constexpr kind_type error = kind_type::error;
+    static constexpr kind_type missing_end_of_block_comment_error = kind_type::missing_end_of_block_comment_error;
+    static constexpr kind_type unmatched_closing_bracket_error = kind_type::unmatched_closing_bracket_error;
+    static constexpr kind_type missing_closing_bracket_error = kind_type::missing_closing_bracket_error;
+    static constexpr kind_type line_directive_eof_error = kind_type::line_directive_eof_error;
+    static constexpr kind_type invalid_exponent_error = kind_type::invalid_exponent_error;
+    static constexpr kind_type unterminated_string_literal_error = kind_type::unterminated_string_literal_error;
+    static constexpr kind_type invalid_replacement_character_error = kind_type::invalid_replacement_character_error;
+    static constexpr kind_type invalid_surrogate_code_point_error = kind_type::invalid_surrogate_code_point_error;
+    static constexpr kind_type invalid_code_point_error = kind_type::invalid_code_point_error;
+    static constexpr kind_type unexpected_character_error = kind_type::unexpected_character_error;
+    static constexpr kind_type unexpected_end_of_comment_error = kind_type::unexpected_end_of_comment_error;
+    static constexpr kind_type missing_open_bracket_error = kind_type::missing_open_bracket_error;
     static constexpr kind_type simple = kind_type::simple;
     static constexpr kind_type identifier = kind_type::identifier;
     static constexpr kind_type tag = kind_type::tag;
@@ -53,6 +79,9 @@ public:
     static constexpr kind_type string_literal = kind_type::string_literal;
     static constexpr kind_type character_literal = kind_type::character_literal;
     static constexpr kind_type quote_literal = kind_type::quote_literal;
+    static constexpr kind_type raw_string_literal = kind_type::raw_string_literal;
+    static constexpr kind_type raw_character_literal = kind_type::raw_character_literal;
+    static constexpr kind_type raw_quote_literal = kind_type::raw_quote_literal;
     static constexpr kind_type integer_literal = kind_type::integer_literal;
     static constexpr kind_type superscript_integer_literal = kind_type::superscript_integer_literal;
     static constexpr kind_type float_literal = kind_type::float_literal;
@@ -61,38 +90,31 @@ public:
     static constexpr kind_type scram_directive = kind_type::scram_directive;
     static constexpr kind_type bracketed_string_literal = kind_type::bracketed_string_literal;
 
-    /** The location in the file where the first character of a token is located.
+    /** The location in the text where the first character of a token is located.
      */
-    char const *first = nullptr;
+    char const *_ptr = nullptr;
 
     /** One position after the location of the last character of the token.
-     */
-    char const *last = nullptr;
-
-    kind_type kind = kind_type::empty;
-
-    /** The significant part of the token.
-     */
-    std::string text = {};
-
-    /** Documentation for the token.
-     */
-    std::string doc_text = {};
-
-    /** Default constructor.
      * 
-     * This constructor initializes the token to an empty state.
+     * When kind() == kind_type::simple, this is the ASCII code-point that
+     * represents this token. The size() will be 1.
      */
-    constexpr token() noexcept = default;
+    uint32_t _size = 0;
+
+    /** The kind of token.
+     */
+    kind_type _kind = kind_type::empty;
 
     /** Create a token with the first character's location.
      * 
      * This is used for tokens when the kind is not known yet.
      *
-     * @param first The location of the first character of the token.
+     * @param ptr The location of the first character of the token.
+     * @param size The size of the token in number of UTF-8 code-units.
+     * @param kind The token kind.
      */
-    constexpr token(char const *first) noexcept :
-        first(first), last(first), kind(kind_type::empty)
+    constexpr token(char const *ptr = nullptr, uint32_t size = 0, kind_type kind = kind_type::empty) noexcept :
+        _ptr(ptr), _size(size), _kind(kind)
     {
     }
 
@@ -101,8 +123,17 @@ public:
      * @param first The location of the first character of the token.
      * @param kind The kind of the token.
      */
-    constexpr token(char const *first, kind_type kind) noexcept :
-        first(first), last(first), kind(kind)
+    constexpr token(char const *ptr, kind_type kind) noexcept :
+        token(ptr, 0, kind)
+    {
+    }
+
+    /** Create a token with the first character's location and kind.
+     * 
+     * @param first The location of the first character of the token.
+     */
+    constexpr token(kind_type kind) noexcept :
+        token(nullptr, 0, kind)
     {
     }
 
@@ -122,12 +153,12 @@ public:
      *  - `\n` (New Line, This represents all vertical space characters)
      *  - `\0` (End of File)
      * 
-     * @param first The location of the first character of the token.
+     * @param ptr The location of the first character of the token.
      * @param c The character of the token.
      * @return A token representing the single character.
      */
-    constexpr token(char const *first, char c) noexcept :
-        first(first), last(first + 1), kind(kind_type::simple), text(1, c)
+    constexpr token(char const *ptr, char c) noexcept :
+        token(ptr, c, kind_type::simple)
     {
         assert(static_cast<uint8_t>(c) <= 0x7f);
         assert(c != '\v');
@@ -135,20 +166,99 @@ public:
         assert(c != '\r');
     }
 
-
     constexpr token(token&&) noexcept = default;
     constexpr token(const token&) noexcept = default;
     constexpr token& operator=(token&&) noexcept = default;
     constexpr token& operator=(const token&) noexcept = default;
 
+    [[nodiscard]] constexpr kind_type kind() const noexcept
+    {
+        return _kind;
+    }
+
+    [[nodiscard]] constexpr token& set_kind(kind_type kind) noexcept
+    {
+        assert(kind != kind_type::simple);
+        _kind = kind;
+        return *this;
+    }
+
+    [[nodiscard]] constexpr token& set_simple(char c) noexcept
+    {
+        _kind = kind_type::simple;
+        _size = c;
+        return *this;
+    }
+
+    constexpr token& set_first(char const *first) noexcept
+    {
+        _ptr = first;
+        _size = 0;
+        return *this;
+    }
+
+    constexpr token& set_last(char const *last)
+    {
+        assert(_kind != kind_type::simple);
+        _size = gsl::narrow<uint32_t>(std::distance(_ptr, last));
+        return *this;
+    }
+
+    constexpr token& set_size(size_t size)
+    {
+        assert(size == 1 or _kind != kind_type::simple);
+        _size = gsl::narrow<uint32_t>(size);
+    }
+
+    [[nodiscard]] constexpr size_t size() const noexcept
+    {
+        if (_kind == kind_type::simple) {
+            return 1;
+        } else {
+            return _size;
+        }
+    }
+
+    [[nodiscard]] constexpr char const* data() const
+    {
+        assert(_ptr != nullptr);
+        return _ptr;
+    }
+
+    [[nodiscard]] constexpr bool empty() const noexcept
+    {
+        return _kind == kind_type::simple;
+    }
+
+    constexpr explicit operator bool() const noexcept
+    {
+        return not empty();
+    }
+
+    constexpr std::string_view string_view() const noexcept
+    {
+        assert(_kind != kind_type::simple);
+        return std::string_view{_ptr, _size};
+    }
+
+    constexpr std::string string() const noexcept
+    {
+        if (_kind == kind_type::simple) {
+            return std::string{static_cast<char>(_size)};
+        } else {
+            return std::string{_ptr, _size};
+        }
+    }
+
+
     /** Compare this token with the kind-of-token.
      * 
-     * @param k The kind of token to compare with.
+     * @param kind The kind of token to compare with.
      * @return true if the token is of the given kind, false otherwise.
      */
-    [[nodiscard]] constexpr bool operator==(kind_type k) const noexcept
+    [[nodiscard]] constexpr bool operator==(kind_type kind) const noexcept
     {
-        return kind == k;
+        return _kind == kind;
     }
 
     /** Compare a simple token with a character. 
@@ -160,11 +270,10 @@ public:
      */
     [[nodiscard]] constexpr bool operator==(char c) const noexcept
     {
-        if (kind != kind_type::simple) {
+        if (_kind != kind_type::simple) {
             return false;
         }
-        assert(text.size() == 1);
-        return text[0] == c;
+        return static_cast<char>(_size) == c;
     }
 
     /** Compare a identifier or operator token with a string.
@@ -176,132 +285,32 @@ public:
      */
     [[nodiscard]] constexpr bool operator==(std::string_view str) const noexcept
     {
-        if (kind != kind_type::identifier and kind != kind_type::_operator) {
+        if (_kind != kind_type::identifier and _kind != kind_type::_operator) {
             return false;
         }
-        return text == str;
+        return string_view() == str;
     }
 
-    /** Append a ASCII character to the token's text.
+    /** Get a NFC normalized UTF-8 string.
      * 
-     * @param c The character to append.
-     */
-    constexpr void append(char c)
-    {
-        assert(static_cast<uint8_t>(c) <= 0x7f);
-        text.push_back(c);
-    }
-
-    /** Append a code-point to the token's text.
+     * This is used for identifiers and operators, so that they can be properly
+     * compared. This function also does a security check on the identifier.
      * 
-     * This function encodes the code-point to UTF-8 and appends it to the token's text.
-     * 
-     * @note It is UNDEFINED BEHAVIOR to call this function with a code-point that is not valid Unicode.
-     * @param c The code-point to append.
+     * @return A NFC normalized UTF-8 string. Or a security error when the
+     *         identifier should not be used.
      */
-    constexpr void append(char32_t c)
+    [[nodiscard]] std::expected<std::string, utf8_security_error> normalized_string_value() const
     {
-        auto optional_text = encode_utf8_code_point(c);
-        assert(optional_text.has_value());
-        optional_text.append_to(text);
-    }
-
-    /** Append a valid UTF-8 string to the token's text.
-     * 
-     * @param str The string to append.
-     */
-    constexpr void append(std::string_view str)
-    {
-        text.append(str);
-    }
-
-    /** Convert this token into an error.
-     */
-    template<typename... Args>
-    token &make_error(char const* last, std::format_string<Args...> fmt, Args &&...args)
-    {
-        this->kind = kind_type::error;
-        this->text = std::format(std::move(fmt), std::forward<Args>(args)...);
-        this->last = last;
-        return *this;
-    }
-
-    /** Normalize the text of the token to NFC form.
-     * 
-     * This is required for identifiers.
-     */
-    bool normalize() noexcept
-    {
-        auto normalized_text = normalize_utf8_string(text);
+        auto normalized_text = normalize_utf8_string(string());
         if (not normalized_text) {
-            make_error(last, "Failed to normalize token text '{}'", text);
-            return false;
+            return std::unexpected{utf8_security_error::unknown_error};
         }
 
-        text = std::move(normalized_text).value();
-        return true;
-    }
-
-    /** Check the text of the token for security issues.
-     * 
-     * This is required for identifiers.
-     */
-    bool security_check() noexcept
-    {
-        if (auto const check_result = security_check_utf8_string(text); not check_result) {
-            switch (check_result.error()) {
-            case utf8_security_error::invalid_utf8_sequence:
-                make_error(last, "Token security: Invalid UTF-8 sequence in token '{}'", text);
-                break;
-            case utf8_security_error::string_to_long:
-                make_error(last, "Token security: Token is too long");
-                break;
-            case utf8_security_error::restriction_level:
-                make_error(last, "Token security: Restricted character found in token '{}'", text);
-                break;
-            case utf8_security_error::invisible:
-                make_error(last, "Token security: Invisible character found in token '{}'", text);
-                break;
-            case utf8_security_error::mixed_numbers:
-                make_error(last, "Token security: Mixed numbers found in token '{}'", text);
-                break;
-            case utf8_security_error::hidden_overlay:
-                make_error(last, "Token security: Combining character overlays with base character in token '{}'", text);
-                break;
-            case utf8_security_error::unknown_error:
-                make_error(last, "Token security: Unknown error while checking token '{}'", text);
-                break;
-            }
-            return false;
+        if (auto const check_result = security_check_utf8_string(*normalized_text); not check_result) {
+            return std::unexpected{check_result.error()};
         }
-        return true;
-    }
 
-    /** Normalize and security check the token.
-     * 
-     * This is required for identifiers.
-     */
-    token &normalize_and_security_check()
-    {
-        if (not normalize()) {
-            return *this;
-        }
-        if (not security_check()) {
-            return *this;
-        }
-        return *this;
-    }
-
-    /** Convert an integer token to its integer value.
-     * 
-     * @note It is UNDEFINED BEHAVIOR to call this function if the token is not an integer literal.
-     * @note It is UNDEFINED BEHAVIOR to call this function if the integer value is out of range for long long.
-     * @return The integer value of the token.
-     */
-    [[nodiscard]] long long integer_value() const
-    {
-        assert(kind == kind_type::integer_literal);
-        return std::stoll(text);
+        return std::move(normalized_text).value();
     }
 
     /** Convert a version token to its semantic version value.
@@ -311,8 +320,8 @@ public:
      */
     [[nodiscard]] semantic_version version_value() const
     {
-        assert(kind == kind_type::version_literal);
-        return semantic_version{text};
+        assert(_kind == kind_type::version_literal);
+        return semantic_version{string_view()};
     }
 
     /** Get the simple value of the token.
@@ -324,10 +333,25 @@ public:
      */
     [[nodiscard]] char simple_value() const
     {
-        assert(kind == kind_type::simple);
-        assert(text.size() == 1);
-        return text[0];
+        assert(_kind == kind_type::simple);
+        return static_cast<char>(_size);
     }
+
+    [[nodiscard]] token make_error(char const *last, kind_type kind)
+    {
+        auto tmp = *this;
+        tmp.set_last(last);
+        tmp.set_kind(kind);
+        return tmp;
+    }
+
+    [[nodiscard]] token make_error(kind_type kind)
+    {
+        auto tmp = *this;
+        tmp.set_kind(kind);
+        return tmp;
+    }
+
 };
 
 } // namespace hk

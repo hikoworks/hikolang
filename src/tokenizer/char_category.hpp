@@ -139,16 +139,6 @@ namespace hk {
     }
 }
 
-[[nodiscard]] constexpr bool is_vertical_space_advance(char const*& p) noexcept
-{
-    if (auto n = is_vertical_space(p)) {
-        p += n;
-        return true;
-    } else {
-        return false;
-    }
-}
-
 /** Is a code-point a horizontal space.
  * 
  * A horizontal space includes:
@@ -192,17 +182,6 @@ namespace hk {
         return 0;
     }
 }
-
-[[nodiscard]] constexpr bool is_horizontal_space_advance(char const*& p) noexcept
-{
-    if (auto n = is_horizontal_space(p)) {
-        p += n;
-        return true;
-    } else {
-        return false;
-    }
-}
-
 
 template<fixed_string Characters>
 [[nodiscard]] constexpr char match(char c) noexcept
@@ -314,20 +293,6 @@ template<fixed_string Characters>
     } else {
         return cp == 'e' or cp == 'E';
     }
-}
-
-/** Is a code-point ignoreable.
- * 
- * An ignoreable code-point is one that can be safely ignored in the context of parsing.
- * 
- * Currently, the only ignoreable code-point is the Byte Order Mark (BOM) `U+FEFF`.
- * 
- * @param cp The code-point to check.
- * @retval true if the code-point is ignoreable.
- */
-[[nodiscard]] constexpr bool is_ignoreable(char32_t cp) noexcept
-{
-    return cp == U'\uFEFF';
 }
 
 /** Check if a code-point is a valid identifier start character.

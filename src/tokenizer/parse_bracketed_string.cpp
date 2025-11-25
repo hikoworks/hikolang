@@ -6,28 +6,25 @@
 
 namespace hk {
 
-[[nodiscard]] std::optional<token> parse_bracketed_string(char const*& p, char open_bracket)
+[[nodiscard]] token parse_bracketed_string(char const*& p, char open_bracket)
 {
+    auto const close_bracket = gsl::narrow_cast<char>(mirror_bracket(open_bracket));
+
     if (open_bracket == '\0') {
-        return std::nullopt;
+        return {};
     }
     assert(open_bracket == '{' or open_bracket == '[' or open_bracket == '(');
 
     if (p[0] != open_bracket) {
-        return std::nullopt;
+        return {};
     }
     // Consume the opening bracket. Do not include it in the token.
-    ++p;
-
-    auto const close_bracket = gsl::narrow_cast<char>(mirror_bracket(open_bracket));
-
-    auto location = p;
-    auto t = token{location, token::bracketed_string_literal};
+    auto r = token{++p, token::bracketed_string_literal};
 
     auto bracket_stack = std::vector<char>{};
     auto string_quote = '\0';
     auto backslash = false;
-    while (p[0] != '\0') {
+    for (; p[0] != '\0'; ++p) {
         if (string_quote != '\0') {
             if (backslash) {
                 backslash = false;
@@ -46,26 +43,25 @@ namespace hk {
         } else if (p[0] == '}' or p[0] == ']' or p[0] == ')') {
             if (not bracket_stack.empty()) {
                 if (p[0] != bracket_stack.back()) {
-                    return t.make_error(
-                        location, "Unmatched closing bracket found {}; expected '{}'.", gsl::narrow_cast<char>(p[0]), bracket_stack.back());
+                    return r.make_error(p, token::unmatched_closing_bracket_error);
                 }
 
                 bracket_stack.pop_back();
 
             } else if (p[0] == close_bracket) {
                 // Don't add the closing bracket to the token, just return it.
-                return t;
+                r.set_last(p);
+                // Consume the closing bracket.
+                ++p;
+                return r;
 
             } else {
-                return t.make_error(location, "Unmatched closing bracket found '{}', expected '{}'.", gsl::narrow_cast<char>(p[0]), close_bracket);
+                return r.make_error(p, token::unmatched_closing_bracket_error);
             }
         }
-
-        t.append(p[0]);
-        ++p;
     }
 
-    return t.make_error(location, "Unexpected end of file; expected closing bracket '{}'.", close_bracket);
+    return r.make_error(p, token::missing_closing_bracket_error);
 }
 
 }

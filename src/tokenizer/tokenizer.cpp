@@ -33,118 +33,91 @@ template<typename... Args>
 
     state_type state = state_type::normal;
     while (p[0] != '\0') {
-        auto const location = p;
-        if (is_vertical_space_advance(p)) {
-            co_yield {location, '\n'};
+        if (auto const n = is_vertical_space(p)) {
+            co_yield {p, '\n'};
+            p += n;
 
-        } else if (is_horizontal_space_advance(p) or is_ignoreable_advance(p)) {
-            // no action.
-            
+        } else if (auto const n = is_horizontal_space(p)) {
+            p += n;
+        
         } else if (auto t = parse_bracketed_string(p, state == state_type::llvm_assembly ? '{' : '\0')) {
-            co_yield std::move(t).value();
+            co_yield t;
             state = state_type::normal;
 
         } else if (match<"[]{}();,">(p[0])) {
-            co_yield {location, p[0]};
+            co_yield {p, p[0]};
             ++p;
 
         } else if (auto t = parse_line_comment(p)) {
-            co_yield std::move(t).value();
+            co_yield t;
 
         } else if (auto t = parse_block_comment(p)) {
-            co_yield std::move(t).value();
+            co_yield t;
 
         } else if (p[0] == '*' and p[1] == '/') {
-            co_yield make_error(p, 2, "Unexpected end of comment; found '*/' without a matching '/*'. ");
+            co_yield {p, 2, token::unexpected_end_of_comment_error};
 
         } else if (auto t = parse_superscript_integer(p)) {
-            co_yield std::move(t).value();
+            co_yield t;
 
         } else if (auto t = parse_number(p)) {
-            co_yield std::move(t).value();
+            co_yield t;
 
         } else if (auto t = parse_string(p)) {
-            co_yield std::move(t).value();
+            co_yield t;
 
         } else if (auto t = parse_line_directive(p)) {
-            co_yield std::move(t).value();
-
-        } else if (auto t = parse_scram_directive(p)) {
-            co_yield std::move(t).value();
+            co_yield t;
 
         } else if (auto t = parse_position_arg(p)) {
-            co_yield std::move(t).value();
+            co_yield t;
 
         } else if (auto t = parse_context_arg(p)) {
-            co_yield std::move(t).value();
+            co_yield t;
 
         } else if (auto t = parse_tag(p)) {
-            co_yield std::move(t).value();
-
-        } else if (p[0] == '$' and p[1] == '#') {
-            auto r = token{location, token::position_arg};
-            r.append('#');
-            p += 2;
-            r.last = p;
-            co_yield std::move(r);
+            co_yield t;
 
         } else if (auto t = parse_identifier(p)) {
-            co_yield std::move(t).value();
+            co_yield t;
 
             if (t == "llvm") {
                 state = state_type::llvm_assembly;
             }
 
         } else if (auto t = parse_operator(p)) {
-            co_yield std::move(t).value();
-
-        } else if (p[0] == 0xfffd) {
-            co_yield make_error(p, 1, "Invalid UTF-8 sequence; found a replacement character (U+FFFD).");
-
-        } else if (p[0] >= 0xD800 and p[0] <= 0xDFFF) {
-            co_yield make_error(p, 1, "Invalid surrogate code-point U+{:04x}.", static_cast<std::uint32_t>(c[0]));
-
-        } else if (p[0] > 0x10FFFF) {
-            co_yield make_error(p, 1, "Invalid code-point U+{:08x}.", static_cast<std::uint32_t>(c[0]));
+            co_yield t;
 
         } else {
-            co_yield make_error(p, 1, "Unexpected character U+{:04x} found.", static_cast<std::uint32_t>(c[0]));
+            auto [cp, n] = get_cp(p);
+
+            if (cp == 0xfeff) {
+                // Ignore BOM.
+                p += n;
+            
+            } else if (cp == 0xfffd) {
+                co_yield {p, n, token::invalid_replacement_character_error};
+                p += n;
+
+            } else if (cp >= 0xD800 and cp <= 0xDFFF) {
+                co_yield {p, n, token::invalid_surrogate_code_point_error};
+                p += n;
+
+            } else if (cp > 0x10FFFF) {
+                co_yield {p, n, token::invalid_code_point_error};
+                p += n;
+
+            } else {
+                co_yield {p, n, token::unexpected_character_error};
+                p += n;
+            }
         }
     }
 
     co_yield {p, '\0'};
 }
 
-/** Check if an identifier is a keyword.
- *
- * This checks if an identifier is a well-known keyword in the language.
- * This is specifically so that documentation-comments will be associated
- * with non-keyword identifiers.
- *
- * @param t The token to check.
- * @return true if the token is a keyword, false otherwise.
- */
-[[nodiscard]] static bool is_keyword(token const& t) noexcept
-{
-    using namespace std::literals;
-
-    /** Well-known keywords in the language.
-     */
-    constexpr std::array keywords = std::array{"struct"sv, "class"sv, "union"sv, "enum"sv, "function"sv};
-
-    if (t.kind != token::identifier) {
-        return false;
-    }
-
-    for (auto const& keyword : keywords) {
-        if (t.text == keyword) {
-            return true;
-        }
-    }
-    return false;
-}
-
-[[nodiscard]] hk::generator<token> tokenize(hk::file_cursor& c)
+[[nodiscard]] hk::generator<token> tokenize(char const*& p)
 {
     fixed_fifo<token, 8> q = {};
     std::vector<char> bracket_stack = {};
@@ -154,34 +127,28 @@ template<typename... Args>
      *
      * @param t The token that was a line-feed.
      */
-    auto replace_line_feed_with_semicolon = [&](token const& t) -> std::optional<token> {
+    auto replace_line_feed_with_semicolon = [&](token const& t) -> token {
         if (not bracket_stack.empty() and bracket_stack.back() != '{') {
             // Insert a semicolon only if we are directly inside a block., or at top level.
-            return std::nullopt;
+            return {};
         }
 
         if (q.empty() or q.back() == ';' or q.back() == '{') {
             // Don't add semicolon when there is a termination token on the queue.
-            return std::nullopt;
+            return {};
         }
 
-        auto semicolon = token{t.first, ';'};
-        semicolon.last = t.last;
-
-        return semicolon;
+        return token{t.data(), ';'};
     };
 
-    for (auto t : simple_tokenize(c)) {
-        if (t == token::comment or t == token::line_directive) {
-            // Drop tokens that we don't care about.
+    for (auto t : simple_tokenize(p)) {
+        if (t == token::comment) {
+            // Drop comments.
             continue;
 
-        } else if (is_keyword(t)) {
-            // Keywords should not get documentation, so we handle this
-            // earlier than other identifiers.
-            if (auto r = q.push_back_overflow(std::move(t))) {
-                co_yield std::move(r).value();
-            }
+        } else if (t == token::line_directive) {
+            // TODO: Associate char-pointer with line and file-name in the context.
+            continue;
 
         } else if (t == '{' or t == '[' or t == '(') {
             if (auto r = q.push_back_overflow(t)) {
@@ -193,13 +160,7 @@ template<typename... Args>
             auto const open_bracket = mirror_bracket(t.simple_value());
 
             if (bracket_stack.empty() or bracket_stack.back() != open_bracket) {
-                auto error_token = token{t.make_error(
-                    t.last,
-                    "Unexpected '{}', missing open bracket '{}'.",
-                    t.simple_value(),
-                    gsl::narrow_cast<char>(open_bracket))};
-
-                if (auto r = q.push_back_overflow(std::move(error_token))) {
+                if (auto r = q.push_back_overflow(t.make_error(token::missing_open_bracket_error))) {
                     co_yield std::move(r).value();
                 }
 
@@ -212,53 +173,9 @@ template<typename... Args>
             }
             bracket_stack.pop_back();
 
-        } else if (t == token::documentation) {
-            doc_text = std::move(t.text);
-            // Drop the token.
-
-        } else if (t == token::back_documentation) {
-            for (auto i = q.size(); i != 0; --i) {
-                auto& q_i = q[i - 1];
-                if (q_i == token::identifier) {
-                    q_i.doc_text = std::move(t.text);
-                    continue; // Drop the token.
-                }
-            }
-            auto error_token = t.make_error(t.last, "Back documentation token found without a preceding identifier.");
-
-            if (auto r = q.push_back_overflow(std::move(error_token))) {
-                co_yield std::move(r).value();
-            }
-
-        } else if (t == token::identifier) {
-            if (not doc_text.empty()) {
-                // If we have documentation text, associate it with the identifier.
-                t.doc_text = std::move(doc_text);
-                doc_text.clear();
-            }
-
-            if (auto r = q.push_back_overflow(std::move(t))) {
-                co_yield std::move(r).value();
-            }
-
-        } else if (t == token::superscript_integer_literal) {
-            // Insert a to-the-power-of operator.
-            auto power_op = t;
-            power_op.kind = token::_operator;
-            power_op.text = "**";
-            if (auto r = q.push_back_overflow(std::move(power_op))) {
-                co_yield std::move(r).value();
-            }
-
-            // Convert to a normal integer.
-            t.kind = token::integer_literal;
-            if (auto r = q.push_back_overflow(std::move(t))) {
-                co_yield std::move(r).value();
-            }
-
         } else if (t == '\n') {
             if (auto r = replace_line_feed_with_semicolon(t)) {
-                if (auto r2 = q.push_back_overflow(std::move(r).value())) {
+                if (auto r2 = q.push_back_overflow(r)) {
                     co_yield std::move(r2).value();
                 }
             }
@@ -268,22 +185,21 @@ template<typename... Args>
             while (not bracket_stack.empty()) {
                 auto const unmatched_bracket = bracket_stack.back();
 
-                auto error_token = t.make_error(t.last, "Unmatched '{}' found; expected matching closing bracket.", unmatched_bracket);
-                if (auto r = q.push_back_overflow(std::move(error_token))) {
+                if (auto r = q.push_back_overflow(t.make_error(token::unmatched_closing_bracket_error))) {
                     co_yield std::move(r).value();
                 }
 
                 // Insert a matched closing bracket for each unmatched opening bracket.
                 // So that the parser can continue longer during error recovery.
                 auto const closing_bracket = mirror_bracket(unmatched_bracket);
-                if (auto r = q.push_back_overflow({t.first, gsl::narrow_cast<char>(closing_bracket)})) {
+                if (auto r = q.push_back_overflow({t.data(), gsl::narrow_cast<char>(closing_bracket)})) {
                     co_yield std::move(r).value();
                 }
             }
 
             // Treat end-of-file as a possible line feed.
             if (auto r = replace_line_feed_with_semicolon(t)) {
-                if (auto r2 = q.push_back_overflow(std::move(r).value())) {
+                if (auto r2 = q.push_back_overflow(r)) {
                     co_yield std::move(r2).value();
                 }
             }

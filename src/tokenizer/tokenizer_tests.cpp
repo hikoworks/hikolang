@@ -8,16 +8,15 @@
 
 TEST_SUITE(tokenizer_suite) {
 #define parse_tokens(output, text) \
-    auto path = hk::make_file_buffer(text); \
-    auto cursor = hk::file_cursor{path}; \
-    auto token_generator = hk::tokenize(cursor); \
+    auto t = std::string{text}; \
+    auto token_generator = hk::tokenize(t); \
     auto output = hk::lazy_vector{token_generator.cbegin(), token_generator.cend()}
 
 TEST_CASE(integer_12)
 {
     parse_tokens(tokens, "12");
-    REQUIRE(tokens[0].kind == hk::token::integer_literal);
-    REQUIRE(tokens[0].text == "12");
+    REQUIRE(tokens[0].kind() == hk::token::integer_literal);
+    REQUIRE(tokens[0].string_view() == "12");
     REQUIRE(tokens[1] == ';');
     REQUIRE(tokens[2] == '\0');
 }
@@ -25,8 +24,8 @@ TEST_CASE(integer_12)
 TEST_CASE(integer_space_12)
 {
     parse_tokens(tokens, " 12");
-    REQUIRE(tokens[0].kind == hk::token::integer_literal);
-    REQUIRE(tokens[0].text == "12");
+    REQUIRE(tokens[0].kind() == hk::token::integer_literal);
+    REQUIRE(tokens[0].string_view() == "12");
     REQUIRE(tokens[1] == ';');
     REQUIRE(tokens[2] == '\0');
 }
@@ -34,8 +33,8 @@ TEST_CASE(integer_space_12)
 TEST_CASE(integer_12_space)
 {
     parse_tokens(tokens, "12 ");
-    REQUIRE(tokens[0].kind == hk::token::integer_literal);
-    REQUIRE(tokens[0].text == "12");
+    REQUIRE(tokens[0].kind() == hk::token::integer_literal);
+    REQUIRE(tokens[0].string_view() == "12");
     REQUIRE(tokens[1] == ';');
     REQUIRE(tokens[2] == '\0');
 }
@@ -43,8 +42,8 @@ TEST_CASE(integer_12_space)
 TEST_CASE(integer_0b01)
 {
     parse_tokens(tokens, "0b01");
-    REQUIRE(tokens[0].kind == hk::token::integer_literal);
-    REQUIRE(tokens[0].text == "0b01");
+    REQUIRE(tokens[0].kind() == hk::token::integer_literal);
+    REQUIRE(tokens[0].string_view() == "0b01");
     REQUIRE(tokens[1] == ';');
     REQUIRE(tokens[2] == '\0');
 }
@@ -52,8 +51,8 @@ TEST_CASE(integer_0b01)
 TEST_CASE(integer_0B10)
 {
     parse_tokens(tokens, "0B10");
-    REQUIRE(tokens[0].kind == hk::token::integer_literal);
-    REQUIRE(tokens[0].text == "0B10");
+    REQUIRE(tokens[0].kind() == hk::token::integer_literal);
+    REQUIRE(tokens[0].string_view() == "0B10");
     REQUIRE(tokens[1] == ';');
     REQUIRE(tokens[2] == '\0');
 }
@@ -61,8 +60,8 @@ TEST_CASE(integer_0B10)
 TEST_CASE(integer_0x2a)
 {
     parse_tokens(tokens, "0x2a");
-    REQUIRE(tokens[0].kind == hk::token::integer_literal);
-    REQUIRE(tokens[0].text == "0x2a");
+    REQUIRE(tokens[0].kind() == hk::token::integer_literal);
+    REQUIRE(tokens[0].string_view() == "0x2a");
     REQUIRE(tokens[1] == ';');
     REQUIRE(tokens[2] == '\0');
 }
@@ -70,8 +69,8 @@ TEST_CASE(integer_0x2a)
 TEST_CASE(integer_0X2A)
 {
     parse_tokens(tokens, "0X2A");
-    REQUIRE(tokens[0].kind == hk::token::integer_literal);
-    REQUIRE(tokens[0].text == "0X2A");
+    REQUIRE(tokens[0].kind() == hk::token::integer_literal);
+    REQUIRE(tokens[0].string_view() == "0X2A");
     REQUIRE(tokens[1] == ';');
     REQUIRE(tokens[2] == '\0');
 }
@@ -91,12 +90,12 @@ TEST_CASE(short_file_file)
     REQUIRE(tokens[4] == ".");
     REQUIRE(tokens[5] == "foo");
     REQUIRE(tokens[6] == "application");
-    REQUIRE(tokens[7].text == "bar");
+    REQUIRE(tokens[7].string_view() == "bar");
     REQUIRE(tokens[8] == ';');
     REQUIRE(tokens[9] == "import");
     REQUIRE(tokens[10] == "git");
-    REQUIRE(tokens[11].text == "https://github.com/example/baz");
-    REQUIRE(tokens[12].text == "main");
+    REQUIRE(tokens[11].string_view() == "https://github.com/example/baz");
+    REQUIRE(tokens[12].string_view() == "main");
     REQUIRE(tokens[13] == ';');
     REQUIRE(tokens[14] == '\0');
 }
@@ -113,12 +112,12 @@ TEST_CASE(short_file_content)
     REQUIRE(tokens[4] == ".");
     REQUIRE(tokens[5] == "foo");
     REQUIRE(tokens[6] == "application");
-    REQUIRE(tokens[7].text == "bar");
+    REQUIRE(tokens[7].string_view() == "bar");
     REQUIRE(tokens[8] == ';');
     REQUIRE(tokens[9] == "import");
     REQUIRE(tokens[10] == "git");
-    REQUIRE(tokens[11].text == "https://github.com/example/baz");
-    REQUIRE(tokens[12].text == "main");
+    REQUIRE(tokens[11].string_view() == "https://github.com/example/baz");
+    REQUIRE(tokens[12].string_view() == "main");
     REQUIRE(tokens[13] == ';');
     REQUIRE(tokens[14] == '\0');
 }

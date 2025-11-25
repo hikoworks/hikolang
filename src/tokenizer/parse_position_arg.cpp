@@ -5,26 +5,24 @@
 
 namespace hk {
 
-[[nodiscard]] std::optional<token> parse_position_arg(file_cursor& c)
+[[nodiscard]] token parse_position_arg(char const*& p)
 {
-    if (c[0] != '$' or not is_digit(c[1])) {
-        return std::nullopt;
+    if (p[0] != '$' or not is_digit(p[1])) {
+        return {};
     }
 
-    auto r = token{c.location(), token::position_arg};
-    r.append(c[1]);
-    c += 2;
+    auto r = token{++p, token::position_arg};
+    ++p;
 
-    while (true) {
-        if (not is_digit(c[0])) {
-            // End of numbered argument, including end of file.
-            r.last = c.location();
+    for (; p[0] != '\0'; ++p) {
+        if (not is_digit(p[0])) {
+            r.set_last(p);
             return r;
         }
-
-        r.append(c[0]);
-        ++c;
     }
+
+    r.set_last(p);
+    return r;
 }
 
 }

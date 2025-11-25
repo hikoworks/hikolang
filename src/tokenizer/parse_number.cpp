@@ -6,157 +6,136 @@
 
 namespace hk {
 
-[[nodiscard]] std::optional<token> parse_number(file_cursor& c)
+[[nodiscard]] token parse_number(char const*& p)
 {
-    auto is_number = is_digit(c[0]);
-    is_number |= c[0] == '.' and is_digit(c[1]);
-    is_number |= (c[0] == '-' or c[0] == '+') and (is_digit(c[1]) or (c[1] == '.' and is_digit(c[2])));
+    auto is_number = is_digit(p[0]);
+    is_number |= p[0] == '.' and is_digit(p[1]);
+    is_number |= (p[0] == '-' or p[0] == '+') and (is_digit(p[1]) or (p[1] == '.' and is_digit(p[2])));
     if (not is_number) {
-        return std::nullopt;
+        return {};
     }
 
-    auto r = token{c.location(), token::integer_literal};
+    auto r = token{p, token::integer_literal};
 
 sign:
-    if (c[0] == '+' or c[0] == '-') {
-        r.append(c[0]);
-        ++c;
+    if (p[0] == '+' or p[0] == '-') {
+        ++p;
     }
 
 radix_prefix:
     auto radix = 10;
-    if (c[0] == '0') {
-        if (c[1] == 'b' or c[1] == 'B') {
+    if (p[0] == '0') {
+        if (p[1] == 'b' or p[1] == 'B') {
             radix = 2;
-            r.append(c[0]);
-            r.append(c[1]);
-            c += 2;
+            p += 2;
 
-        } else if (c[1] == 'o' or c[1] == 'O') {
+        } else if (p[1] == 'o' or p[1] == 'O') {
             radix = 8;
-            r.append(c[0]);
-            r.append(c[1]);
-            c += 2;
+            p += 2;
 
-        } else if (c[1] == 'd' or c[1] == 'D') {
+        } else if (p[1] == 'd' or p[1] == 'D') {
             radix = 10;
-            r.append(c[0]);
-            r.append(c[1]);
-            c += 2;
+            p += 2;
 
-        } else if (c[1] == 'x' or c[1] == 'X') {
+        } else if (p[1] == 'x' or p[1] == 'X') {
             radix = 16;
-            r.append(c[0]);
-            r.append(c[1]);
-            c += 2;
+            p += 2;
         }
     }
 
 integer_part:
     while (true) {
-        if (is_digit(c[0], radix)) {
-            r.append(c[0]);
-            ++c;
+        if (is_digit(p[0], radix)) {
+            ++p;
 
-        } else if (c[0] == '\'') {
-            ++c;
+        } else if (p[0] == '\'') {
+            ++p;
 
-        } else if (c[0] == '.') {
-            r.kind = token::float_literal;
-            r.append(c[0]);
-            ++c;
+        } else if (p[0] == '.') {
+            r.set_kind(token::float_literal);
+            ++p;
             goto fraction_part;
 
-        } else if (is_exponent_prefix(radix, c[0])) {
-            r.kind = token::float_literal;
-            r.append(c[0]);
-            ++c;
+        } else if (is_exponent_prefix(radix, p[0])) {
+            r.set_kind(token::float_literal);
+            ++p;
             goto exponent_part;
 
         } else {
             // End of number, including end of file.
-            r.last = c.location();
+            r.set_last(p);
             return r;
         }
     }
 
 fraction_part:
-    if (c[0] == '*' and c[1] == '.') {
-        r.kind = token::version_literal;
-        r.append(c[0]);
-        r.append(c[1]);
-        c += 2;
+    if (p[0] == '*' and p[1] == '.') {
+        r.set_kind(token::version_literal);
+        p += 2;
         goto patch_part;
     }
 
     while (true) {
-        if (is_digit(c[0], radix)) {
-            r.append(c[0]);
-            ++c;
+        if (is_digit(p[0], radix)) {
+            ++p;
 
-        } else if (c[0] == '\'') {
-            ++c;
+        } else if (p[0] == '\'') {
+            ++p;
 
-        } else if (c[0] == '.') {
-            r.kind = token::version_literal;
-            r.append(c[0]);
-            ++c;
+        } else if (p[0] == '.') {
+            r.set_kind(token::version_literal);
+            ++p;
             goto patch_part;
 
-        } else if (is_exponent_prefix(radix, c[0])) {
-            r.append(c[0]);
-            ++c;
+        } else if (is_exponent_prefix(radix, p[0])) {
+            ++p;
             goto exponent_part;
 
         } else {
             // End of number, including end of file.
-            r.last = c.location();
+            r.set_last(p);
             return r;
         }
     }
 
 exponent_part:
     // Parse optional sign of the exponent.
-    if (c[0] == '+' or c[0] == '-') {
-        r.append(c[0]);
-        ++c;
+    if (p[0] == '+' or p[0] == '-') {
+        ++p;
     }
 
-    if (not is_digit(c[0], radix)) {
-        return r.make_error(c.location(), "Unterminated number; expected a digit after 'e' or 'E'.");
+    if (not is_digit(p[0], radix)) {
+        return r.make_error(p, token::invalid_exponent_error);
     }
 
     while (true) {
-        if (is_digit(c[0], radix) or c[0] == '\'') {
-            r.append(c[0]);
-            ++c;
+        if (is_digit(p[0], radix) or p[0] == '\'') {
+            ++p;
 
         } else {
             // End of number, including end of file.
-            r.last = c.location();
+            r.set_last(p);
             return r;
         }
     }
 
 patch_part:
-    if (c[0] != '*') {
-        r.append(c[0]);
-        ++c;
-        r.last = c.location();
+    if (p[0] != '*') {
+        ++p;
+        r.set_last(p);
         return r;
     }
 
     while (true) {
-        if (is_digit(c[0], radix)) {
-            r.append(c[0]);
-            ++c;
+        if (is_digit(p[0], radix)) {
+            ++p;
 
-        } else if (c[0] == '\'') {
-            ++c;
+        } else if (p[0] == '\'') {
+            ++p;
 
         } else {
             // End of number, including end of file.
-            r.last = c.location();
+            r.set_last(p);
             return r;
         }
     }

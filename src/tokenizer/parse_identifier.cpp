@@ -5,26 +5,28 @@
 
 namespace hk {
 
-[[nodiscard]] std::optional<token> parse_identifier(file_cursor& c)
+[[nodiscard]] token parse_identifier(char const*& p)
 {
-    if (not (is_identifier_start(c[0]) or c[0] == U'°')) {
-        return std::nullopt;
+    auto [cp, n] = get_cp(p);
+    if (not is_identifier_start(cp)) {
+        return {};
     }
 
-    auto r = token{c.location(), token::identifier};
-    r.append(c[0]);
-    ++c;
+    auto r = token{p, token::identifier};
+    p += n;
 
-    while (true) {
-        if (not (is_identifier_continue(c[0]) or c[0] == U'°')) {
-            // End of identifier, including end of file.
-            r.last = c.location();
-            return r.normalize_and_security_check();
+    while (p[0] != '\0') {
+        auto [cp, n] = get_cp(p);
+        if (not is_identifier_continue(cp)) {
+            r.set_last(p);
+            return r;
         }
 
-        r.append(c[0]);
-        ++c;
+        p += n;
     }
+
+    r.set_last(p);
+    return r;
 }
 
 }

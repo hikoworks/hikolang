@@ -5,27 +5,32 @@
 
 namespace hk {
 
-[[nodiscard]] std::optional<token> parse_tag(file_cursor& c)
+[[nodiscard]] token parse_tag(char const*& p)
 {
-    if (c[0] != '#' or not is_identifier_start(c[1])) {
-        return std::nullopt;
+    if (p[0] != '#') {
+        return {};
+    }
+    
+    auto const [cp, n] = get_cp(p + 1);
+    if (not is_identifier_start(cp)) {
+        return {};
     }
 
-    auto r = token{c.location(), token::tag};
-    ++c;
-    r.append(c[0]);
-    ++c;
+    auto r = token{++p, token::tag};
+    p += n;
 
-    while (true) {
-        if (not is_identifier_continue(c[0])) {
-            // End of identifier, including end of file.
-            r.last = c.location();
-            return r.normalize_and_security_check();
+    while (p[0] != '\0') {
+        auto const [cp, n] = get_cp(p);
+        if (not is_identifier_continue(cp)) {
+            r.set_last(p);
+            return r;
         }
 
-        r.append(c[0]);
-        ++c;
+        p += n;
     }
+    
+    r.set_last(p);
+    return r;
 }
 
 }
