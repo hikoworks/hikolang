@@ -24,7 +24,7 @@ template<typename... Args>
     return r;
 }
 
-[[nodiscard]] static hk::generator<token> simple_tokenize(char const* c)
+[[nodiscard]] static hk::generator<token> simple_tokenize(char const* p)
 {
     enum class state_type {
         normal,
@@ -32,88 +32,87 @@ template<typename... Args>
     };
 
     state_type state = state_type::normal;
-    while (c != '\0') {
-        auto const location = c;
-        if (auto const advance = is_vertical_space(c)) {
+    while (p[0] != '\0') {
+        auto const location = p;
+        if (is_vertical_space_advance(p)) {
             co_yield {location, '\n'};
-            c += advance;
 
-        } else if (is_horizontal_space(c[0], c[1]) or is_ignoreable(c[0])) {
-            ++c;
-
-        } else if (auto t = parse_bracketed_string(c, state == state_type::llvm_assembly ? '{' : '\0')) {
+        } else if (is_horizontal_space_advance(p) or is_ignoreable_advance(p)) {
+            // no action.
+            
+        } else if (auto t = parse_bracketed_string(p, state == state_type::llvm_assembly ? '{' : '\0')) {
             co_yield std::move(t).value();
             state = state_type::normal;
 
-        } else if (is_separator(c[0]) or is_bracket(c[0])) {
-            co_yield {c.location(), gsl::narrow_cast<char>(c[0])};
-            ++c;
+        } else if (match<"[]{}();,">(p[0])) {
+            co_yield {location, p[0]};
+            ++p;
 
-        } else if (auto t = parse_line_comment(c)) {
+        } else if (auto t = parse_line_comment(p)) {
             co_yield std::move(t).value();
 
-        } else if (auto t = parse_block_comment(c)) {
+        } else if (auto t = parse_block_comment(p)) {
             co_yield std::move(t).value();
 
-        } else if (c[0] == '*' and c[1] == '/') {
-            co_yield make_error(c, 2, "Unexpected end of comment; found '*/' without a matching '/*'. ");
+        } else if (p[0] == '*' and p[1] == '/') {
+            co_yield make_error(p, 2, "Unexpected end of comment; found '*/' without a matching '/*'. ");
 
-        } else if (auto t = parse_superscript_integer(c)) {
+        } else if (auto t = parse_superscript_integer(p)) {
             co_yield std::move(t).value();
 
-        } else if (auto t = parse_number(c)) {
+        } else if (auto t = parse_number(p)) {
             co_yield std::move(t).value();
 
-        } else if (auto t = parse_string(c)) {
+        } else if (auto t = parse_string(p)) {
             co_yield std::move(t).value();
 
-        } else if (auto t = parse_line_directive(c)) {
+        } else if (auto t = parse_line_directive(p)) {
             co_yield std::move(t).value();
 
-        } else if (auto t = parse_scram_directive(c)) {
+        } else if (auto t = parse_scram_directive(p)) {
             co_yield std::move(t).value();
 
-        } else if (auto t = parse_position_arg(c)) {
+        } else if (auto t = parse_position_arg(p)) {
             co_yield std::move(t).value();
 
-        } else if (auto t = parse_context_arg(c)) {
+        } else if (auto t = parse_context_arg(p)) {
             co_yield std::move(t).value();
 
-        } else if (auto t = parse_tag(c)) {
+        } else if (auto t = parse_tag(p)) {
             co_yield std::move(t).value();
 
-        } else if (c[0] == '$' and c[1] == '#') {
-            auto r = token{c.location(), token::position_arg};
+        } else if (p[0] == '$' and p[1] == '#') {
+            auto r = token{location, token::position_arg};
             r.append('#');
-            c += 2;
-            r.last = c.location();
+            p += 2;
+            r.last = p;
             co_yield std::move(r);
 
-        } else if (auto t = parse_identifier(c)) {
+        } else if (auto t = parse_identifier(p)) {
             co_yield std::move(t).value();
 
             if (t == "llvm") {
                 state = state_type::llvm_assembly;
             }
 
-        } else if (auto t = parse_operator(c)) {
+        } else if (auto t = parse_operator(p)) {
             co_yield std::move(t).value();
 
-        } else if (c[0] == 0xfffd) {
-            co_yield make_error(c, 1, "Invalid UTF-8 sequence; found a replacement character (U+FFFD).");
+        } else if (p[0] == 0xfffd) {
+            co_yield make_error(p, 1, "Invalid UTF-8 sequence; found a replacement character (U+FFFD).");
 
-        } else if (c[0] >= 0xD800 and c[0] <= 0xDFFF) {
-            co_yield make_error(c, 1, "Invalid surrogate code-point U+{:04x}.", static_cast<std::uint32_t>(c[0]));
+        } else if (p[0] >= 0xD800 and p[0] <= 0xDFFF) {
+            co_yield make_error(p, 1, "Invalid surrogate code-point U+{:04x}.", static_cast<std::uint32_t>(c[0]));
 
-        } else if (c[0] > 0x10FFFF) {
-            co_yield make_error(c, 1, "Invalid code-point U+{:08x}.", static_cast<std::uint32_t>(c[0]));
+        } else if (p[0] > 0x10FFFF) {
+            co_yield make_error(p, 1, "Invalid code-point U+{:08x}.", static_cast<std::uint32_t>(c[0]));
 
         } else {
-            co_yield make_error(c, 1, "Unexpected character U+{:04x} found.", static_cast<std::uint32_t>(c[0]));
+            co_yield make_error(p, 1, "Unexpected character U+{:04x} found.", static_cast<std::uint32_t>(c[0]));
         }
     }
 
-    co_yield {c.location(), '\0'};
+    co_yield {p, '\0'};
 }
 
 /** Check if an identifier is a keyword.

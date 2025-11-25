@@ -4,6 +4,7 @@
 #include <cassert>
 #include <utility>
 #include <bit>
+#include "utility/fixed_string.hpp"
 
 /** @file char_category.hpp
  * 
@@ -203,20 +204,15 @@ namespace hk {
 }
 
 
-/** Is a code-point a bracket.
- * 
- * A bracket includes:
- * - `{` (Left Brace)
- * - `[` (Left Square Bracket)
- * - `(` (Left Parenthesis)
- * - `}` (Right Brace)
- * - `]` (Right Square Bracket)
- * - `)` (Right Parenthesis)
- * 
- */
-[[nodiscard]] constexpr bool is_bracket(char32_t cp) noexcept
+template<fixed_string Characters>
+[[nodiscard]] constexpr char match(char c) noexcept
 {
-    return cp == '{' or cp == '[' or cp == '(' or cp == '}' or cp == ']' or cp == ')';
+    for (auto i = 0uz; i != Characters.size(); ++i) {
+        if (Characters[i] == c) {
+            return c;
+        }
+    }
+    return '\0';
 }
 
 /** Mirror a bracket code-point.
@@ -249,17 +245,6 @@ namespace hk {
     }
 }
 
-/** Is a code-point a separator.
- * 
- * A separator includes:
- * - `,` (Comma)
- * - `;` (Semicolon)
- * 
- */
-[[nodiscard]] constexpr bool is_separator(char32_t cp) noexcept
-{
-    return cp == ',' or cp == ';';
-}
 
 /** Is a code-point a digit.
  * 

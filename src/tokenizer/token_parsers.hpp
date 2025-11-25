@@ -13,23 +13,23 @@ namespace hk {
  * An assembly block starts at a open brace `{` and ends at a matching close brace `}`.
  * The text between braces must have balanced brackets, brackets inside strings are ignored.
  * 
- *  @param c The file_cursor to read from.
- *  @param enable If true, assembly parsing is enabled, otherwise it is disabled.
+ *  @param p The file_cursor to read from.
+ *  @param open_bracket The open bracket to search for the equivelant close bracket.
  */
-[[nodiscard]] std::optional<token> parse_bracketed_string(file_cursor& c, char open_bracket);
+[[nodiscard]] std::optional<token> parse_bracketed_string(char const*& p, char open_bracket);
 
-[[nodiscard]] std::optional<token> parse_block_comment(file_cursor& c);
-[[nodiscard]] std::optional<token> parse_identifier(file_cursor& c);
-[[nodiscard]] std::optional<token> parse_tag(file_cursor& c);
-[[nodiscard]] std::optional<token> parse_context_arg(file_cursor& c);
-[[nodiscard]] std::optional<token> parse_position_arg(file_cursor& c);
-[[nodiscard]] std::optional<token> parse_line_comment(file_cursor& c);
-[[nodiscard]] std::optional<token> parse_line_directive(file_cursor& c);
-[[nodiscard]] std::optional<token> parse_number(file_cursor& c);
-[[nodiscard]] std::optional<token> parse_superscript_integer(file_cursor& c);
-[[nodiscard]] std::optional<token> parse_operator(file_cursor& c);
-[[nodiscard]] std::optional<token> parse_scram_directive(file_cursor& c);
-[[nodiscard]] std::optional<token> parse_string(file_cursor& c);
+[[nodiscard]] std::optional<token> parse_block_comment(char const*& p);
+[[nodiscard]] std::optional<token> parse_identifier(char const*& p);
+[[nodiscard]] std::optional<token> parse_tag(char const*& p);
+[[nodiscard]] std::optional<token> parse_context_arg(char const*& p);
+[[nodiscard]] std::optional<token> parse_position_arg(char const*& p);
+[[nodiscard]] std::optional<token> parse_line_comment(char const*& p);
+[[nodiscard]] std::optional<token> parse_line_directive(char const*& p);
+[[nodiscard]] std::optional<token> parse_number(char const*& p);
+[[nodiscard]] std::optional<token> parse_superscript_integer(char const*& p);
+[[nodiscard]] std::optional<token> parse_operator(char const*& p);
+[[nodiscard]] std::optional<token> parse_scram_directive(char const*& p);
+[[nodiscard]] std::optional<token> parse_string(char const*& p);
 
 
 }
