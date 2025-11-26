@@ -32,19 +32,33 @@ template<typename... Args>
     };
 
     state_type state = state_type::normal;
-    while (p[0] != '\0') {
-        if (auto const n = is_vertical_space(p)) {
-            co_yield {p, '\n'};
-            p += n;
 
-        } else if (auto const n = is_horizontal_space(p)) {
-            p += n;
+    auto parse_llvm_string = [&](char const*& _p) {
+        if (state == state_type::llvm_assembly) {
+            return parse_bracketed_string(_p, '{', '}');
+        } else {
+            return token{};
+        }
+    };
+
+    while (p[0] != '\0') {
+        if (match<'\n', '\v', '\f'>(p[0])) {
+            co_yield {p, '\n'};
+            ++p;
+
+        } else if (p[0] == '\r') {
+            co_yield {p, '\n'};
+            p += p[1] == '\n' ? 2 : 1;
+
+        } else if (match<' ', '\t'>(p[0])) {
+            // Ignore white-space.
+            ++p;
         
-        } else if (auto t = parse_bracketed_string(p, state == state_type::llvm_assembly ? '{' : '\0')) {
+        } else if (auto t = parse_llvm_string(p)) {
             co_yield t;
             state = state_type::normal;
 
-        } else if (match<"[]{}();,">(p[0])) {
+        } else if (match<'[', ']', '{', '}', '(', ')', ';', ','>(p[0])) {
             co_yield {p, p[0]};
             ++p;
 
@@ -56,6 +70,7 @@ template<typename... Args>
 
         } else if (p[0] == '*' and p[1] == '/') {
             co_yield {p, 2, token::unexpected_end_of_comment_error};
+            p += 2;
 
         } else if (auto t = parse_superscript_integer(p)) {
             co_yield t;
@@ -89,28 +104,32 @@ template<typename... Args>
             co_yield t;
 
         } else {
-            auto [cp, n] = get_cp(p);
+            // Extracting an code-point is slow, so this is done last.
+            auto const [cp, n] = get_cp(p);
 
-            if (cp == 0xfeff) {
+            if (match<U'\u0085', U'\u2028', U'\u2029'>(cp)) {
+                co_yield {p, '\n'};
+
+            } else if (cp == 0xfeff) {
                 // Ignore BOM.
-                p += n;
+
+            } else if (match<U'\u00a0', U'\u1680', U'\u202f', U'\u205f', U'\u3000'>(cp) or (cp >= 0x2000 and cp <= 0x200a)) {
+                // Ignore white-space.
             
             } else if (cp == 0xfffd) {
                 co_yield {p, n, token::invalid_replacement_character_error};
-                p += n;
 
             } else if (cp >= 0xD800 and cp <= 0xDFFF) {
                 co_yield {p, n, token::invalid_surrogate_code_point_error};
-                p += n;
 
             } else if (cp > 0x10FFFF) {
                 co_yield {p, n, token::invalid_code_point_error};
-                p += n;
 
             } else {
                 co_yield {p, n, token::unexpected_character_error};
-                p += n;
             }
+
+            p += n;
         }
     }
 

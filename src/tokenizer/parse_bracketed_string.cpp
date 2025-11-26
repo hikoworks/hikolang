@@ -6,13 +6,8 @@
 
 namespace hk {
 
-[[nodiscard]] token parse_bracketed_string(char const*& p, char open_bracket)
+[[nodiscard]] token parse_bracketed_string(char const*& p, char open_bracket, char close_bracket)
 {
-    auto const close_bracket = gsl::narrow_cast<char>(mirror_bracket(open_bracket));
-
-    if (open_bracket == '\0') {
-        return {};
-    }
     assert(open_bracket == '{' or open_bracket == '[' or open_bracket == '(');
 
     if (p[0] != open_bracket) {

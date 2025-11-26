@@ -4,6 +4,8 @@
 #include <cassert>
 #include <utility>
 #include <bit>
+#include <cstdint>
+#include <cstring>
 #include "utility/fixed_string.hpp"
 
 /** @file char_category.hpp
@@ -30,85 +32,7 @@ namespace hk {
  *       extra bytes at the end.
  * @return code-point, number-of-code-units. On error U+FFFD is returned.
  */
-[[nodiscard]] std::pair<char32_t, uint8_t> get_cp(char const* const p) noexcept
-{
-    auto bytes = uint32_t{};
-    std::memcpy(&bytes, p, sizeof(bytes));
-
-    if constexpr (std::endian::native == std::endian::big) {
-        bytes = std::byteswap(bytes);
-    }
-
-    auto const ascii = static_cast<int8_t>(static_cast<uint8_t>(bytes));
-    if (ascii >= 0) [[likely]] {
-        return {ascii, 1};
-    }
-
-    auto const length_table = uint32_t{0b00'11'10'10'01'01'01'01'00'00'00'00'00'00'00'00};
-    auto const length_index = (bytes >> 2) & 0b11110;
-    auto const length = static_cast<uint8_t>((length_table >> length_index) & 0b11);
-    if (length == 0) [[unlikely]] {
-        // If length is zero, the first code-unit was a continuation byte, or it
-        // has an illegal value.
-        return {0xfffd, 1};
-    }
-
-    // Flip the top bit of potential continuation bytes.
-    // This makes it easy to test and append the continuation bytes;
-    // Both top bits will be zero if they are continuation bytes.
-    bytes ^= 0x80808000;
-
-    // Clear the unused bytes on the left.
-    auto const length8 = length * 8;
-    bytes <<= length8;
-    bytes >>= length8;
-
-    // Check the top two bits if they match continuation bytes, both must be zero.
-    if (bytes & 0xc0c0c000) [[unlikely]] {
-        if (bytes & 0x0000c000) {
-            return {0xfffd, 1};
-        } else if (bytes & 0x00c00000) {
-            return {0xfffd, 2};
-        } else {
-            return {0xfffd, 3};
-        }
-    }
-
-    auto n = length;
-    auto cp = bytes & (0x3f >> length);
-    do {
-        bytes >>= 8;
-        auto const cu = static_cast<uint8_t>(bytes);
-        cp <<= 6;
-        cp |= cu;
-    } while (--n);
-
-    return {cp, length + 1};
-}
-
-/** Advance the UTF-8 stream pointer by a number of code-points.
- *
- * This uses get_cp() to properly advance over code-points including over
- * errors.
- *
- * @param p A pointer to the start of a code-point in a UTF-8 stream
- * @param n Number of code-points to skip.
- * @return Number of code-units to skip.
- */
-[[nodiscard]] size_t advance_cp(char const* p, size_t n) noexcept
-{
-    auto r = 0uz;
-
-    assert(n != 0);
-    do {
-        assert(*p != '\0');
-
-        auto const [_, count] = get_cp(p);
-        r += count;
-    } while (--n);
-
-    return r;
-}
+[[nodiscard]] std::pair<char32_t, uint8_t> get_cp(char const* const p) noexcept;
 
 /** Is a code-point a vertical space.
  * 
@@ -139,59 +63,10 @@ namespace hk {
     }
 }
 
-/** Is a code-point a horizontal space.
- * 
- * A horizontal space includes:
- *  - `\t` (Tab)
- *  - ` ` (Space)
- *  - `\r` (Carriage Return) but only if followed by `\n`
- *  - `\u00A0` (Non-breaking Space)
- *  - `\u1680` (Ogham Space Mark)
- *  - `\u2000` to `\u200A` (Various Space Characters)
- *  - `\u202F` (Narrow No-Break Space)
- *  - `\u205F` (Medium Mathematical Space)
- *  - `\u3000` (Ideographic Space)
- */
-[[nodiscard]] constexpr size_t is_horizontal_space(char const* p) noexcept
+template<typename T, T... Values>
+[[nodiscard]] constexpr bool match(T value) noexcept
 {
-    if (p[0] == '\t' or p[0] == ' ') {
-        return 1;
-    
-    } else if (p[0] == '\r' and p[1] != '\n') {
-        return 1;
-
-    } else if (p[0] == 0xc2 and p[1] == 0xa0) {
-        return 2; // U+00A0
-
-    } else if (p[0] == 0xe1 and p[1] == 0x9a and p[2] == 0x80) {
-        return 3; // U+1680
-
-    } else if (p[0] == 0xe2) {
-        if (p[1] == 0x80 and ((p[2] > 0x80 and p[2] < 0x8a) or p[2] == 0xaf)) {
-            return 3; // U+2000..U+200A, U+202F
-        } else if (p[1] == 0x81 or p[2] == 0x9f) {
-            return 3; // U+205F
-        } else {
-            return 0;
-        }
-    
-    } else if (p[0] == 0xe3 and p[1] == 0x80 and p[2] == 0x80) {
-        return 3; // U+3000
-
-    } else {
-        return 0;
-    }
-}
-
-template<fixed_string Characters>
-[[nodiscard]] constexpr char match(char c) noexcept
-{
-    for (auto i = 0uz; i != Characters.size(); ++i) {
-        if (Characters[i] == c) {
-            return c;
-        }
-    }
-    return '\0';
+    return (Value == value or ...);
 }
 
 /** Mirror a bracket code-point.

@@ -16,7 +16,7 @@ namespace hk {
  *  @param p The file_cursor to read from.
  *  @param open_bracket The open bracket to search for the equivelant close bracket.
  */
-[[nodiscard]] token parse_bracketed_string(char const*& p, char open_bracket);
+[[nodiscard]] token parse_bracketed_string(char const*& p, char open_bracket, char close_bracket);
 
 [[nodiscard]] token parse_block_comment(char const*& p);
 [[nodiscard]] token parse_identifier(char const*& p);
