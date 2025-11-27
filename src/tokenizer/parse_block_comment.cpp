@@ -14,7 +14,7 @@ namespace hk {
     if (p[0] != '/' or p[1] != '*') {
         return {};
     }
-    auto r = token{p += 2, token::comment};
+    r = token{p += 2, token::comment};
 
     if (p[0] == '*') {
         r = token{++p, token::documentation};

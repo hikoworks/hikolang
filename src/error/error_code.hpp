@@ -67,7 +67,6 @@ struct error_code {
     }
 };
 
-
 struct error_code_and_message_base {
     error_code code = {};
 
@@ -87,10 +86,7 @@ template<fixed_string Fmt>
 struct error_code_and_message : public error_code_and_message_base {
     constexpr static decltype(Fmt) fmt = Fmt;
 
-    error_code_and_message() : error_code_and_message_base(error_code{fmt})
-    {
-    }
+    error_code_and_message() : error_code_and_message_base(error_code{fmt}) {}
 };
 
-
-}
+} // namespace hk

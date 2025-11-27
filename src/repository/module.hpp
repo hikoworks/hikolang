@@ -4,32 +4,15 @@
 #include "ast/top_node.hpp"
 #include "utility/semantic_version.hpp"
 #include "error/error_list.hpp"
+#include "tokenizer/line_table.hpp"
+#include <expected>
+#include <system_error>
 #include <filesystem>
 #include <memory>
 
 namespace hk {
 
 struct module_t {
-    enum class state_type {
-        /** The file has not been parsed yet.
-         * 
-         * When it is detected that the module's file has been modified this
-         * is the value the state is set to.
-         */
-        out_of_date,
-
-        /** The prologue is scanned
-         *
-         * After prologue scanning the full repository it is possible to
-         * calculate the compilation order.
-         */
-        prologue,
-
-        /** The full module file is parsed.
-         */
-        parsed,
-    };
-
     /** The location of the module's file.
      */
     std::filesystem::path path;
@@ -39,33 +22,62 @@ struct module_t {
     fqname name;
 
     /** The version of the module.
+     * 
      */
     semantic_version version;
 
-    /** This is the timestamp of the file when it was parsed.
-     * 
-     * This is used to detect if the file has been modified since it was last
-     * parsed.
-     */
-    std::filesystem::file_time_type parse_time;
-
-    /** State denoting the progress of parsing and compiling the module.
-     */
-    state_type state = state_type::out_of_date;
 
     /** List of errors found.
      */
     mutable error_list errors;
 
-    /** The path to the module file.
+    /** The modules source code.
+     * 
+     * The source code must have 8 nul characters at the end of the text.
+     * 
+     * - Empty when the source code is out-of-date.
      */
-    std::vector<std::filesystem::path> upstream_paths;
+    std::string source_code;
+
+    /** This is the timestamp when the source_code was read from disk.
+     * 
+     * This is used to detect if the file has been modified since it was last
+     * parsed.
+     */
+    std::filesystem::file_time_type source_code_time = {};
+
+    /** This is the table of line synchronization points.
+     * 
+     * This is used to query where a character is located.
+     */
+    line_table lines;
+
+    /** The abstract syntax tree of just the prologue.
+     * 
+     * - Empty when the source code is out-of-data.
+     */
+    std::unique_ptr<ast::top_node> prologue_ast;
 
     /** The abstract syntax tree of the module.
+     * 
+     * - Empty when the source code is out-of-data.
      */
     std::unique_ptr<ast::top_node> ast;
 
     module_t(std::filesystem::path path);
+
+private:
+    /** Reset compilation state when the file has been loaded.
+     * 
+     */
+    void reset();
+
+    /** Load the file if it has changed on disk.
+     * 
+     */
+    std::expected<void, std::error_code> load();
+
+    void parse_prologue();
 };
 
 }

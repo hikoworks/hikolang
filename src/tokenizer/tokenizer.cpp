@@ -14,15 +14,6 @@
 
 namespace hk {
 
-template<typename... Args>
-[[nodiscard]] static token make_error(hk::file_cursor& c, unsigned int advance, std::format_string<Args...> fmt, Args&&... args)
-{
-    auto r = token{c.location(), token::error};
-    r.text = std::format(std::move(fmt), std::forward<Args>(args)...);
-    c += advance;
-    r.last = c.location();
-    return r;
-}
 
 [[nodiscard]] static hk::generator<token> simple_tokenize(char const* p)
 {
@@ -42,7 +33,7 @@ template<typename... Args>
     };
 
     while (p[0] != '\0') {
-        if (match<'\n', '\v', '\f'>(p[0])) {
+        if (match<char, '\n', '\v', '\f'>(p[0])) {
             co_yield {p, '\n'};
             ++p;
 
@@ -50,7 +41,7 @@ template<typename... Args>
             co_yield {p, '\n'};
             p += p[1] == '\n' ? 2 : 1;
 
-        } else if (match<' ', '\t'>(p[0])) {
+        } else if (match<char, ' ', '\t'>(p[0])) {
             // Ignore white-space.
             ++p;
         
@@ -58,7 +49,7 @@ template<typename... Args>
             co_yield t;
             state = state_type::normal;
 
-        } else if (match<'[', ']', '{', '}', '(', ')', ';', ','>(p[0])) {
+        } else if (match<char, '[', ']', '{', '}', '(', ')', ';', ','>(p[0])) {
             co_yield {p, p[0]};
             ++p;
 
@@ -107,13 +98,13 @@ template<typename... Args>
             // Extracting an code-point is slow, so this is done last.
             auto const [cp, n] = get_cp(p);
 
-            if (match<U'\u0085', U'\u2028', U'\u2029'>(cp)) {
+            if (match<char32_t, U'\u0085', U'\u2028', U'\u2029'>(cp)) {
                 co_yield {p, '\n'};
 
             } else if (cp == 0xfeff) {
                 // Ignore BOM.
 
-            } else if (match<U'\u00a0', U'\u1680', U'\u202f', U'\u205f', U'\u3000'>(cp) or (cp >= 0x2000 and cp <= 0x200a)) {
+            } else if (match<char32_t, U'\u00a0', U'\u1680', U'\u202f', U'\u205f', U'\u3000'>(cp) or (cp >= 0x2000 and cp <= 0x200a)) {
                 // Ignore white-space.
             
             } else if (cp == 0xfffd) {
@@ -136,7 +127,7 @@ template<typename... Args>
     co_yield {p, '\0'};
 }
 
-[[nodiscard]] hk::generator<token> tokenize(char const*& p)
+[[nodiscard]] hk::generator<token> tokenize(char const*& p, line_table &lines)
 {
     fixed_fifo<token, 8> q = {};
     std::vector<char> bracket_stack = {};
@@ -166,7 +157,17 @@ template<typename... Args>
             continue;
 
         } else if (t == token::line_directive) {
-            // TODO: Associate char-pointer with line and file-name in the context.
+            auto [lineno, file_name] = t.line_value();
+            if (lineno == 0) {
+                if (auto r = q.push_back_overflow(t.make_error(token::invalid_line_directive_error))) {
+                    co_yield std::move(r).value();
+                }
+
+            } else if (file_name.empty()) {
+                lines.add(t.end(), lineno);
+            } else {
+                lines.add(t.end(), lineno, file_name);
+            }
             continue;
 
         } else if (t == '{' or t == '[' or t == '(') {

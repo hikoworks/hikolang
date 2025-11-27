@@ -31,7 +31,7 @@ public:
 
     bool is_fallback = false;
 
-    program_declaration_node(file_location first) : node(first) {}
+    program_declaration_node(char const* first) : node(first) {}
 };
 
 using program_declaration_node_ptr = std::unique_ptr<program_declaration_node>;

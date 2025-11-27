@@ -8,7 +8,7 @@ namespace hk {
 
 [[nodiscard]] parse_result_ptr<ast::module_declaration_node> parse_module_declaration(token_iterator& it, parse_context &ctx)
 {
-    auto const first = it[0].first;
+    auto const first = it[0].begin();
 
     if (*it != "module") {
         return tokens_did_not_match;
@@ -22,7 +22,7 @@ namespace hk {
     } else if (node.error()) {
         return std::unexpected{node.error()};
     } else {
-        return ctx.e.add(first, it->last, error::missing_fqname);
+        return ctx.add_error(first, it->end(), error::missing_fqname);
     }
 
     if (*it == token::version_literal) {
@@ -37,11 +37,11 @@ namespace hk {
 
     } else if (*it == "if") {
         ++it;
-        return ctx.e.add(first, it->last, error::unimplemented);
+        return ctx.add_error(first, it->end(), error::unimplemented);
     }
 
     if (*it != ';') {
-        return ctx.e.add(first, it->last, error::missing_semicolon);
+        return ctx.add_error(first, it->end(), error::missing_semicolon);
     }
 
     ++it;

@@ -50,13 +50,17 @@ namespace hk {
  */
 [[nodiscard]] constexpr size_t is_vertical_space(char const* p) noexcept
 {
-    if (p[0] == '\n' or p[0] == '\v' or p[0] == '\f') {
+    auto p0 = static_cast<uint8_t>(p[0]);
+    auto p1 = static_cast<uint8_t>(p[1]);
+    auto p2 = static_cast<uint8_t>(p[2]);
+
+    if (p0 == '\n' or p0 == '\v' or p0 == '\f') {
         return 1;
-    } else if (p[0] == '\r' and p[1] != '\n') {
+    } else if (p0 == '\r' and p1 != '\n') {
         return 1; // lone CR on old style MacOS
-    } else if (p[0] == 0xc2 and p[1] == 0x85) {
+    } else if (p0 == 0xc2 and p1 == 0x85) {
         return 2; // U+0085
-    } else if (p[0] == 0xe2 and p[1] == 0x80 and (p[2] == 0xa8 or p[2] == 0xa9)) {
+    } else if (p0 == 0xe2 and p1 == 0x80 and (p2 == 0xa8 or p2 == 0xa9)) {
         return 3; // U+2028 or U+2029
     } else {
         return 0;
@@ -66,7 +70,7 @@ namespace hk {
 template<typename T, T... Values>
 [[nodiscard]] constexpr bool match(T value) noexcept
 {
-    return (Value == value or ...);
+    return ((Values == value) or ...);
 }
 
 /** Mirror a bracket code-point.

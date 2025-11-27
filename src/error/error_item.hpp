@@ -1,22 +1,15 @@
 #pragma once
 
 #include "error_code.hpp"
-#include "tokenizer/file_location.hpp"
+#include "tokenizer/line_table.hpp"
 #include <string>
 #include <format>
 #include <vector>
 #include <cassert>
+#include <filesystem>
+#include <expected>
 
 namespace hk {
-
-class error_cause {
-public:
-
-private:
-    file_location _first;
-    file_location _last;
-    std::string _message;
-};
 
 class error_item {
 public:
@@ -27,23 +20,17 @@ public:
     error_item& operator=(error_item&&) = default;
 
     template<typename... Args>
-    error_item(file_location first, file_location last, error_code code, std::format_string<Args...> fmt, Args&&... args)
-        : _first(first), _last(last), _code(code), _message(std::format(std::move(fmt), std::forward<Args>(args)...))
+    error_item(char const* first, char const* last, error_code code, std::format_string<Args...> fmt, Args&&... args) :
+        _first(first), _last(last), _code(code), _message(std::format(std::move(fmt), std::forward<Args>(args)...))
     {
         assert(_code.has_value());
     }
 
     template<typename... Args>
-    error_item(error_code code, std::format_string<Args...> fmt, Args&&... args)
-        : _first(), _last(), _code(code), _message(std::format(std::move(fmt), std::forward<Args>(args)...))
+    error_item(error_code code, std::format_string<Args...> fmt, Args&&... args) :
+        _first(), _last(), _code(code), _message(std::format(std::move(fmt), std::forward<Args>(args)...))
     {
         assert(_code.has_value());
-    }
-
-    template<typename... Args>
-    void add_cause(file_location first, file_location last, std::format_string<Args...> fmt, Args&&... args)
-    {
-        _causes.emplace_back(first, last, std::format(std::move(fmt), std::forward<Args>(args)...));
     }
 
     operator std::unexpected<error_code>() const
@@ -52,22 +39,41 @@ public:
         return std::unexpected{_code};
     }
 
-    [[nodiscard]] constexpr file_location first() const noexcept { return _first; }
-    [[nodiscard]] constexpr file_location last() const noexcept { return _last; }
-    [[nodiscard]] constexpr error_code code() const noexcept { return _code; }
-    [[nodiscard]] constexpr std::string_view message() const noexcept { return _message; }
-    [[nodiscard]] constexpr auto const& causes() const noexcept { return _causes; }
+    [[nodiscard]] constexpr char const* first() const noexcept
+    {
+        return _first;
+    }
 
-    void print(std::vector<std::filesystem::path> const& upstream_paths) const;
+    [[nodiscard]] constexpr char const* last() const noexcept
+    {
+        return _last;
+    }
 
-    [[nodiscard]] std::string to_string(std::vector<std::filesystem::path> const& upstream_paths) const;
+    [[nodiscard]] constexpr error_code code() const noexcept
+    {
+        return _code;
+    }
+
+    [[nodiscard]] constexpr std::string_view message() const noexcept
+    {
+        return _message;
+    }
+
+    void print(line_table const& lines) const;
+
+    /** Create a string to print to the console for the error.
+     * 
+     * @param text The text of the source-code.
+     * @param upstream_paths Paths to the original source code.
+     * @return A string to be send to the console.
+     */
+    [[nodiscard]] std::string to_string(line_table const& lines) const;
 
 private:
-    file_location _first = {};
-    file_location _last = {};
+    char const* _first = {};
+    char const* _last = {};
     error_code _code = {};
     std::string _message = {};
-    std::vector<error_cause> _causes = {};
 };
 
-}
+} // namespace hk

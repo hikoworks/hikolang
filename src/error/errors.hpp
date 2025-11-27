@@ -23,9 +23,14 @@ E(invalid_fqname, "E0201: Fully qualified name is invalid.");
 E(invalid_prologue_statement, "E0202: Invalid prologue statement.");
 
 E(could_not_clone_repository, "E0300: Could not clone repository '{}' rev '{}' into '{}': {}.");
-}
+} // namespace hk::error
 
 namespace hk::warning {
+}
+
+namespace hk::security {
+E(insecure_identifier, "S0001: Identifier '{}' causes security issues: {}.");
+
 }
 
 #undef E

@@ -1,7 +1,6 @@
 
 #pragma once
 
-#include "tokenizer/file_location.hpp"
 #include "error_list.hpp"
 
 namespace hk {
@@ -16,8 +15,8 @@ public:
     constexpr error_location() noexcept = default;
     constexpr error_location(error_location const&) noexcept = default;
     constexpr error_location(error_location&&) noexcept = default;
-    constexpr error_location &operator=(error_location const&) noexcept = default;
-    constexpr error_location &operator=(error_location&&) noexcept = default;
+    constexpr error_location& operator=(error_location const&) noexcept = default;
+    constexpr error_location& operator=(error_location&&) noexcept = default;
 
     /** Create an error location.
      *
@@ -26,11 +25,13 @@ public:
      *              optional error can appear.
      * @param last One beyond the last character.
      */
-    constexpr error_location(error_list &errors, file_location first, file_location last = file_location{})
-        : _errors_ptr(&errors), _first(first), _last(last) {}
+    constexpr error_location(error_list& errors, char const* first, char const* last = nullptr) :
+        _errors_ptr(&errors), _first(first), _last(last)
+    {
+    }
 
-    /** Add an error to the list. 
-     * 
+    /** Add an error to the list.
+     *
      *  @tparam ErrorCode The error being raised, including the format string.
      *  @param args The arguments to format the error message.
      *  @return A unexpected error containing the error code.
@@ -46,9 +47,9 @@ public:
     }
 
 private:
-    error_list *_errors_ptr = nullptr;
-    file_location _first = {};
-    file_location _last = {};
+    error_list* _errors_ptr = nullptr;
+    char const* _first = nullptr;
+    char const* _last = nullptr;
 };
 
-}
+} // namespace hk

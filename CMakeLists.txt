@@ -87,6 +87,8 @@ add_library(hk_objects OBJECT
     "${CMAKE_CURRENT_SOURCE_DIR}/src/repository/repository.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer/char_category.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer/char_category.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer/line_table.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer/line_table.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer/parse_block_comment.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer/parse_bracketed_string.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer/parse_context_arg.cpp"

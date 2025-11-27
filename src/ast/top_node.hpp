@@ -17,7 +17,7 @@ public:
     std::vector<import_library_declaration_node_ptr> library_imports;
     std::vector<node_ptr> body;
 
-    top_node(file_location first) : node(first) {}
+    top_node(char const* first) : node(first) {}
 };
 
-}
+} // namespace hk::ast

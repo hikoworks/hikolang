@@ -5,20 +5,19 @@
 
 namespace hk {
 
-[[nodiscard]] parse_result<fqname> parse_fqname(token_iterator& it, parse_context &ctx, bool leading_dot)
+[[nodiscard]] parse_result<fqname> parse_fqname(token_iterator& it, parse_context& ctx)
 {
-    auto const first = it->first;
+    auto const first = it->begin();
 
     auto r = fqname{};
 
     if (*it == token::identifier) {
-        r = std::move(it->text);
-        ++it;
-
-    } else if (leading_dot and it[0] == "." and it[1] == token::identifier) {
-        r = ".";
-        r += it[1].text;
-        it += 2;
+        if (auto id = it->identifier_value()) {
+            r = *id;
+            ++it;
+        } else {
+            ctx.add_error(first, it->end(), security::insecure_identifier, it->string_view(), id.error());
+        }
 
     } else {
         return tokens_did_not_match;
@@ -28,11 +27,15 @@ namespace hk {
         ++it;
 
         if (*it == token::identifier) {
-            r += it->text;
-            ++it;
+            if (auto id = it->identifier_value()) {
+                r += *id;
+                ++it;
+            } else {
+                ctx.add_error(first, it->end(), security::insecure_identifier, it->string_view(), id.error());
+            }
 
         } else {
-            return ctx.e.add(first, it->last, error::invalid_fqname);
+            return ctx.add_error(first, it->end(), error::invalid_fqname);
         }
     }
 

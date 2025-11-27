@@ -2,7 +2,6 @@
 #pragma once
 
 #include "token.hpp"
-#include "file_cursor.hpp"
 #include <cstddef>
 #include <optional>
 

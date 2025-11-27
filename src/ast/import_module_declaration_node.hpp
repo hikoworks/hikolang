@@ -1,7 +1,6 @@
 
 #pragma once
 
-
 #include "node.hpp"
 #include "utility/fqname.hpp"
 
@@ -9,10 +8,7 @@ namespace hk::ast {
 
 class import_module_declaration_node : public node {
 public:
-    import_module_declaration_node(file_location first) :
-        node(first)
-    {
-    }
+    import_module_declaration_node(char const* first) : node(first) {}
 
     fqname name = {};
     fqname as = {};

@@ -1,32 +1,33 @@
 
 #include "read_file.hpp"
+#include <gsl/gsl>
 #include <iostream>
 #include <fstream>
 
 namespace hk {
 
-[[nodiscard]] std::optional<std::string> read_file(std::filesystem::path const& path, size_t extra_nul)
+[[nodiscard]] std::expected<std::string, std::error_code> read_file(std::filesystem::path const& path, size_t extra_nul)
 {
     auto ifs = std::ifstream(path, std::ios::in | std::ios::binary | std::ios::ate);
     if (ifs.bad() or ifs.fail()) {
-        return std::nullopt;
+        return std::unexpected{std::make_error_code(std::errc::io_error)};
     }
 
     // Open seeks to end.
     auto const file_size = ifs.tellg();
     if (file_size == -1) {
-        return std::nullopt;
+        return std::unexpected{std::make_error_code(std::errc::io_error)};
     }
 
     // Seek back to beginning.
     ifs.seekg(0, std::ios::beg);
     if (ifs.bad() or ifs.fail()) {
-        return std::nullopt;
+        return std::unexpected{std::make_error_code(std::errc::io_error)};
     }
 
     auto r = std::string{};
     r.resize_and_overwrite(
-        file_size + extra_nul,
+        gsl::narrow<size_t>(file_size) + extra_nul,
         [&](char* p, std::size_t s) {
             ifs.read(p, s);
             auto actual_size = ifs.gcount();
@@ -36,7 +37,7 @@ namespace hk {
 
     // This checks the read() inside resize_and_overwrite().
     if (ifs.bad() or ifs.fail()) {
-        return std::nullopt;
+        return std::unexpected{std::make_error_code(std::errc::io_error)};
     }
 
     return r;

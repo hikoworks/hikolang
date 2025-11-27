@@ -1,7 +1,6 @@
 
 #pragma once
 
-#include "file_location.hpp"
 #include "utility/unicode.hpp"
 #include "utility/semantic_version.hpp"
 #include <gsl/gsl>
@@ -17,7 +16,7 @@ namespace hk {
 class token {
 public:
     enum class kind_type : uint8_t {
-        empty,
+        nullopt,
         missing_end_of_block_comment_error,
         unmatched_closing_bracket_error,
         missing_closing_bracket_error,
@@ -30,6 +29,7 @@ public:
         unexpected_character_error,
         unexpected_end_of_comment_error,
         missing_open_bracket_error,
+        invalid_line_directive_error,
         simple,
         identifier,
         tag,
@@ -54,7 +54,7 @@ public:
         bracketed_string_literal,
     };
 
-    static constexpr kind_type empty = kind_type::empty;
+    static constexpr kind_type nullopt = kind_type::nullopt;
     static constexpr kind_type missing_end_of_block_comment_error = kind_type::missing_end_of_block_comment_error;
     static constexpr kind_type unmatched_closing_bracket_error = kind_type::unmatched_closing_bracket_error;
     static constexpr kind_type missing_closing_bracket_error = kind_type::missing_closing_bracket_error;
@@ -67,6 +67,7 @@ public:
     static constexpr kind_type unexpected_character_error = kind_type::unexpected_character_error;
     static constexpr kind_type unexpected_end_of_comment_error = kind_type::unexpected_end_of_comment_error;
     static constexpr kind_type missing_open_bracket_error = kind_type::missing_open_bracket_error;
+    static constexpr kind_type invalid_line_directive_error = kind_type::invalid_line_directive_error;
     static constexpr kind_type simple = kind_type::simple;
     static constexpr kind_type identifier = kind_type::identifier;
     static constexpr kind_type tag = kind_type::tag;
@@ -90,20 +91,7 @@ public:
     static constexpr kind_type scram_directive = kind_type::scram_directive;
     static constexpr kind_type bracketed_string_literal = kind_type::bracketed_string_literal;
 
-    /** The location in the text where the first character of a token is located.
-     */
-    char const *_ptr = nullptr;
-
-    /** One position after the location of the last character of the token.
-     * 
-     * When kind() == kind_type::simple, this is the ASCII code-point that
-     * represents this token. The size() will be 1.
-     */
-    uint32_t _size = 0;
-
-    /** The kind of token.
-     */
-    kind_type _kind = kind_type::empty;
+    
 
     /** Create a token with the first character's location.
      * 
@@ -113,7 +101,7 @@ public:
      * @param size The size of the token in number of UTF-8 code-units.
      * @param kind The token kind.
      */
-    constexpr token(char const *ptr = nullptr, uint32_t size = 0, kind_type kind = kind_type::empty) noexcept :
+    constexpr token(char const *ptr = nullptr, uint32_t size = 0, kind_type kind = kind_type::nullopt) noexcept :
         _ptr(ptr), _size(size), _kind(kind)
     {
     }
@@ -176,14 +164,14 @@ public:
         return _kind;
     }
 
-    [[nodiscard]] constexpr token& set_kind(kind_type kind) noexcept
+    constexpr token& set_kind(kind_type kind) noexcept
     {
         assert(kind != kind_type::simple);
         _kind = kind;
         return *this;
     }
 
-    [[nodiscard]] constexpr token& set_simple(char c) noexcept
+    constexpr token& set_simple(char c) noexcept
     {
         _kind = kind_type::simple;
         _size = c;
@@ -208,6 +196,7 @@ public:
     {
         assert(size == 1 or _kind != kind_type::simple);
         _size = gsl::narrow<uint32_t>(size);
+        return *this;
     }
 
     [[nodiscard]] constexpr size_t size() const noexcept
@@ -219,10 +208,19 @@ public:
         }
     }
 
-    [[nodiscard]] constexpr char const* data() const
+    [[nodiscard]] constexpr char const* data() const noexcept
     {
-        assert(_ptr != nullptr);
         return _ptr;
+    }
+
+    [[nodiscard]] constexpr char const* begin() const noexcept
+    {
+        return _ptr;
+    }
+
+    [[nodiscard]] constexpr char const* end() const noexcept
+    {
+        return begin() + size();
     }
 
     [[nodiscard]] constexpr bool empty() const noexcept
@@ -291,27 +289,25 @@ public:
         return string_view() == str;
     }
 
-    /** Get a NFC normalized UTF-8 string.
-     * 
-     * This is used for identifiers and operators, so that they can be properly
-     * compared. This function also does a security check on the identifier.
-     * 
+    /** Get a NFC normalized UTF-8 identifier.
+     *
+     * This is used for identifiers, so that they can be properly compared. This
+     * function also does a security check on the identifier.
+     *
      * @return A NFC normalized UTF-8 string. Or a security error when the
      *         identifier should not be used.
      */
-    [[nodiscard]] std::expected<std::string, utf8_security_error> normalized_string_value() const
-    {
-        auto normalized_text = normalize_utf8_string(string());
-        if (not normalized_text) {
-            return std::unexpected{utf8_security_error::unknown_error};
-        }
+    [[nodiscard]] std::expected<std::string, utf8_security_error> identifier_value() const;
 
-        if (auto const check_result = security_check_utf8_string(*normalized_text); not check_result) {
-            return std::unexpected{check_result.error()};
-        }
-
-        return std::move(normalized_text).value();
-    }
+    /** Get a NFC normalized UTF-8 operator.
+     *
+     * This is used for operators, so that they can be properly compared. This
+     * function also does a security check on the identifier.
+     *
+     * @return A NFC normalized UTF-8 string. Or a security error when the
+     *         identifier should not be used.
+     */
+    [[nodiscard]] std::expected<std::string, utf8_security_error> operator_value() const;
 
     /** Convert a version token to its semantic version value.
      * 
@@ -337,6 +333,18 @@ public:
         return static_cast<char>(_size);
     }
 
+    /** Get a value of a raw stream after unescaping.
+     * 
+     */
+    [[nodiscard]] std::string raw_string_value() const;
+
+    /** Extract the line and file name from a #line directive.
+     *
+     * @return line, file name. If line is zero there was an error. If the file
+     *         name is empty if it was not part of the #line directive.
+     */
+    [[nodiscard]] std::pair<size_t, std::string> line_value() const;
+
     [[nodiscard]] token make_error(char const *last, kind_type kind)
     {
         auto tmp = *this;
@@ -352,6 +360,21 @@ public:
         return tmp;
     }
 
+private:
+    /** The location in the text where the first character of a token is located.
+     */
+    char const *_ptr = nullptr;
+
+    /** One position after the location of the last character of the token.
+     * 
+     * When kind() == kind_type::simple, this is the ASCII code-point that
+     * represents this token. The size() will be 1.
+     */
+    uint32_t _size = 0;
+
+    /** The kind of token.
+     */
+    kind_type _kind = kind_type::nullopt;
 };
 
 } // namespace hk

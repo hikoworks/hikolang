@@ -2,7 +2,7 @@
 #pragma once
 
 #include "token.hpp"
-#include "file_cursor.hpp"
+#include "line_table.hpp"
 #include "char_category.hpp"
 #include "utility/module.hpp"
 #include "utility/generator.hpp"
@@ -23,10 +23,10 @@ namespace hk {
  * 
  * This function will tokenize the input text and call the delegate for each token produced.
  * 
- * @param file_cursor The file cursor pointing to the text to tokenize.
- * @param delegate The delegate to call for each token produced.
+ * @param p Pointer to source code text which has at least 8 nul terminating the text.
+ * @param lines A line table that is updated for the #line directive.
  */
-[[nodiscard]] hk::generator<token> tokenize(hk::file_cursor &file_cursor);
+[[nodiscard]] hk::generator<token> tokenize(char const* p, line_table &lines);
 
 
 } // namespace hk

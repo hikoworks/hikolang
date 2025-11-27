@@ -19,7 +19,7 @@ namespace hk {
 
 [[nodiscard]] parse_result_ptr<ast::top_node> parse_top(token_iterator& it, parse_context &ctx, bool only_prologue)
 {
-    auto const first = it->first;
+    auto const first = it->begin();
     auto r = std::unique_ptr<ast::top_node>{};
     if (auto module_node = parse_module_declaration(it, ctx)) {
         auto r_ = std::make_unique<ast::module_node>(first);
@@ -46,11 +46,11 @@ namespace hk {
         return std::unexpected{library_node.error()};
 
     } else {
-        return ctx.e.add(first, it->last, error::missing_top_declaration);
+        return ctx.add_error(first, it->end(), error::missing_top_declaration);
     }
 
     while (*it == "import" or *it == "syntax") {
-        auto const first = it->first;
+        auto const first = it->begin();
 
         // parse_import_repository_declaration() must be executed before
         // parse_import_module_declaration() so that it can handle modules
@@ -68,25 +68,25 @@ namespace hk {
             consume_rest_of_statement(it);
 
         } else {
-            return ctx.e.add(first, it->last, error::invalid_prologue_statement);
+            return ctx.add_error(first, it->end(), error::invalid_prologue_statement);
         }
     }
 
     if (only_prologue) {
         // If we are only parsing the prologue, we stop here.
-        auto const last = it->first;
+        auto const last = it->begin();
         r->last = last;
         return r;
     }
 
-    auto const last = it->first;
+    auto const last = it->begin();
     r->last = last;
     return r;
 }
 
-[[nodiscard]] parse_result_ptr<ast::top_node> parse_top(hk::file_cursor& c, parse_context &ctx, bool only_prologue)
+[[nodiscard]] parse_result_ptr<ast::top_node> parse_top(char const *p, parse_context &ctx, bool only_prologue)
 {
-    auto token_generator = hk::tokenize(c);
+    auto token_generator = hk::tokenize(p, ctx.lines());
     auto lazy_tokens = lazy_vector{token_generator.cbegin(), token_generator.cend()};
 
     auto it = lazy_tokens.cbegin();

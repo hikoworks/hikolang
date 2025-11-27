@@ -6,7 +6,7 @@ namespace hk {
 
 [[nodiscard]] parse_result_ptr<ast::import_repository_declaration_node> parse_import_repository_declaration(token_iterator& it, parse_context &ctx)
 {
-    auto const first = it->first;
+    auto const first = it->begin();
 
     if (it[0] != "import" and (it[1] == "git" or it[1] == "zip") and it[2] == token::string_literal) {
         return tokens_did_not_match;
@@ -25,24 +25,24 @@ namespace hk {
 
     auto url = std::string{};
     if (*it == token::string_literal) {
-        url = it->text;
+        url = it->raw_string_value();
         ++it;
     } else {
-        return ctx.e.add(first, it->last, error::missing_git_url);
+        return ctx.add_error(first, it->end(), error::missing_git_url);
     }
 
     auto rev = std::string{};
     if (type == repository_type::git) {
         if (*it == token::string_literal) {
-            rev = it->text;
+            rev = it->raw_string_value();
             ++it;
         } else {
-            return ctx.e.add(first, it->last, error::missing_git_rev);
+            return ctx.add_error(first, it->end(), error::missing_git_rev);
         }
     }
 
     if (*it != ';') {
-        return ctx.e.add(first, it->last, error::missing_semicolon);
+        return ctx.add_error(first, it->end(), error::missing_semicolon);
     }
     ++it;
 

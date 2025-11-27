@@ -9,6 +9,7 @@
 #include <array>
 #include <bit>
 #include <string>
+#include <format>
 
 namespace hk {
 
@@ -242,3 +243,30 @@ enum class unicode_name_error {
 [[nodiscard]] std::expected<char32_t, unicode_name_error> unicode_name_to_code_point(std::string name);
 
 } // namespace hk
+
+template<typename CharT>
+struct std::formatter<hk::utf8_security_error, CharT> : std::formatter<std::basic_string<CharT>, CharT> {
+    template <typename FormatContext>
+    auto format(hk::utf8_security_error const& v, FormatContext& ctx) const
+    {
+        using enum hk::utf8_security_error;
+
+        switch (v) {
+        case invalid_utf8_sequence:
+            return std::format_to(ctx.out(), "Invalid UTF-8 sequence.");
+        case string_to_long:
+            return std::format_to(ctx.out(), "String to long.");
+        case restriction_level:
+            return std::format_to(ctx.out(), "Restricted character found.");
+        case invisible:
+            return std::format_to(ctx.out(), "Invisible character found.");
+        case mixed_numbers:
+            return std::format_to(ctx.out(), "Numbers from mixed scripts found.");
+        case hidden_overlay:
+            return std::format_to(ctx.out(), "Found combining character that overlays with a base character.");
+        case unknown_error:
+            return std::format_to(ctx.out(), "Unknown security error.");
+        }
+        std::unreachable();
+    }
+};

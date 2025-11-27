@@ -1,10 +1,10 @@
 
 #pragma once
 
-#include <optional>
 #include <system_error>
 #include <string>
 #include <filesystem>
+#include <expected>
 
 namespace hk {
 
@@ -14,6 +14,6 @@ namespace hk {
  * @param extra_nul Append a number of extra NUL characters.
  * @return The file read into a file, or unable to read the file.
  */
-[[nodiscard]] std::optional<std::string> read_file(std::filesystem::path const& path, size_t extra_nul = 0);
+[[nodiscard]] std::expected<std::string, std::error_code> read_file(std::filesystem::path const& path, size_t extra_nul = 0);
 
 }

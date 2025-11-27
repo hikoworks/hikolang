@@ -2,7 +2,6 @@
 #include "repository.hpp"
 #include "utility/path.hpp"
 #include "utility/vector_set.hpp"
-#include "tokenizer/file_cursor.hpp"
 #include "utility/git.hpp"
 #include "error/errors.hpp"
 #include "parser/parse_top.hpp"
@@ -18,7 +17,7 @@ void repository::scan_prologues(repository_flags flags)
 {
     auto must_sort = gather_modules();
 
-    auto ctx = parse_context{};
+    auto ctx = parse_context{path, };
     must_sort |= parse_modules(ctx, module_t::state_type::prologue, flags);
 
     if (must_sort) {

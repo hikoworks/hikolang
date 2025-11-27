@@ -4,7 +4,6 @@
 #include "parse_context.hpp"
 #include "parse_context.hpp"
 #include "ast/module_node.hpp"
-#include "tokenizer/file_cursor.hpp"
 #include "tokenizer/token_vector.hpp"
 
 namespace hk {

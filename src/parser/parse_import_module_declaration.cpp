@@ -7,7 +7,7 @@ namespace hk {
 
 [[nodiscard]] parse_result_ptr<ast::import_module_declaration_node> parse_import_module_declaration(token_iterator& it, parse_context &ctx)
 {
-    auto const first = it->first;
+    auto const first = it->begin();
 
     if (it[0] != "import") {
         return tokens_did_not_match;
@@ -22,7 +22,7 @@ namespace hk {
     } else if (name.error()) {
         return std::unexpected{name.error()};
     } else {
-        return ctx.e.add(first, it->last, error::missing_module_name);
+        return ctx.add_error(first, it->end(), error::missing_module_name);
     }
 
     if (*it == "as") {
@@ -33,12 +33,12 @@ namespace hk {
         } else if (as.error()) {
             return std::unexpected{as.error()};
         } else {
-            return ctx.e.add(first, it->last, error::missing_as_name);
+            return ctx.add_error(first, it->end(), error::missing_as_name);
         }
     }
 
     if (*it != ';') {
-        return ctx.e.add(first, it->last, error::missing_semicolon);
+        return ctx.add_error(first, it->end(), error::missing_semicolon);
     }
 
     ++it;

@@ -1,15 +1,15 @@
 
 #pragma once
 
-
 #include "node.hpp"
+#include <filesystem>
 
 namespace hk::ast {
 
 class import_library_declaration_node : public node {
 public:
-    import_library_declaration_node(file_location first, file_location last, std::filesystem::path path) :
-        node(first, last), path(path)
+    import_library_declaration_node(char const* first, std::filesystem::path path) :
+        node(first), path(path)
     {
     }
 

@@ -25,16 +25,16 @@ public:
     semantic_version version = {};
 
     /** The compilation condition.
-     * 
+     *
      * Must be true for the module to be compiled.
      */
     expression_node_ptr condition = nullptr;
 
     bool is_fallback = false;
 
-    library_declaration_node(file_location first) : node(first) {}
+    library_declaration_node(char const* first) : node(first) {}
 };
 
 using library_declaration_node_ptr = std::unique_ptr<library_declaration_node>;
 
-}
+} // namespace hk::ast
