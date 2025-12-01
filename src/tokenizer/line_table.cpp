@@ -55,15 +55,21 @@ void line_table::clear()
 
 std::tuple<std::string, size_t, size_t> line_table::get_position(char const* p) const
 {
-    auto it = std::upper_bound(_sync_points.begin(), _sync_points.end(), p, [](char const* p, sync_point const& a) {
-        return p < a.p;
+    assert(not _sync_points.empty());
+
+    auto it = std::lower_bound(_sync_points.begin(), _sync_points.end(), p, [](sync_point const& a, char const* x) {
+        return a.p < x;
     });
+
+    if (it != _sync_points.end() and it->p == p) {
+        return {_file_names.at(it->fileno), it->fileno, 0};
+    }
 
     // The correct entry is one before the upper-bound. This entry should have
     // a pointer that is less than or equal to the searched pointer.
     assert(it != _sync_points.begin());
     --it;
-    assert(it->p <= p);
+    assert(it->p < p);
 
     auto [extra_lines, column] = count_position(it->p, p);
     return {_file_names.at(it->fileno), it->fileno + extra_lines, column};
