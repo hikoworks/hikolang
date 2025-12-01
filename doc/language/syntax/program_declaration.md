@@ -2,6 +2,7 @@
 
 ## Syntax
 
+[_documentation_](documentation.md)__?__
 `program` [_string_literal_](string_literal.md)
     [_version_literal_](version_literal.md)__?__
     [_guard_expression_](guard_expression.md)__?__ `;`

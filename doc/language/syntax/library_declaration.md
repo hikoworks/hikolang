@@ -2,7 +2,9 @@
 
 ## Syntax
 
-`library` [_string_literal_](string_literal.md) [_version_literal_](version_literal.md) [_guard_expression_](guard_expression.md)__?__ `;`
+[_documentation_](documentation.md)__?__
+`library` [_string_literal_](string_literal.md) [_version_literal_](version_literal.md)
+    [_guard_expression_](guard_expression.md)__?__ `;`
 
 
 ## Semantics
@@ -14,7 +16,7 @@ automatically format the filename with the version number and the correct
 extension needed for a library on the target platform.
 
 The version literal allows multiple versions of the same library to coexist
-on the system.
+on the system.cd
 
 The compiler will automatically create:
  - A dynamic library,

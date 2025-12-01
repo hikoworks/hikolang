@@ -1,13 +1,13 @@
 
 #pragma once
 
-#include "module_list.hpp"
 #include "parser/parse_context.hpp"
 #include "error/error_list.hpp"
 #include "error/error_location.hpp"
 #include "utility/repository_url.hpp"
 #include "utility/repository_flags.hpp"
 #include "utility/generator.hpp"
+#include "source.hpp"
 #include <filesystem>
 #include <memory>
 #include <chrono>
@@ -56,13 +56,17 @@ public:
     }
 
 private:
-    
-
-    /** modules.
+    /** sources.
      * 
      * @note sorted by path.
      */
-    module_list _modules;
+    std::vector<std::unique_ptr<source>> _sources_by_path;
+
+    /** sources.
+     * 
+     * @note sorted by name.
+     */
+    std::vector<source *> _sources_by_name;
 
     /** The root repository also has a list of child repositories.
      * 
@@ -76,22 +80,20 @@ private:
      * It excludes any files and directories that start with a dot `.` or
      * underscore `_`.
      * 
-     * @retval true The list of modules have changed; the list of modules
-     *              must be sorted.
+     * @retval true The list of modules has changed.
      */
     bool gather_modules();
 
-    /** Sort modules in compilation order.
+    /** Sort modules to be searchable by module name.
      */
     void sort_modules();
 
     /** Parse all the modules in a repository.
      * 
      * @pre `sort_modules()` may need to be called.
-     * @param ctx The parse context.
-     * @param new_state Parse the modules upto this state.
+     * @param flags Flags for managing the remote git-repositories.
      */
-    bool parse_modules(parse_context &ctx, module_t::state_type new_state, repository_flags flags);
+    bool parse_prologues(repository_flags flags);
 
     /** Get or make a module based on the path.
      * 
@@ -99,7 +101,7 @@ private:
      *       inside the repository.
      * @param path The path the module.
      */
-    [[nodiscard]] module_t &get_module(std::filesystem::path const& path);
+    [[nodiscard]] source &get_module(std::filesystem::path const& path);
 
     /** Get or make a child repository based on the remote.
      * 

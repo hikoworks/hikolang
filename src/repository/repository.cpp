@@ -15,14 +15,9 @@ repository::repository(std::filesystem::path path, repository_url remote) : remo
 
 void repository::scan_prologues(repository_flags flags)
 {
-    auto must_sort = gather_modules();
-
-    auto ctx = parse_context{path, };
-    must_sort |= parse_modules(ctx, module_t::state_type::prologue, flags);
-
-    if (must_sort) {
-        sort_modules();
-    }
+    gather_modules();
+    parse_prologues(flags);
+    sort_modules();
 }
 
 bool repository::gather_modules()
@@ -33,9 +28,11 @@ bool repository::gather_modules()
     // Keep track of modules that we have (partially) compiled.
     // So that we can remove modules that no longer exist on the filesystem.
     auto modified = false;
-    auto existing_module_paths = vector_set<std::filesystem::path>{};
-    for (auto& m : _modules) {
-        existing_module_paths.add(m.path);
+    auto existing_source_paths = vector_set<std::reference_wrapper<std::filesystem::path const>>{};
+    for (auto& m : _sources_by_path) {
+        if (not m->is_generated()) {
+            existing_source_paths.add(m->path());
+        }
     }
 
     auto visited_directories = vector_set<std::filesystem::path>{};
@@ -51,8 +48,8 @@ bool repository::gather_modules()
             continue;
         }
 
-        auto module_path = std::filesystem::canonical(entry.path());
-        if (not visited_directories.add(module_path)) {
+        auto source_path = std::filesystem::canonical(entry.path());
+        if (not visited_directories.add(source_path)) {
             // This directory has already been visited; a potential symlink loop.
             if (entry.is_directory()) {
                 it.disable_recursion_pending();
@@ -68,70 +65,64 @@ bool repository::gather_modules()
             continue;
         }
 
-        if (not existing_module_paths.contains_and_erase(module_path)) {
+        if (not existing_source_paths.contains_and_erase(source_path)) {
             // The module did not exist yet.
-            _modules.insert(module_path);
             modified = true;
+
+            auto it =
+                std::lower_bound(_sources_by_path.begin(), _sources_by_path.end(), source_path, [](auto const& e, auto const& p) {
+                    if (e->is_generated()) {
+                        return true;
+                    } else {
+                        return e->path() < p;
+                    }
+                });
+            assert(it == _sources_by_path.end() or (*it)->is_generated() or (*it)->path() != source_path);
+            _sources_by_path.insert(it, std::make_unique<source>(source_path));
         }
     }
 
     // Remove any modules where the on-disk file is missing.
-    for (auto const& p : existing_module_paths) {
-        _modules.erase(p);
+    auto it = _sources_by_path.begin();
+    for (auto const& p : existing_source_paths) {
+        modified = true;
+
+        it = std::lower_bound(it, _sources_by_path.end(), p, [](auto const& e, auto const& p) {
+            if (e->is_generated()) {
+                return true;
+            } else {
+                return e->path() < p;
+            }
+        });
+        assert(it != _sources_by_path.end() and not (*it)->is_generated() and (*it)->path() == p);
+        it = _sources_by_path.erase(it);
     }
 
     return modified;
 }
 
-void repository::sort_modules()
+void repository::sort_modules() {}
+
+bool repository::parse_prologues(repository_flags flags)
 {
-
-}
-
-bool repository::parse_modules(parse_context& ctx, module_t::state_type new_state, repository_flags flags)
-{
-    assert(new_state != module_t::state_type::out_of_date);
-
     auto modified = false;
 
     // It is expected that _modules is sorted in compilation order,
     // it is also possible for the file to be removed.
-    auto it = _modules.begin();
-    while (it != _modules.end()) {
-        auto ec = std::error_code{};
-        auto const last_write_time = std::filesystem::last_write_time(it->path, ec);
-        if (ec) {
-            std::println(stderr, "Could not get date from file `{}`: {}", it->path.string(), ec.message());
-            it = _modules.erase(it);
+    auto it = _sources_by_path.begin();
+    while (it != _sources_by_path.end()) {
+        if ((*it)->is_generated()) {
+            // prologues of generated files are handled during compilation.
+            ++it;
             continue;
         }
 
-        if (to_bool(flags & repository_flags::force_scan) or it->parse_time == std::filesystem::file_time_type{} or
-            it->parse_time != last_write_time) {
-            // If the file is modified, reset the state of the module.
-            it->state = module_t::state_type::out_of_date;
-            modified = true;
+        if (auto r = (*it)->parse_prologue(); not r) {
+            std::println(stderr, "Could not get prologue of file '{}': {}", (*it)->path().string(), r.error().message());
+            ++it;
+            continue;
         }
-
-        if (it->state < new_state) {
-            auto cursor = file_cursor(it->path);
-            auto const only_prologue = new_state == module_t::state_type::prologue;
-
-            ctx.e = {};
-            if (auto r = parse_top(cursor, ctx, only_prologue)) {
-                it->ast = std::move(r).value();
-            } else {
-                it->ast = nullptr;
-            }
-
-            it->upstream_paths = cursor.upstream_paths();
-            it->errors = std::exchange(ctx.e, {});
-            it->errors.print(it->upstream_paths);
-        }
-
-        it->parse_time = last_write_time;
-        it->state = new_state;
-        ++it;
+        modified = true;
     }
 
     return modified;
