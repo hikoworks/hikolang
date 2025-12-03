@@ -7,9 +7,16 @@
 
 namespace hk {
 
-source::source(std::filesystem::path path) : _source(std::move(path))
+source::source(repository &parent, std::filesystem::path path) :
+    _parent(gsl::make_not_null(parent)), _source(std::move(path))
 {
     assert(std::filesystem::canonical(this->path()) == this->path());
+}
+
+source::source(repository &parent, fqname generating_module, size_t lineno) :
+    _parent(gsl::make_not_null(parent)), _source(std::pair{std::move(generating_module), lineno})
+{
+
 }
 
 [[nodiscard]] bool source::is_generated() const noexcept

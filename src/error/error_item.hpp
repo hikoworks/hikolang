@@ -1,6 +1,6 @@
 #pragma once
 
-#include "error_code.hpp"
+#include "hkc_error.hpp"
 #include "tokenizer/line_table.hpp"
 #include <string>
 #include <format>
@@ -20,22 +20,19 @@ public:
     error_item& operator=(error_item&&) = default;
 
     template<typename... Args>
-    error_item(char const* first, char const* last, error_code code, std::format_string<Args...> fmt, Args&&... args) :
+    error_item(char const* first, char const* last, hkc_error code, std::format_string<Args...> fmt, Args&&... args) :
         _first(first), _last(last), _code(code), _message(std::format(std::move(fmt), std::forward<Args>(args)...))
     {
-        assert(_code.has_value());
     }
 
     template<typename... Args>
-    error_item(error_code code, std::format_string<Args...> fmt, Args&&... args) :
+    error_item(hkc_error code, std::format_string<Args...> fmt, Args&&... args) :
         _first(), _last(), _code(code), _message(std::format(std::move(fmt), std::forward<Args>(args)...))
     {
-        assert(_code.has_value());
     }
 
-    operator std::unexpected<error_code>() const
+    operator std::unexpected<hkc_error>() const
     {
-        assert(_code.has_value());
         return std::unexpected{_code};
     }
 
@@ -49,7 +46,7 @@ public:
         return _last;
     }
 
-    [[nodiscard]] constexpr error_code code() const noexcept
+    [[nodiscard]] constexpr hkc_error code() const noexcept
     {
         return _code;
     }
@@ -72,7 +69,7 @@ public:
 private:
     char const* _first = {};
     char const* _last = {};
-    error_code _code = {};
+    hkc_error _code = {};
     std::string _message = {};
 };
 

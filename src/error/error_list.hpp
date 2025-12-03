@@ -2,7 +2,7 @@
 #pragma once
 
 #include "error_item.hpp"
-#include "error_code.hpp"
+#include "hkc_error.hpp"
 #include "utility/fixed_string.hpp"
 #include <vector>
 #include <format>
