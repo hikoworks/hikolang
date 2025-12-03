@@ -1,7 +1,6 @@
 
 #include "parse_fqname.hpp"
 #include "utility/fqname.hpp"
-#include "error/errors.hpp"
 
 namespace hk {
 
@@ -16,7 +15,7 @@ namespace hk {
             r = *id;
             ++it;
         } else {
-            ctx.add_error(first, it->end(), security::insecure_identifier, it->string_view(), id.error());
+            ctx.add(first, it->end(), hkc_error::insecure_identifier, "identifier `{}`: {}", it->string_view(), id.error());
         }
 
     } else {
@@ -31,11 +30,11 @@ namespace hk {
                 r += *id;
                 ++it;
             } else {
-                ctx.add_error(first, it->end(), security::insecure_identifier, it->string_view(), id.error());
+                ctx.add(first, it->end(), hkc_error::insecure_identifier, "identifier `{}`: {}", it->string_view(), id.error());
             }
 
         } else {
-            return ctx.add_error(first, it->end(), error::invalid_fqname);
+            return ctx.add(first, it->end(), hkc_error::invalid_fqname);
         }
     }
 

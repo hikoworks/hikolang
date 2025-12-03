@@ -32,10 +32,23 @@ public:
      *  @param args The arguments to format the error message.
      *  @return A unexpected error containing the error code.
      */
-    template<std::derived_from<error_code_and_message_base> Message, typename... Args>
-    std::unexpected<error_code> add_error(char const* first, char const* last, Message msg, Args&&... args)
+    template<typename... Args>
+    std::unexpected<hkc_error> add(char const* first, char const* last, hkc_error error, std::format_string<Args...> msg, Args&&... args)
     {
-        return errors().add(first, last, std::move(msg), std::forward<Args>(args)...);
+        return std::unexpected{errors().add(first, last, error, std::move(msg), std::forward<Args>(args)...)};
+    }
+
+    /** Add an error to the list.
+     *
+     *  @tparam ErrorCode The error being raised, including the format string.
+     *  @param first The first file location where the error occurred.
+     *  @param args The arguments to format the error message.
+     *  @return A unexpected error containing the error code.
+     */
+    template<typename... Args>
+    std::unexpected<hkc_error> add(char const* first, hkc_error error, std::format_string<Args...> msg, Args&&... args)
+    {
+        return std::unexpected{errors().add(first, error, std::move(msg), std::forward<Args>(args)...)};
     }
 
     /** Add an error to the list.
@@ -44,11 +57,49 @@ public:
      *  @param args The arguments to format the error message.
      *  @return A unexpected error containing the error code.
      */
-    template<std::derived_from<error_code_and_message_base> Message, typename... Args>
-    std::unexpected<error_code> add_error(Message msg, Args&&... args)
+    template<typename... Args>
+    std::unexpected<hkc_error> add(hkc_error error, std::format_string<Args...> msg, Args&&... args)
     {
-        return errors().add(std::move(msg), std::forward<Args>(args)...);
+        return std::unexpected{errors().add(error, std::move(msg), std::forward<Args>(args)...)};
     }
+
+    /** Add an error to the list.
+     *
+     *  @tparam ErrorCode The error being raised, including the format string.
+     *  @param first The first file location where the error occurred.
+     *  @param last The last file location where the error occurred.
+     *  @param args The arguments to format the error message.
+     *  @return A unexpected error containing the error code.
+     */
+    std::unexpected<hkc_error> add(char const* first, char const* last, hkc_error error)
+    {
+        return std::unexpected{errors().add(first, last, error)};
+    }
+
+    /** Add an error to the list.
+     *
+     *  @tparam ErrorCode The error being raised, including the format string.
+     *  @param first The first file location where the error occurred.
+     *  @param args The arguments to format the error message.
+     *  @return A unexpected error containing the error code.
+     */
+    std::unexpected<hkc_error> add(char const* first, hkc_error error)
+    {
+        return std::unexpected{errors().add(first, error)};
+    }
+
+    /** Add an error to the list.
+     *
+     *  @tparam ErrorCode The error being raised, including the format string.
+     *  @param args The arguments to format the error message.
+     *  @return A unexpected error containing the error code.
+     */
+    std::unexpected<hkc_error> add(hkc_error error)
+    {
+        return std::unexpected{errors().add(error)};
+    }
+
+    
 
 private:
     error_list *_errors = nullptr;

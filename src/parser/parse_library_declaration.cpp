@@ -1,7 +1,6 @@
 
 #include "parse_library_declaration.hpp"
 #include "tokenizer/token_parsers.hpp"
-#include "error/errors.hpp"
 
 namespace hk {
 
@@ -21,7 +20,7 @@ namespace hk {
         ++it;
 
     } else {
-        return ctx.add_error(first, it->end(), error::missing_filename_stem);
+        return ctx.add(first, it->end(), hkc_error::missing_filename_stem);
     }
 
     if (*it == token::version_literal) {
@@ -36,11 +35,11 @@ namespace hk {
 
     } else if (*it == "if") {
         ++it;
-        return ctx.add_error(first, it->end(), error::unimplemented);
+        return ctx.add(first, it->end(), hkc_error::unimplemented);
     }
 
     if (*it != ';') {
-        return ctx.add_error(first, it->end(), error::missing_semicolon);
+        return ctx.add(first, it->end(), hkc_error::missing_semicolon);
     }
 
     ++it;

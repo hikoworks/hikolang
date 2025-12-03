@@ -1,7 +1,6 @@
 
 #include "parse_import_module_declaration.hpp"
 #include "parse_fqname.hpp"
-#include "error/errors.hpp"
 
 namespace hk {
 
@@ -19,10 +18,10 @@ namespace hk {
     if (auto name = parse_fqname(it, ctx, false)) {
         r->name = std::move(name).value();
         ++it;
-    } else if (name.error()) {
-        return std::unexpected{name.error()};
+    } else if (not name.error()) {
+        return ctx.add(first, it->end(), hkc_error::missing_module_name);
     } else {
-        return ctx.add_error(first, it->end(), error::missing_module_name);
+        return std::unexpected{name.error()};
     }
 
     if (*it == "as") {
@@ -30,15 +29,15 @@ namespace hk {
         if (auto as = parse_fqname(it, ctx, true)) {
             r->as = std::move(as).value();
             ++it;
-        } else if (as.error()) {
+        } else if (to_bool(as.error())) {
             return std::unexpected{as.error()};
         } else {
-            return ctx.add_error(first, it->end(), error::missing_as_name);
+            return ctx.add(first, it->end(), hkc_error::missing_as_name);
         }
     }
 
     if (*it != ';') {
-        return ctx.add_error(first, it->end(), error::missing_semicolon);
+        return ctx.add(first, it->end(), hkc_error::missing_semicolon);
     }
 
     ++it;

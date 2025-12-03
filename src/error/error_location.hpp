@@ -1,7 +1,8 @@
 
 #pragma once
 
-#include "error_list.hpp"
+#include "tokenizer/line_table.hpp"
+#include <gsl/gsl>
 
 namespace hk {
 
@@ -12,7 +13,6 @@ namespace hk {
  */
 class error_location {
 public:
-    constexpr error_location() noexcept = default;
     constexpr error_location(error_location const&) noexcept = default;
     constexpr error_location(error_location&&) noexcept = default;
     constexpr error_location& operator=(error_location const&) noexcept = default;
@@ -25,29 +25,19 @@ public:
      *              optional error can appear.
      * @param last One beyond the last character.
      */
-    constexpr error_location(error_list& errors, char const* first, char const* last = nullptr) :
-        _errors_ptr(&errors), _first(first), _last(last)
+    constexpr error_location(line_table& lines, char const* first, char const* last = nullptr) :
+        _lines(gsl::make_not_null(&lines)), _first(first), _last(last)
     {
     }
 
-    /** Add an error to the list.
-     *
-     *  @tparam ErrorCode The error being raised, including the format string.
-     *  @param args The arguments to format the error message.
-     *  @return A unexpected error containing the error code.
-     */
-    template<std::derived_from<error_code_and_message_base> Message, typename... Args>
-    std::unexpected<error_code> add(Message msg, Args&&... args)
+    template<typename... Args>
+    hkc_error add(hkc_error error, std::format_string<Args...>, Args&&... args)
     {
-        assert(_errors_ptr != nullptr);
 
-        auto e = error_item{_first, _last, msg.code, Message::fmt, std::forward<Args>(args)...};
-        _errors_ptr->push_back(std::move(e));
-        return std::unexpected{msg.code};
     }
 
 private:
-    error_list* _errors_ptr = nullptr;
+    gsl::not_null<line_table *> _lines;
     char const* _first = nullptr;
     char const* _last = nullptr;
 };

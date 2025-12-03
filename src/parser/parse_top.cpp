@@ -10,7 +10,6 @@
 #include "ast/module_node.hpp"
 #include "ast/program_node.hpp"
 #include "ast/library_node.hpp"
-#include "error/errors.hpp"
 #include "tokenizer/tokenizer.hpp"
 #include "utility/fixed_fifo.hpp"
 
@@ -26,7 +25,7 @@ namespace hk {
         r_->declaration = std::move(module_node).value();
         r = std::move(r_);
 
-    } else if (module_node.error()) {
+    } else if (to_bool(module_node.error())) {
         return std::unexpected{module_node.error()};
 
     } else if (auto program_node = parse_program_declaration(it, ctx)) {
@@ -34,7 +33,7 @@ namespace hk {
         r_->declaration = std::move(program_node).value();
         r = std::move(r_);
 
-    } else if (program_node.error()) {
+    } else if (to_bool(program_node.error())) {
         return std::unexpected{program_node.error()};
 
     } else if (auto library_node = parse_library_declaration(it, ctx)) {
@@ -42,11 +41,11 @@ namespace hk {
         r_->declaration = std::move(library_node).value();
         r = std::move(r_);
 
-    } else if (library_node.error()) {
+    } else if (to_bool(library_node.error())) {
         return std::unexpected{library_node.error()};
 
     } else {
-        return ctx.add_error(first, it->end(), error::missing_top_declaration);
+        return ctx.add(first, it->end(), hkc_error::missing_top_declaration);
     }
 
     while (*it == "import" or *it == "syntax") {
@@ -58,17 +57,17 @@ namespace hk {
         if (auto remote_repository = parse_import_repository_declaration(it, ctx)) {
             r->remote_repositories.push_back(std::move(remote_repository).value());
 
-        } else if (remote_repository.error()) {
+        } else if (to_bool(remote_repository.error())) {
             consume_rest_of_statement(it);
 
         } else if (auto import_module = parse_import_module_declaration(it, ctx)) {
             r->module_imports.push_back(std::move(import_module).value());
 
-        } else if (import_module.error()) {
+        } else if (to_bool(import_module.error())) {
             consume_rest_of_statement(it);
 
         } else {
-            return ctx.add_error(first, it->end(), error::invalid_prologue_statement);
+            return ctx.add(first, it->end(), hkc_error::invalid_prologue_statement);
         }
     }
 
@@ -92,10 +91,10 @@ namespace hk {
     auto it = lazy_tokens.cbegin();
     if (auto top = parse_top(it, ctx, only_prologue)) {
         return top;
-    } else if (top.error()) {
+    } else if (to_bool(top.error())) {
         return std::unexpected{top.error()};
     } else {
-        std::unreachable();
+        std::terminate();
     }
 }
 

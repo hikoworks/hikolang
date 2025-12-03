@@ -17,7 +17,12 @@ public:
     std::vector<import_library_declaration_node_ptr> library_imports;
     std::vector<node_ptr> body;
 
-    top_node(char const* first) : node(first) {}
+    top_node(hk::ast::repository &parent, char const* first) : node(parent, first) {}
+
+    [[nodiscard]] virtual hk::ast::repository& repository() const override
+    {
+        return static_cast<hk::ast::repository *>(_parent);
+    }
 };
 
 } // namespace hk::ast

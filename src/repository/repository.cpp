@@ -3,11 +3,11 @@
 #include "utility/path.hpp"
 #include "utility/vector_set.hpp"
 #include "utility/git.hpp"
-#include "error/errors.hpp"
 #include "parser/parse_top.hpp"
 #include <cassert>
 #include <algorithm>
 #include <map>
+#include <print>
 
 namespace hk {
 
@@ -78,7 +78,7 @@ bool repository::gather_modules()
                     }
                 });
             assert(it == _sources_by_path.end() or (*it)->is_generated() or (*it)->path() != source_path);
-            _sources_by_path.insert(it, std::make_unique<source>(source_path));
+            _sources_by_path.insert(it, std::make_unique<source>(*this, source_path));
         }
     }
 
@@ -94,7 +94,7 @@ bool repository::gather_modules()
                 return e->path() < p;
             }
         });
-        assert(it != _sources_by_path.end() and not (*it)->is_generated() and (*it)->path() == p);
+        assert(it != _sources_by_path.end() and not(*it)->is_generated() and (*it)->path() == p);
         it = _sources_by_path.erase(it);
     }
 
@@ -164,7 +164,13 @@ void repository::recursive_scan_prologues(repository_flags flags)
         if (auto r = git_checkout_or_clone(child_remote, child_local_path, flags); r != git_error::ok) {
             auto short_hkdeps = std::format("_hkdeps/{}", child_remote.directory());
             // TODO #1 All failing import statements of a single repository should be marked with an error.
-            import_errors.add(error::could_not_clone_repository, child_remote.url(), child_remote.rev(), short_hkdeps, r);
+            import_errors.add(
+                hkc_error::could_not_clone_repository,
+                "git-url: {}, rev: {}, dir: .hkdeps/{}, error: {}",
+                child_remote.url(),
+                child_remote.rev(),
+                short_hkdeps,
+                r);
             erase_child_repository(child_remote);
             continue;
         }

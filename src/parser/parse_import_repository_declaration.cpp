@@ -1,6 +1,5 @@
 
 #include "parse_import_repository_declaration.hpp"
-#include "error/errors.hpp"
 
 namespace hk {
 
@@ -28,7 +27,7 @@ namespace hk {
         url = it->raw_string_value();
         ++it;
     } else {
-        return ctx.add_error(first, it->end(), error::missing_git_url);
+        return ctx.add(first, it->end(), hkc_error::missing_git_url);
     }
 
     auto rev = std::string{};
@@ -37,12 +36,12 @@ namespace hk {
             rev = it->raw_string_value();
             ++it;
         } else {
-            return ctx.add_error(first, it->end(), error::missing_git_rev);
+            return ctx.add(first, it->end(), hkc_error::missing_git_rev);
         }
     }
 
     if (*it != ';') {
-        return ctx.add_error(first, it->end(), error::missing_semicolon);
+        return ctx.add(first, it->end(), hkc_error::missing_semicolon);
     }
     ++it;
 

@@ -87,11 +87,11 @@ public:
         } else {
             switch (lhs._name.index()) {
             case 1:
-                return std::get<fqname>(lhs._source) <=> std::get<fqname>(rhs._source);
+                return std::get<1>(lhs._name) <=> std::get<1>(rhs._name);
             case 2:
-                return std::get<std::string>(lhs._source) <=> std::get<std::string>(rhs._source);
+                return std::get<2>(lhs._name) <=> std::get<2>(rhs._name);
             case 3:
-                return std::get<std::string>(lhs._source) <=> std::get<std::string>(rhs._source);
+                return std::get<3>(lhs._name) <=> std::get<3>(rhs._name);
             }
             std::unreachable();
         }

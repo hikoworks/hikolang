@@ -15,34 +15,43 @@ class error_list : public std::vector<error_item> {
 public:
     using element_type = error_item;
 
-    /** Add an error to the list.
-     *
-     *  @tparam ErrorCode The error being raised, including the format string.
-     *  @param first The first file location where the error occurred.
-     *  @param last The last file location where the error occurred.
-     *  @param args The arguments to format the error message.
-     *  @return A unexpected error containing the error code.
-     */
-    template<std::derived_from<error_code_and_message_base> Message, typename... Args>
-    std::unexpected<error_code> add(char const* first, char const* last, Message msg, Args&&... args)
+    template<typename... Args>
+    hkc_error add(char const* first, char const* last, hkc_error code, std::format_string<Args...> fmt, Args&&... args)
     {
-        auto e = error_item{first, last, msg.code, Message::fmt, std::forward<Args>(args)...};
-        this->push_back(std::move(e));
-        return std::unexpected{msg.code};
+        this->emplace_back(first, last, code, std::move(fmt), std::forward<Args>(args)...);
+        return code;
     }
 
-    /** Add an error to the list.
-     *
-     *  @tparam ErrorCode The error being raised, including the format string.
-     *  @param args The arguments to format the error message.
-     *  @return A unexpected error containing the error code.
-     */
-    template<std::derived_from<error_code_and_message_base> Message, typename... Args>
-    std::unexpected<error_code> add(Message msg, Args&&... args)
+    template<typename... Args>
+    hkc_error add(char const* first, hkc_error code, std::format_string<Args...> fmt, Args&&... args)
     {
-        auto e = error_item{msg.code, Message::fmt, std::forward<Args>(args)...};
-        this->push_back(std::move(e));
-        return std::unexpected{msg.code};
+        this->emplace_back(first, code, std::move(fmt), std::forward<Args>(args)...);
+        return code;
+    }
+
+    template<typename... Args>
+    hkc_error add(hkc_error code, std::format_string<Args...> fmt, Args&&... args)
+    {
+        this->emplace_back(code, std::move(fmt), std::forward<Args>(args)...);
+        return code;
+    }
+
+    hkc_error add(char const* first, char const* last, hkc_error code)
+    {
+        this->emplace_back(first, last, code);
+        return code;
+    }
+
+    hkc_error add(char const* first, hkc_error code)
+    {
+        this->emplace_back(first, code);
+        return code;
+    }
+
+    hkc_error add(hkc_error code)
+    {
+        this->emplace_back(code);
+        return code;
     }
 
     /** Print error messages.

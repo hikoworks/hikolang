@@ -2,7 +2,6 @@
 #include "parse_module_declaration.hpp"
 #include "parse_fqname.hpp"
 #include "tokenizer/token_parsers.hpp"
-#include "error/errors.hpp"
 
 namespace hk {
 
@@ -19,10 +18,10 @@ namespace hk {
 
     if (auto node = parse_fqname(it, ctx, false)) {
         r->name = std::move(node).value();
-    } else if (node.error()) {
+    } else if (to_bool(node.error())) {
         return std::unexpected{node.error()};
     } else {
-        return ctx.add_error(first, it->end(), error::missing_fqname);
+        return ctx.add(first, it->end(), hkc_error::missing_fqname);
     }
 
     if (*it == token::version_literal) {
@@ -37,11 +36,11 @@ namespace hk {
 
     } else if (*it == "if") {
         ++it;
-        return ctx.add_error(first, it->end(), error::unimplemented);
+        return ctx.add(first, it->end(), hkc_error::unimplemented);
     }
 
     if (*it != ';') {
-        return ctx.add_error(first, it->end(), error::missing_semicolon);
+        return ctx.add(first, it->end(), hkc_error::missing_semicolon);
     }
 
     ++it;

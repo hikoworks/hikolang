@@ -10,7 +10,7 @@ std::string hkc_error_category::message(int code) const
     using namespace std::literals;
 
     switch (static_cast<hkc_error>(code)) {
-    case hkc_error::no_error:
+    case hkc_error::none:
         return "<No error>"s;
     case hkc_error::unimplemented:
         return "Not implement syntax."s;
@@ -23,7 +23,7 @@ std::string hkc_error_category::message(int code) const
     case hkc_error::missing_git_url:
         return "Missing string literal containing the git remote URL."s;
     case hkc_error::missing_git_rev:
-        return "Missing string literal containing the git revission."s;
+        return "Missing string literal containing the git revision."s;
     case hkc_error::missing_zip_path:
         return "Missing string literal containing the path to a zip file."s;
     case hkc_error::missing_lib_path:
@@ -41,7 +41,7 @@ std::string hkc_error_category::message(int code) const
     case hkc_error::could_not_clone_repository:
         return "Unable to clone a repository."s;
     case hkc_error::insecure_identifier:
-        return "Insecure identifier; illigal Unicode characters or mixed scripts."s;
+        return "Insecure identifier; illegal Unicode characters or mixed scripts."s;
     }
     std::terminate();
 }
