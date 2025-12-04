@@ -49,6 +49,7 @@ add_library(hk_objects OBJECT
     "${CMAKE_CURRENT_SOURCE_DIR}/src/ast/module_declaration_node.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/ast/module_node.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/ast/module_node.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/ast/node.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/ast/node.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/ast/program_declaration_node.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/ast/program_node.hpp"

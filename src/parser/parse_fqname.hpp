@@ -10,12 +10,19 @@
 namespace hk {
 
 /** Parse a fully qualified name.
- * 
+ *
  * @param it A token iterator.
  * @param e The list of errors.
- * @param leading_dot Parse fully qualified names that can start with a dot.
  * @return A optional fully qualified name.
  */
-[[nodiscard]] parse_result<fqname> parse_fqname(token_iterator& it, parse_context &ctx, bool leading_dot);
+[[nodiscard]] parse_result<fqname> parse_absolute_fqname(token_iterator& it, parse_context &ctx);
+
+/** Parse a fully qualified name.
+ *
+ * @param it A token iterator.
+ * @param e The list of errors.
+ * @return A optional fully qualified name.
+ */
+[[nodiscard]] parse_result<fqname> parse_relative_fqname(token_iterator& it, parse_context &ctx);
 
 }

@@ -127,7 +127,7 @@ namespace hk {
     co_yield {p, '\0'};
 }
 
-[[nodiscard]] hk::generator<token> tokenize(char const*& p, line_table &lines)
+[[nodiscard]] hk::generator<token> tokenize(char const* p, line_table &lines)
 {
     fixed_fifo<token, 8> q = {};
     std::vector<char> bracket_stack = {};

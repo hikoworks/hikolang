@@ -28,5 +28,4 @@ namespace hk {
  */
 [[nodiscard]] hk::generator<token> tokenize(char const* p, line_table &lines);
 
-
 } // namespace hk

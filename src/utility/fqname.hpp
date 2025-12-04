@@ -1,10 +1,12 @@
 
 #pragma once
 
+#include <gsl/gsl>
 #include <string>
 #include <cassert>
 #include <iterator>
 #include <cstddef>
+#include <algorithm>
 
 namespace hk {
 
@@ -185,25 +187,30 @@ public:
     constexpr fqname& operator=(fqname const&) noexcept = default;
     constexpr fqname& operator=(fqname&&) noexcept = default;
 
-    /** Constructs a fully qualified name from a string.
-     * 
-     *  The string should be in the format of a fully qualified name, with components
-     *  separated by dots '.'. For example, "com.github.hikolang".
-     * 
-     * @param name The string representing the fully qualified name.
-     */
-    constexpr fqname(std::string name) noexcept
-        : _name(std::move(name))
+    constexpr fqname(std::string_view name)
+    {
+        auto n = 0uz;
+        for (; n != name.size(); ++n) {
+            if (name[n] != '.') {
+                break;
+            }
+        }
+        _num_prefix_dots = gsl::narrow<decltype(_num_prefix_dots)>(n);
+
+        _name = name.substr(n);
+
+        auto const dot_count = std::count(_name.begin(), _name.end(), '.');
+        _num_components = gsl::narrow<decltype(_num_components)>(dot_count + 1);
+    }
+
+    constexpr fqname(std::string name)
+        : fqname(std::string_view{name})
     {
     }
 
-    constexpr fqname(std::string_view name) noexcept
-        : _name(name)
-    {
-    }
 
-    constexpr fqname(char const* name) noexcept
-        : _name(name)
+    constexpr fqname(char const* name)
+        : fqname(std::string_view{name})
     {
     }
 
@@ -240,12 +247,18 @@ public:
     /** Get the fully qualified name as a string view. 
      * 
      */
-    [[nodiscard]] constexpr std::string_view name() const noexcept
+    [[nodiscard]] constexpr std::string name() const noexcept
     {
-        return _name;
+        auto r = std::string{};
+        r.reserve(_num_prefix_dots + _name.size());
+        for (auto i = 0uz; i != _num_prefix_dots; ++i) {
+            r += '.';
+        }
+        r += _name;
+        return r;
     }
 
-    constexpr operator std::string_view() const noexcept
+    constexpr operator std::string() const noexcept
     {
         return name();
     }
@@ -293,16 +306,6 @@ public:
         return std::default_sentinel;
     }
 
-    /** Checks if the fully qualified name is empty.
-     *
-     * @return true if the fully qualified name does not have components, false
-     *         otherwise.
-     */
-    [[nodiscard]] constexpr bool empty() const noexcept
-    {
-        return _name.empty();
-    }
-
     /** Get the number of components in the fully qualified name.
      * 
      * @note O(n) complexity, where n is the length of the name.
@@ -310,18 +313,96 @@ public:
      */
     [[nodiscard]] constexpr size_t size() const noexcept
     {
-        if (_name.empty()) {
-            return 0;
+        return _num_components;
+    }
+
+    /** Checks if the fully qualified name is empty.
+     *
+     * @return true if the fully qualified name does not have components, false
+     *         otherwise.
+     */
+    [[nodiscard]] constexpr bool empty() const noexcept
+    {
+        return size() == 0;
+    }
+
+    [[nodiscard]] constexpr bool is_absolute() const noexcept
+    {
+        return _num_prefix_dots == 1;
+    }
+
+    [[nodiscard]] constexpr bool is_relative() const noexcept
+    {
+        return _num_prefix_dots == 0;
+    }
+
+    [[nodiscard]] constexpr bool is_canonical() const noexcept
+    {
+        return _num_prefix_dots <= 1;
+    }
+
+    constexpr void clear() noexcept
+    {
+        _name.clear();
+        _num_components = 0;
+        _num_prefix_dots = 0;
+    }
+
+    void set_num_prefix_dots(size_t n)
+    {
+        _num_prefix_dots = gsl::narrow<decltype(_num_prefix_dots)>(n);
+    }
+
+    /** Get the number of prefix dots.
+     * 
+     *  - 0: Name is relative to the current namespace
+     *  - 1: Name is absolute to the root namespace
+     *  - 2: Name backtracks one level up to the current namespace.
+     *  - n: Name backtracks n levels up to the current namespace.
+     * 
+     */
+    [[nodiscard]] constexpr size_t num_prefix_dots() const noexcept
+    {
+        return _num_prefix_dots;
+    }
+
+    /** Make an absolute path.
+     *
+     * @note It is UNDEFINED BEHAVIOUR if base is not an absolute path.
+     * @param base Use the current namespace as the absolute name of which the
+     *             @a this is relative to.
+     * @return The absolute path by combining @a this with @a current_namespace
+     * @retval empty An absolute could not be constructed.
+     *
+     */
+    [[nodiscard]] constexpr fqname make_absolute(fqname const &base) const
+    {
+        assert(base.is_absolute());
+
+        auto n = num_prefix_dots();
+        if (n == 1) {
+            return *this;
         }
 
-        auto count = 1uz;
-        for (auto c :  _name) {
-            if (c == '.') {
-                ++count;
-            }
+        // prefix dots beyond 1 backtrack from the base name.
+        if (n > 0) {
+            --n;
         }
 
-        return count;
+        auto r = base;
+        for (; n != 0 and not r.empty(); --n) {
+            r.pop_back();
+        }
+        if (n != 0) {
+            // Can't construct absolute path.
+            r.clear();
+            return r;
+        }
+
+        for (auto i = 0uz; i != size(); ++i) {
+            r += (*this)[i];
+        }
+        return r;
     }
 
     /** Get the component at the specified index.
@@ -354,9 +435,28 @@ public:
             _name += '.';
         }
         _name += component;
+
+        assert(_num_components < std::numeric_limits<decltype(_num_components)>::max());
+        ++_num_components;
+    }
+
+    /** Remove last component.
+     * 
+     * @note It is UNDEFINED BEHAVIOUR to pop from an empty fqname.
+     */
+    constexpr void pop_back()
+    {
+        assert(not empty());
+        if (auto i = _name.rfind('.'); i == _name.npos) {
+            _name.clear();
+        } else {
+            _name = _name.substr(0, i);
+        }
     }
 
 private:
+    uint8_t _num_prefix_dots = 0;
+    uint8_t _num_components = 0;
     std::string _name = {};
 };
 

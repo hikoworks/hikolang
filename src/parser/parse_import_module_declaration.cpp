@@ -15,7 +15,7 @@ namespace hk {
 
     auto r = std::make_unique<ast::import_module_declaration_node>(first);
 
-    if (auto name = parse_fqname(it, ctx, false)) {
+    if (auto name = parse_relative_fqname(it, ctx)) {
         r->name = std::move(name).value();
         ++it;
     } else if (not name.error()) {
@@ -26,7 +26,7 @@ namespace hk {
 
     if (*it == "as") {
         ++it;
-        if (auto as = parse_fqname(it, ctx, true)) {
+        if (auto as = parse_relative_fqname(it, ctx)) {
             r->as = std::move(as).value();
             ++it;
         } else if (to_bool(as.error())) {

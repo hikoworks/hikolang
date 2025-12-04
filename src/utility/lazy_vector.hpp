@@ -117,6 +117,13 @@ public:
             }
         }
 
+        [[nodiscard]] const_iterator operator+(ptrdiff_t more)
+        {
+            auto tmp = *this;
+            tmp += more;
+            return tmp;
+        }
+
         const_iterator& operator--()
         {
             assert(_p != nullptr);
@@ -145,6 +152,12 @@ public:
             }
         }
 
+        [[nodiscard]] const_iterator operator-(ptrdiff_t less)
+        {
+            auto tmp = *this;
+            tmp -= less;
+            return tmp;
+        }
 
     private:
         lazy_vector const *_p = nullptr;

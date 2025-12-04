@@ -16,10 +16,10 @@ TEST_CASE(single_repository_scan)
     auto repository = hk::repository{repository_path};
     repository.scan_prologues(hk::repository_flags{});
 
-    auto urls = std::ranges::to<std::vector>(repository.remote_repositories());
-    REQUIRE(urls.size() == 1);
-    REQUIRE(urls[0].first.url() == "https://github.com/hikoworks/hikolang-test-a.git");
-    REQUIRE(urls[0].first.rev() == "main");
+    auto nodes = std::ranges::to<std::vector>(repository.remote_repositories());
+    REQUIRE(nodes.size() == 1);
+    REQUIRE(nodes[0]->url.url() == "https://github.com/hikoworks/hikolang-test-a.git");
+    REQUIRE(nodes[0]->url.rev() == "main");
 }
 
 TEST_CASE(recursive_repository_scan) 

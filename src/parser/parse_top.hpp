@@ -29,6 +29,6 @@ namespace hk {
  * @param only_prologue When true only parses the prologue of a module.
  * @return A module node if successful. 
  */
-[[nodiscard]] parse_result_ptr<ast::top_node> parse_top(char const*& p, parse_context &ctx, bool only_prologue);
+[[nodiscard]] parse_result_ptr<ast::top_node> parse_top(char const* p, parse_context &ctx, bool only_prologue);
 
 }

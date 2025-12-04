@@ -68,6 +68,11 @@ public:
      */
     std::expected<bool, std::error_code> parse_prologue();
 
+    [[nodiscard]] error_list& errors() noexcept
+    {
+        return _errors;
+    }
+
     [[nodiscard]] generator<ast::import_repository_declaration_node *> remote_repositories() const;
 
     [[nodiscard]] friend std::strong_ordering cmp_sources(source const& lhs, source const& rhs) noexcept

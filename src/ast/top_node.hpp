@@ -21,20 +21,20 @@ public:
 
     top_node(char const* first) : node(first) {}
 
-    [[nodiscard]] hk::ast::repository& repository() const override
+    [[nodiscard]] hk::source& source() const override
     {
-        assert(_repository != nullptr);
-        return *_repository;
+        assert(_source != nullptr);
+        return *_source;
     }
 
-    top_node& set_repository(hk::ast::repository &repo) noexcept
+    top_node& set_source(hk::source &repo) noexcept
     {
-        _repository = &repo;
+        _source = &repo;
         return *this;
     }
 
 private:
-    hk::ast::repository *_repository = nullptr;
+    hk::source *_source = nullptr;
 };
 
 } // namespace hk::ast

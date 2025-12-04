@@ -9,9 +9,11 @@
 #include <expected>
 #include <format>
 
-namespace hk::ast {
+namespace hk {
+class source;
+}
 
-class repository;
+namespace hk::ast {
 
 class node {
 public:
@@ -51,9 +53,9 @@ public:
         return _parent ? _parent->top() : *const_cast<node *>(this);
     }
 
-    [[nodiscard]] virtual hk::ast::repository& repository() const
+    [[nodiscard]] virtual hk::source& source() const
     {
-        return top().repository();
+        return top().source();
     }
 
     std::unexpected<hkc_error> add(hkc_error error)

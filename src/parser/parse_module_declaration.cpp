@@ -16,7 +16,7 @@ namespace hk {
 
     auto r = std::make_unique<ast::module_declaration_node>(first);
 
-    if (auto node = parse_fqname(it, ctx, false)) {
+    if (auto node = parse_absolute_fqname(it, ctx)) {
         r->name = std::move(node).value();
     } else if (to_bool(node.error())) {
         return std::unexpected{node.error()};

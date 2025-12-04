@@ -134,6 +134,9 @@ void repository::recursive_scan_prologues(repository_flags flags)
     struct all_nodes_item {
         std::set<ast::node*> nodes;
         std::set<hkc_error> errors;
+
+        all_nodes_item() = default;
+        all_nodes_item(ast::node* node) : nodes{node}, errors{} {}
     };
 
     auto all_nodes = std::map<repository_url, all_nodes_item>{};
@@ -141,7 +144,7 @@ void repository::recursive_scan_prologues(repository_flags flags)
 
     scan_prologues(flags);
     for (auto const node_ptr : remote_repositories()) {
-        auto [it, inserted] = all_nodes.emplace(node_ptr->url);
+        auto [it, inserted] = all_nodes.emplace(node_ptr->url, all_nodes_item{});
         it->second.nodes.insert(node_ptr);
         todo.emplace(node_ptr->url);
     }
