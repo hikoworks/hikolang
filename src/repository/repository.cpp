@@ -110,17 +110,14 @@ bool repository::parse_prologues(repository_flags flags)
 
     // It is expected that _modules is sorted in compilation order,
     // it is also possible for the file to be removed.
-    auto it = _sources_by_path.begin();
-    while (it != _sources_by_path.end()) {
-        if ((*it)->is_generated()) {
+    for (auto& source : _sources_by_path) {
+        if (source->is_generated()) {
             // prologues of generated files are handled during compilation.
-            ++it;
             continue;
         }
 
-        if (auto r = (*it)->parse_prologue(); not r) {
-            std::println(stderr, "Could not get prologue of file '{}': {}", (*it)->path().string(), r.error().message());
-            ++it;
+        if (auto r = source->parse_prologue(); not r) {
+            std::println(stderr, "Could not get prologue of file '{}': {}", source->path().string(), r.error().message());
             continue;
         }
         modified = true;

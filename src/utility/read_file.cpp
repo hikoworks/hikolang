@@ -29,7 +29,7 @@ namespace hk {
     r.resize_and_overwrite(
         gsl::narrow<size_t>(file_size) + extra_nul,
         [&](char* p, std::size_t s) {
-            ifs.read(p, s);
+            ifs.read(p, s - extra_nul);
             auto actual_size = ifs.gcount();
             std::memset(p + actual_size, 0, extra_nul);
             return actual_size + extra_nul;

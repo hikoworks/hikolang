@@ -225,7 +225,7 @@ public:
 
     [[nodiscard]] constexpr bool empty() const noexcept
     {
-        return _kind == kind_type::simple;
+        return _kind == kind_type::nullopt;
     }
 
     constexpr explicit operator bool() const noexcept

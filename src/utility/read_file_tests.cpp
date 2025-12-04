@@ -17,6 +17,6 @@ TEST_SUITE(read_file_suite)
 
         auto const optional_string = hk::read_file(test_data_path / "read_file_test.txt");
         REQUIRE(optional_string.has_value());
-        REQUIRE(optional_string->starts_with("Hello World\n"));
+        REQUIRE(optional_string->starts_with("Hello World"));
     }
 };
