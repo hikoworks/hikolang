@@ -27,10 +27,27 @@ public:
         return *_source;
     }
 
-    top_node& set_source(hk::source &repo) noexcept
+    [[nodiscard]] generator<node *> children() const override
     {
-        _source = &repo;
-        return *this;
+        for (auto &ptr : remote_repositories) {
+            co_yield ptr.get();
+        }
+        for (auto &ptr : module_imports) {
+            co_yield ptr.get();
+        }
+        for (auto &ptr : library_imports) {
+            co_yield ptr.get();
+        }
+        for (auto &ptr : body) {
+            co_yield ptr.get();
+        }
+    }
+
+    void fixup_top(hk::source *source)
+    {
+        assert(source != nullptr); 
+        _source = source;
+        fixup(nullptr);
     }
 
 private:

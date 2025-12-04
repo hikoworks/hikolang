@@ -98,6 +98,7 @@ std::expected<bool, std::error_code> source::parse_prologue()
     auto p = const_cast<char const*>(_source_code.data());
     if (auto optional_ast = parse_top(p, ctx, false)) {
         _prologue_ast = std::move(optional_ast).value();
+        _prologue_ast->fixup_top(this);
     } else if (to_bool(optional_ast.error())) {
         return std::unexpected{optional_ast.error()};
     } else {

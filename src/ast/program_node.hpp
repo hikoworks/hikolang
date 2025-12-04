@@ -11,6 +11,11 @@ public:
     program_declaration_node_ptr declaration;
 
     program_node(char const* first) : top_node(first) {}
+
+    [[nodiscard]] generator<node *> children() const override
+    {
+        co_yield declaration.get();
+    }
 };
 
 using program_node_ptr = std::unique_ptr<program_node>;

@@ -48,6 +48,14 @@ public:
     {
         return false;
     };
+
+    [[nodiscard]] generator<node *> children() const override
+    {
+        if (condition) {
+            co_yield condition.get();
+        }
+    }
+
 };
 
 using module_declaration_node_ptr = std::unique_ptr<module_declaration_node>;

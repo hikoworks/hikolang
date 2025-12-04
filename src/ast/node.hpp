@@ -2,6 +2,7 @@
 #pragma once
 
 #include "error/hkc_error.hpp"
+#include "utility/generator.hpp"
 #include <string>
 #include <memory>
 #include <variant>
@@ -70,6 +71,28 @@ public:
         return _add(error, std::format(std::move(fmt), std::forward<Args>(args)...));
     }
 
+    [[nodiscard]] virtual generator<node *> children() const
+    {
+        co_return;
+    }
+
+    virtual char const *fixup(node *parent)
+    {
+        char const *child_last = nullptr;
+
+        for (auto &node : children()) {
+            assert(node != nullptr);
+            if (auto p = node->fixup(this)) {
+                child_last = p;
+            }
+        }
+
+        _parent = parent;
+        if (last == nullptr) {
+            last = child_last;
+        }
+        return last;
+    }
 
 protected:
     node *_parent = nullptr;

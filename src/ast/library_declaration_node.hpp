@@ -33,6 +33,14 @@ public:
     bool is_fallback = false;
 
     library_declaration_node(char const* first) : node(first) {}
+
+    [[nodiscard]] generator<node *> children() const override
+    {
+        if (condition) {
+            co_yield condition.get();
+        }
+    }
+
 };
 
 using library_declaration_node_ptr = std::unique_ptr<library_declaration_node>;
