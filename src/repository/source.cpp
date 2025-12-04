@@ -108,4 +108,15 @@ std::expected<bool, std::error_code> source::parse_prologue()
     return true;
 }
 
+[[nodiscard]] generator<ast::import_repository_declaration_node *> source::remote_repositories() const
+{
+    if (_prologue_ast == nullptr) {
+        co_return;
+    }
+
+    for (auto &node :_prologue_ast->remote_repositories) {
+        co_yield node.get();
+    }
+}
+
 } // namespace hk

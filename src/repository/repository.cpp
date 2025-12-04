@@ -7,6 +7,7 @@
 #include <cassert>
 #include <algorithm>
 #include <map>
+#include <set>
 #include <print>
 
 namespace hk {
@@ -130,15 +131,22 @@ bool repository::parse_prologues(repository_flags flags)
 
 void repository::recursive_scan_prologues(repository_flags flags)
 {
-    auto todo = std::vector<std::pair<repository_url, error_location>>{};
+    struct all_nodes_item {
+        std::set<ast::node*> nodes;
+        std::set<hkc_error> errors;
+    };
+
+    auto all_nodes = std::map<repository_url, all_nodes_item>{};
+    auto todo = std::set<repository_url>{};
 
     scan_prologues(flags);
-    for (auto item : remote_repositories()) {
-        todo.push_back(std::move(item));
+    for (auto const node_ptr : remote_repositories()) {
+        auto [it, inserted] = all_nodes.emplace(node_ptr->url);
+        it->second.nodes.insert(node_ptr);
+        todo.emplace(node_ptr->url);
     }
 
-    auto hkdeps_path = path / "_hkdeps";
-
+    auto const hkdeps_path = path / "_hkdeps";
     auto ec = std::error_code{};
     if (not std::filesystem::create_directory(hkdeps_path, ec) and ec) {
         std::println(stderr, "Error: could not create directory '{}': {}.", hkdeps_path.string(), ec.message());
@@ -151,10 +159,10 @@ void repository::recursive_scan_prologues(repository_flags flags)
     }
 
     while (not todo.empty()) {
-        auto [child_remote, import_errors] = std::move(todo.back());
-        todo.pop_back();
+        auto child_remote_n = todo.extract(todo.begin());
+        auto const child_remote = std::move(child_remote_n).value();
 
-        auto child_local_path = hkdeps_path / child_remote.directory();
+        auto const child_local_path = hkdeps_path / child_remote.directory();
         auto& child_repo = get_child_repository(child_remote, child_local_path);
         if (child_repo.mark) {
             continue;
@@ -164,20 +172,19 @@ void repository::recursive_scan_prologues(repository_flags flags)
         if (auto r = git_checkout_or_clone(child_remote, child_local_path, flags); r != git_error::ok) {
             auto short_hkdeps = std::format("_hkdeps/{}", child_remote.directory());
             // TODO #1 All failing import statements of a single repository should be marked with an error.
-            import_errors.add(
-                hkc_error::could_not_clone_repository,
-                "git-url: {}, rev: {}, dir: .hkdeps/{}, error: {}",
-                child_remote.url(),
-                child_remote.rev(),
-                short_hkdeps,
-                r);
+
+            auto it = all_nodes.find(child_remote);
+            assert(it != all_nodes.end());
+            it->second.errors.insert(hkc_error::could_not_clone_repository);
+
             erase_child_repository(child_remote);
             continue;
         }
 
         child_repo.scan_prologues(flags);
-        for (auto item : child_repo.remote_repositories()) {
-            todo.push_back(std::move(item));
+        for (auto node_ptr : child_repo.remote_repositories()) {
+            all_nodes.emplace(node_ptr->url, node_ptr);
+            todo.emplace(node_ptr->url);
         }
     }
 
@@ -185,14 +192,22 @@ void repository::recursive_scan_prologues(repository_flags flags)
     std::erase_if(_child_repositories, [&](auto const& item) {
         return not item->mark;
     });
+
+    // Add errors.
+    for (auto const &[url, item] : all_nodes) {
+        for (auto error : item.errors) {
+            for (auto node_ptr : item.nodes) {
+                node_ptr->add(error, "url: {}, rev:, dir: _hkdep/{}", url.url(), url.rev(), url.directory());
+            }
+        }
+    }
 }
 
-[[nodiscard]] generator<std::pair<repository_url, error_location>> repository::remote_repositories() const
+[[nodiscard]] generator<ast::import_repository_declaration_node *> repository::remote_repositories() const
 {
-    for (auto const& m : _modules) {
-        for (auto const& remote_repository : m.ast->remote_repositories) {
-            auto const el = error_location{m.errors, remote_repository->first, remote_repository->last};
-            co_yield std::pair{remote_repository->url, el};
+    for (auto const& s : _sources_by_path) {
+        for (auto const& remote : s->remote_repositories()) {
+            co_yield remote;
         }
     }
 }

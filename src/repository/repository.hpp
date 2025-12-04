@@ -3,7 +3,6 @@
 
 #include "parser/parse_context.hpp"
 #include "error/error_list.hpp"
-#include "error/error_location.hpp"
 #include "utility/repository_url.hpp"
 #include "utility/repository_flags.hpp"
 #include "utility/generator.hpp"
@@ -48,7 +47,7 @@ public:
      */
     void recursive_scan_prologues(repository_flags flags);
 
-    [[nodiscard]] generator<std::pair<repository_url, error_location>> remote_repositories() const;
+    [[nodiscard]] generator<ast::import_repository_declaration_node*> remote_repositories() const;
 
     [[nodiscard]] std::vector<std::unique_ptr<repository>> const& child_repositories() const noexcept
     {

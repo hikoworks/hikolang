@@ -1,14 +1,16 @@
 
 #include "tokenizer.hpp"
-#include "utility/file_buffer.hpp"
+#include "utility/read_file.hpp"
 #include "utility/lazy_vector.hpp"
 #include "test_utilities/paths.hpp"
 #include <hikotest/hikotest.hpp>
 
 TEST_SUITE(tokenizer_suite) {
-#define parse_tokens(output, text) \
-    auto t = std::string{text}; \
-    auto token_generator = hk::tokenize(t); \
+#define parse_tokens(output, str) \
+    auto text = std::string{str}; \
+    auto lines = hk::line_table{}; \
+    lines.add(text.data(), 0, "<text>"); \
+    auto token_generator = hk::tokenize(text.data(), lines); \
     auto output = hk::lazy_vector{token_generator.cbegin(), token_generator.cend()}
 
 TEST_CASE(integer_12)
@@ -78,9 +80,12 @@ TEST_CASE(short_file_file)
 {
     auto test_data_path = test::test_data_path();
     auto path = test_data_path / "simple.hkm";
-    auto cursor = hk::file_cursor{path};
+    auto text = hk::read_file(path, 8);
+    REQUIRE(text.has_value());
+    auto lines = hk::line_table{};
+    lines.add(text->data(), 0, path.filename().string());
 
-    auto token_generator = hk::tokenize(cursor);
+    auto token_generator = hk::tokenize(text->data(), lines);
     auto tokens = hk::lazy_vector{token_generator.cbegin(), token_generator.cend()};
     REQUIRE(tokens[0] == "module");
     REQUIRE(tokens[1] == "com");

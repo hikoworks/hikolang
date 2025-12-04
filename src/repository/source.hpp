@@ -3,6 +3,7 @@
 
 #include "ast/top_node.hpp"
 #include "utility/semantic_version.hpp"
+#include "utility/generator.hpp"
 #include "error/error_list.hpp"
 #include "tokenizer/line_table.hpp"
 #include <gsl/gsl>
@@ -66,6 +67,8 @@ public:
      * @return If prologue of the source file was modified, or an error.
      */
     std::expected<bool, std::error_code> parse_prologue();
+
+    [[nodiscard]] generator<ast::import_repository_declaration_node *> remote_repositories() const;
 
     [[nodiscard]] friend std::strong_ordering cmp_sources(source const& lhs, source const& rhs) noexcept
     {

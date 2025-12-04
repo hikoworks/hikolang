@@ -10,6 +10,8 @@
 
 namespace hk::ast {
 
+class repository;
+
 class top_node : public node {
 public:
     std::vector<import_repository_declaration_node_ptr> remote_repositories;
@@ -17,12 +19,22 @@ public:
     std::vector<import_library_declaration_node_ptr> library_imports;
     std::vector<node_ptr> body;
 
-    top_node(hk::ast::repository &parent, char const* first) : node(parent, first) {}
+    top_node(char const* first) : node(first) {}
 
-    [[nodiscard]] virtual hk::ast::repository& repository() const override
+    [[nodiscard]] hk::ast::repository& repository() const override
     {
-        return static_cast<hk::ast::repository *>(_parent);
+        assert(_repository != nullptr);
+        return *_repository;
     }
+
+    top_node& set_repository(hk::ast::repository &repo) noexcept
+    {
+        _repository = &repo;
+        return *this;
+    }
+
+private:
+    hk::ast::repository *_repository = nullptr;
 };
 
 } // namespace hk::ast
