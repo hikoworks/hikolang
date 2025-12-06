@@ -9,6 +9,7 @@
 #include <type_traits>
 #include <cassert>
 #include <exception>
+#include <iterator>
 
 namespace hk {
 
