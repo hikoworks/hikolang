@@ -38,7 +38,6 @@ public:
         _operator,
         comment,
         documentation,
-        back_documentation,
         string_literal,
         character_literal,
         quote_literal,
@@ -76,7 +75,6 @@ public:
     static constexpr kind_type _operator = kind_type::_operator;
     static constexpr kind_type comment = kind_type::comment;
     static constexpr kind_type documentation = kind_type::documentation;
-    static constexpr kind_type back_documentation = kind_type::back_documentation;
     static constexpr kind_type string_literal = kind_type::string_literal;
     static constexpr kind_type character_literal = kind_type::character_literal;
     static constexpr kind_type quote_literal = kind_type::quote_literal;
@@ -248,6 +246,23 @@ public:
         }
     }
 
+    /** Set the documentation of this token.
+     * 
+     * @param The documentation found in front of this token.
+     */
+    void set_doc(std::string doc)
+    {
+        _doc = std::move(doc);
+    }
+
+    /** Get the documentation of this token.
+     * 
+     * @return The documentation of this token
+     */
+    [[nodiscard]] std::string const& doc() const noexcept
+    {
+        return _doc;
+    }
 
     /** Compare this token with the kind-of-token.
      * 
@@ -375,6 +390,10 @@ private:
     /** The kind of token.
      */
     kind_type _kind = kind_type::nullopt;
+
+    /** Documentation in front of this token.
+     */
+    std::string _doc = {};
 };
 
 } // namespace hk

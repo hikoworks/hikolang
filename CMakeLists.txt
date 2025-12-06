@@ -186,6 +186,7 @@ if(BUILD_TESTING)
     target_sources(hktests PRIVATE
         $<TARGET_OBJECTS:hk_objects>
         "${CMAKE_CURRENT_SOURCE_DIR}/src/repository/repository_tests.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer/tokenizer_semicolon_tests.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer/tokenizer_tests.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/git_tests.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/read_file_tests.cpp"

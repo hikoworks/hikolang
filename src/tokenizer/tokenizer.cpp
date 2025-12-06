@@ -14,7 +14,6 @@
 
 namespace hk {
 
-
 [[nodiscard]] static hk::generator<token> simple_tokenize(char const* p)
 {
     enum class state_type {
@@ -44,7 +43,7 @@ namespace hk {
         } else if (match<char, ' ', '\t'>(p[0])) {
             // Ignore white-space.
             ++p;
-        
+
         } else if (auto t = parse_llvm_string(p)) {
             co_yield t;
             state = state_type::normal;
@@ -104,9 +103,10 @@ namespace hk {
             } else if (cp == 0xfeff) {
                 // Ignore BOM.
 
-            } else if (match<char32_t, U'\u00a0', U'\u1680', U'\u202f', U'\u205f', U'\u3000'>(cp) or (cp >= 0x2000 and cp <= 0x200a)) {
+            } else if (
+                match<char32_t, U'\u00a0', U'\u1680', U'\u202f', U'\u205f', U'\u3000'>(cp) or (cp >= 0x2000 and cp <= 0x200a)) {
                 // Ignore white-space.
-            
+
             } else if (cp == 0xfffd) {
                 co_yield {p, n, token::invalid_replacement_character_error};
 
@@ -127,24 +127,24 @@ namespace hk {
     co_yield {p, '\0'};
 }
 
-[[nodiscard]] hk::generator<token> tokenize(char const* p, line_table &lines)
+[[nodiscard]] hk::generator<token> tokenize(char const* p, line_table& lines)
 {
-    fixed_fifo<token, 8> q = {};
-    std::vector<char> bracket_stack = {};
-    auto doc_text = std::string{};
+    auto q = fixed_fifo<token, 8>{};
+    auto bracket_stack = std::vector<char>{};
+    auto documentation = std::string{};
 
-    /** Line-feeds are replaced with semicolon, or nothing.
+    /** Insert a semicolon before another token when needed.
      *
-     * @param t The token that was a line-feed.
+     * @param t The token that causes the insertion of a semicolon.
      */
-    auto replace_line_feed_with_semicolon = [&](token const& t) -> token {
+    auto insert_semicolon_before = [&](token const& t) -> token {
         if (not bracket_stack.empty() and bracket_stack.back() != '{') {
-            // Insert a semicolon only if we are directly inside a block., or at top level.
+            // Insert a semicolon only if we are directly inside a block, or at top level.
             return {};
         }
 
         if (q.empty() or q.back() == ';' or q.back() == '{') {
-            // Don't add semicolon when there is a termination token on the queue.
+            // Don't add semicolon when there is a termination token at the end of the queue.
             return {};
         }
 
@@ -154,7 +154,10 @@ namespace hk {
     for (auto t : simple_tokenize(p)) {
         if (t == token::comment) {
             // Drop comments.
-            continue;
+
+        } else if (t == token::documentation) {
+            documentation += t.string_view();
+            // Drop documentation.
 
         } else if (t == token::line_directive) {
             auto [lineno, file_name] = t.line_value();
@@ -168,15 +171,18 @@ namespace hk {
             } else {
                 lines.add(t.end(), lineno, file_name);
             }
-            continue;
 
         } else if (t == '{' or t == '[' or t == '(') {
+            documentation.clear();
+
             if (auto r = q.push_back_overflow(t)) {
                 co_yield std::move(r).value();
             }
             bracket_stack.push_back(t.simple_value());
 
         } else if (t == '}' or t == ']' or t == ')') {
+            documentation.clear();
+
             auto const open_bracket = mirror_bracket(t.simple_value());
 
             if (bracket_stack.empty() or bracket_stack.back() != open_bracket) {
@@ -188,13 +194,22 @@ namespace hk {
                 break;
             }
 
+            if (t == '}') {
+                // The statement before '}' must be closed.
+                if (auto r = insert_semicolon_before(t)) {
+                    if (auto r2 = q.push_back_overflow(r)) {
+                        co_yield std::move(r2).value();
+                    }
+                }
+            }
+
             if (auto r = q.push_back_overflow(std::move(t))) {
                 co_yield std::move(r).value();
             }
             bracket_stack.pop_back();
 
         } else if (t == '\n') {
-            if (auto r = replace_line_feed_with_semicolon(t)) {
+            if (auto r = insert_semicolon_before(t)) {
                 if (auto r2 = q.push_back_overflow(r)) {
                     co_yield std::move(r2).value();
                 }
@@ -202,6 +217,8 @@ namespace hk {
             // Drop the token.
 
         } else if (t == '\0') {
+            documentation.clear();
+
             while (not bracket_stack.empty()) {
                 auto const unmatched_bracket = bracket_stack.back();
 
@@ -218,7 +235,7 @@ namespace hk {
             }
 
             // Treat end-of-file as a possible line feed.
-            if (auto r = replace_line_feed_with_semicolon(t)) {
+            if (auto r = insert_semicolon_before(t)) {
                 if (auto r2 = q.push_back_overflow(r)) {
                     co_yield std::move(r2).value();
                 }
@@ -232,6 +249,9 @@ namespace hk {
             // tokens.
 
         } else {
+            // Add the collected documentation to the token.
+            t.set_doc(std::exchange(documentation, {}));
+
             // For all other tokens, just add them to the queue.
             if (auto r = q.push_back_overflow(std::move(t))) {
                 co_yield std::move(r).value();

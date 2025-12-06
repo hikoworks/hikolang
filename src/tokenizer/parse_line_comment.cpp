@@ -18,14 +18,13 @@ namespace hk {
         r = token{++p, token::documentation};
     }
 
-    if (p[0] == '<') {
-        r = token{++p, token::back_documentation};
-    }
-
     for (; p[0] != '\0'; ++p) {
-        if (is_vertical_space(p)) {
-            // Don't consume the vertical space, so that the tokenizer can insert a semicolon if needed.
-            r.set_last(p);
+        if (auto const vs_size = is_vertical_space(p)) {
+            // Include the vertical space in the token, so that the tokenizer
+            // can concatonate sequential line comments.
+            r.set_last(p + vs_size);
+            // Don't consume the vertical space, so that the tokenizer can
+            // see the vertical space for inserting a semicolon.
             return r;
         }
     }
