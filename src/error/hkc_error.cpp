@@ -1,6 +1,9 @@
 
 #include "hkc_error.hpp"
 #include <exception>
+#include <utility>
+#include <string>
+#include <format>
 
 namespace hk {
 

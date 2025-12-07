@@ -72,8 +72,6 @@ add_library(hk_objects OBJECT
     "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/parse_library_declaration.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/parse_module_declaration.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/parse_module_declaration.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/parse_module.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/parse_module.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/parse_program_declaration.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/parse_program_declaration.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/parse_result.hpp"
