@@ -3,6 +3,7 @@
 #include <gsl/gsl>
 #include <iostream>
 #include <fstream>
+#include <cstring>
 
 namespace hk {
 
