@@ -3,6 +3,7 @@
 
 #include "utility/fixed_string.hpp"
 #include <system_error>
+#include <format>
 
 namespace hk {
 
@@ -62,6 +63,8 @@ enum class hkc_error : int {
     return rhs != hkc_error::none;
 }
 
+[[nodiscard]] std::string to_code(hkc_error const& rhs) noexcept;
+
 [[nodiscard]] constexpr bool operator!(hkc_error const& rhs) noexcept
 {
     return not to_bool(rhs);
@@ -94,3 +97,14 @@ inline auto global_hkc_error_category = hkc_error_category{};
 }
 
 } // namespace hk
+
+template<>
+struct std::formatter<hk::hkc_error, char> : public std::formatter<std::string, char> {
+    template<class FmtContext>
+    FmtContext::iterator format(hk::hkc_error e, FmtContext& ctx) const
+    {
+        auto e_ = make_error_code(e);
+        return std::formatter<std::string, char>::format(e_.message(), ctx);
+    }
+};
+

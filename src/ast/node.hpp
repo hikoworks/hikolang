@@ -2,6 +2,7 @@
 #pragma once
 
 #include "error/hkc_error.hpp"
+#include "tokenizer/line_table.hpp"
 #include "utility/generator.hpp"
 #include <string>
 #include <memory>

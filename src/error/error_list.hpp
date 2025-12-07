@@ -15,68 +15,29 @@ class error_list : public std::vector<error_item> {
 public:
     using element_type = error_item;
 
-    template<typename... Args>
-    hkc_error add(char const* first, char const* last, hkc_error code, std::format_string<Args...> fmt, Args&&... args)
+    hkc_error add(line_table const& lines, char const* first, char const* last, hkc_error code, std::string message = std::string{})
     {
-        this->emplace_back(first, last, code, std::move(fmt), std::forward<Args>(args)...);
+        auto const& e = this->emplace_back(code, first, last, std::move(message));
+        e.print(lines);
         return code;
     }
 
     template<typename... Args>
-    hkc_error add(char const* first, hkc_error code, std::format_string<Args...> fmt, Args&&... args)
+    hkc_error add(line_table const& lines, char const* first, char const* last, hkc_error code, std::format_string<Args...> fmt = {}, Args&&... args)
     {
-        this->emplace_back(first, code, std::move(fmt), std::forward<Args>(args)...);
-        return code;
+        return add(lines, first, last, code, std::format(std::move(fmt), std::forward<Args>(args)...));
     }
 
     template<typename... Args>
-    hkc_error add(hkc_error code, std::format_string<Args...> fmt, Args&&... args)
+    hkc_error add(line_table const& lines, char const* first, hkc_error code, std::format_string<Args...> fmt = {}, Args&&... args)
     {
-        this->emplace_back(code, std::move(fmt), std::forward<Args>(args)...);
-        return code;
+        return add(lines, first, nullptr, code, std::format(std::move(fmt), std::forward<Args>(args)...));
     }
 
-    hkc_error add(char const* first, char const* last, hkc_error code)
+    template<typename... Args>
+    hkc_error add(line_table const& lines, hkc_error code, std::format_string<Args...> fmt = {}, Args&&... args)
     {
-        this->emplace_back(first, last, code);
-        return code;
-    }
-
-    hkc_error add(char const* first, hkc_error code)
-    {
-        this->emplace_back(first, code);
-        return code;
-    }
-
-    hkc_error add(hkc_error code)
-    {
-        this->emplace_back(code);
-        return code;
-    }
-
-    /** Print error messages.
-     *
-     * @param upstream_paths The paths for the error locations.
-     */
-    void print(line_table const& lines)
-    {
-        for (auto const& e : *this) {
-            e.print(lines);
-        }
-    }
-
-    /** Print error messages.
-     *
-     * @param upstream_paths The paths for the error locations.
-     */
-    [[nodiscard]] std::string to_string(line_table const& lines)
-    {
-        auto s = std::string{};
-        for (auto const& e : *this) {
-            s += e.to_string(lines);
-            s += '\n';
-        }
-        return s;
+        return add(lines, nullptr, nullptr, code, std::format(std::move(fmt), std::forward<Args>(args)...));
     }
 
 private:

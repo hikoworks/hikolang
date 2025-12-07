@@ -26,6 +26,8 @@ public:
      */
     [[nodiscard]] std::tuple<std::string, size_t, size_t> get_position(char const *p) const; 
 
+    [[nodiscard]] std::string_view get_line_text(char const *p) const;
+
     /** Set the line number.
      *
      * @note It is UB is `add(p, lineno, file_name)` has not been called

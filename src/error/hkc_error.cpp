@@ -4,6 +4,28 @@
 
 namespace hk {
 
+[[nodiscard]] std::string to_code(hkc_error const& rhs) noexcept
+{
+    auto const numeric_code = std::to_underlying(rhs);
+
+    auto const prefix = [&]{
+        if (numeric_code < 10000) {
+            return 'I';
+        } else if (numeric_code < 20000) {
+            return 'W';
+        } else if (numeric_code < 30000) {
+            return 'E';
+        } else if (numeric_code < 40000) {
+            return 'F';
+        } else if (numeric_code < 50000) {
+            return 'S';
+        } else {
+            return 'U';
+        }
+    }();
+
+    return std::format("{}{:05}", prefix, numeric_code);
+}
 
 std::string hkc_error_category::message(int code) const
 {

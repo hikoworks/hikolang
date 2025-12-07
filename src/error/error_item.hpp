@@ -19,36 +19,8 @@ public:
     error_item& operator=(error_item const&) = default;
     error_item& operator=(error_item&&) = default;
 
-    template<typename... Args>
-    error_item(char const* first, char const* last, hkc_error code, std::format_string<Args...> fmt, Args&&... args) :
-        _first(first), _last(last), _code(code), _message(std::format(std::move(fmt), std::forward<Args>(args)...))
-    {
-    }
-
-    template<typename... Args>
-    error_item(char const* first, hkc_error code, std::format_string<Args...> fmt, Args&&... args) :
-        _first(first), _last(nullptr), _code(code), _message(std::format(std::move(fmt), std::forward<Args>(args)...))
-    {
-    }
-
-    template<typename... Args>
-    error_item(hkc_error code, std::format_string<Args...> fmt, Args&&... args) :
-        _first(nullptr), _last(nullptr), _code(code), _message(std::format(std::move(fmt), std::forward<Args>(args)...))
-    {
-    }
-
-    error_item(char const* first, char const* last, hkc_error code) :
-        _first(first), _last(last), _code(code), _message()
-    {
-    }
-
-    error_item(char const* first, hkc_error code) :
-        _first(first), _last(nullptr), _code(code), _message()
-    {
-    }
-
-    error_item(hkc_error code) :
-        _first(nullptr), _last(nullptr), _code(code), _message()
+    error_item(hkc_error code, char const* first = nullptr, char const* last = nullptr, std::string message = std::string{}) :
+        _first(first), _last(last), _code(code), _message(std::move(message))
     {
     }
 
