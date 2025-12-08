@@ -7,8 +7,45 @@
 #include <iterator>
 #include <cstddef>
 #include <algorithm>
+#include <array>
 
 namespace hk {
+
+struct fqname_long {
+    uint8_t _capacity;
+
+};
+
+class fqname {
+public:
+    ~fqname()
+    {
+        if (_capacity != 0) {
+            delete _buffer;
+        }
+    }
+
+    constexpr fqname() noexcept : _ptr(nullptr) {}
+
+    fqname()
+    {
+    }
+
+    fqname& operator+=(std::string_view component)
+    {
+
+        return *this;
+    }
+
+private:
+    union {
+        uint8_t *_ptr;
+        uint8_t _buffer[8];
+    };
+    uint8_t _positions[22] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    uint8_t _prefix = 0;
+    uint8_t _capacity = 0;
+};
 
 class fqname {
 public:
