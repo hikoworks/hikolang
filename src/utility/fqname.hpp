@@ -10,6 +10,28 @@
 
 namespace hk {
 
+class fqname_long {
+public:
+private:
+    uint8_t _capacity;
+    uint8_t _component_positions[16];
+    uint8_t _text[];
+};
+
+class fqname {
+public:
+
+private:
+    union {
+        fqname_long *_ptr;
+        uint8_t _text[sizeof(fqname_long *)];
+    };
+    uint8_t _component_positions[7];
+    uint8_t _prefix_dots : 4 = 0;
+    uint8_t _is_long : 1 = 0;
+};
+
+
 class fqname {
 public:
     class const_iterator {
@@ -457,7 +479,16 @@ public:
 private:
     uint8_t _num_prefix_dots = 0;
     uint8_t _num_components = 0;
+    uint8_t _component_positions[6];
     std::string _name = {};
+
+    union {
+        char const *_ptr;
+        uint8_t _buffer[sizeof(char const *)];
+    };
+    uint8_t _component_positions[15];
+    uint8_t _num_prefix_dots : 3 = 0;
+    uint8_t _capacity : 5 = 0;
 };
 
 }

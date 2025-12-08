@@ -26,7 +26,8 @@ public:
 
     std::unexpected<hkc_error> add(char const* first, char const* last, hkc_error error, std::string message = std::string{})
     {
-        return std::unexpected{errors().add(lines(), first, last, error, std::move(message))};
+        auto const [it, _] = errors().add(lines(), first, last, error, std::move(message));
+        return std::unexpected{it->code()};
     }
 
     /** Add an error to the list.

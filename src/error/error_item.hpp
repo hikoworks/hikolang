@@ -8,6 +8,7 @@
 #include <cassert>
 #include <filesystem>
 #include <expected>
+#include <compare>
 
 namespace hk {
 
@@ -24,9 +25,20 @@ public:
     {
     }
 
-    operator std::unexpected<hkc_error>() const
+    [[nodiscard]] constexpr friend bool operator==(error_item const& lhs, error_item const& rhs) noexcept
     {
-        return std::unexpected{_code};
+        return lhs._first == rhs._first and lhs._last == rhs._last and lhs._code == rhs._code;
+    }
+    
+    [[nodiscard]] constexpr friend auto operator<=>(error_item const& lhs, error_item const& rhs) noexcept
+    {
+        if (auto r = lhs._first <=> rhs._first; r != std::strong_ordering::equal) {
+            return r;
+        } else if (auto r = lhs._last <=> rhs._last; r != std::strong_ordering::equal) {
+            return r;
+        } else {
+            return lhs._code <=> rhs._code;
+        }
     }
 
     [[nodiscard]] constexpr char const* first() const noexcept

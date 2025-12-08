@@ -1,9 +1,7 @@
 
 program "return42"
 
-
-fn main() -> __builtin_i32
-    ccc
+fn main()
 {
     return 42
 }
