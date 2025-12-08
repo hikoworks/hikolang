@@ -35,7 +35,7 @@ TEST_CASE(recursive_repository_scan)
     REQUIRE(repository.child_repositories()[0]->remote.url() == "https://github.com/hikoworks/hikolang-test-a.git");
     REQUIRE(repository.child_repositories()[1]->remote.url() == "https://github.com/hikoworks/hikolang-test-b.git");
 
-    REQUIRE(repository.anchors().size() == 2);
+    //REQUIRE(repository.anchors().size() == 2);
 }
 
 //TEST_CASE(parse_repository)

@@ -15,7 +15,7 @@ namespace hk {
 
     auto num_prefix_dots = 0uz;
     if (absolute) {
-        r.set_num_prefix_dots(1);
+        r.set_prefix(1);
 
     } else {
         for (; num_prefix_dots != max_num_prefix_dots; ++num_prefix_dots) {
@@ -27,7 +27,7 @@ namespace hk {
             return tokens_did_not_match;
         }
 
-        r.set_num_prefix_dots(num_prefix_dots);
+        r.set_prefix(num_prefix_dots);
     }
 
     if (it[num_prefix_dots] == token::identifier) {
