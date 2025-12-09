@@ -45,21 +45,16 @@ public:
 
         constexpr const_iterator(char const* first) noexcept :
             _first(first),
-            _last(fixup_last(first))
+            _last(fixup_last(first)) {}
 
-                [[nodiscard]] constexpr bool operator==(const_iterator const& rhs) noexcept
+        [[nodiscard]] constexpr friend bool operator==(const_iterator const& lhs, const_iterator const& rhs) noexcept
         {
-            return _first == rhs._first;
+            return lhs._first == rhs._first;
         }
 
-        [[nodiscard]] constexpr bool operator==(std::default_sentinel_t) noexcept
+        [[nodiscard]] constexpr friend bool operator==(const_iterator const& lhs, std::default_sentinel_t) noexcept
         {
-            return _first == nullptr or *_first == '\0';
-        }
-
-        [[nodiscard]] constexpr std::strong_ordering operator<=>(const_iterator const& rhs) noexcept
-        {
-            return _first <=> rhs._first;
+            return lhs._first == nullptr or *lhs._first == '\0';
         }
 
         constexpr const_iterator& operator++()
@@ -118,75 +113,158 @@ public:
     constexpr fqname& operator=(fqname const&) = default;
     constexpr fqname& operator=(fqname&&) = default;
 
+    constexpr fqname(std::string_view other) : _str(other) {}
+    constexpr fqname(std::string other) : _str(std::move(other)) {}
+    constexpr fqname(char const *other) : _str(other) {}
+
+    [[nodiscard]] constexpr friend bool operator==(fqname const& lhs, fqname const& rhs) noexcept
+    {
+        return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+    }
+
+    [[nodiscard]] constexpr friend std::strong_ordering operator<=>(fqname const& lhs, fqname const& rhs) noexcept
+    {
+        return std::lexicographical_compare_three_way(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+    }
+
     [[nodiscard]] constexpr std::string const& string() const noexcept
     {
         return _str;
     }
 
-    [[nodiscard]] const_iterator begin() const noexcept
+    [[nodiscard]] constexpr size_t prefix() const noexcept
+    {
+        if (auto const i = _str.find_first_not_of('.'); i != _str.npos) {
+            return i;
+        } else {
+            return _str.size();
+        }
+    }
+
+    [[nodiscard]] constexpr bool is_absolute() const noexcept
+    {
+        return prefix() == 1;
+    }
+
+    [[nodiscard]] constexpr bool is_relative() const noexcept
+    {
+        return not is_absolute();
+    }
+
+    [[nodiscard]] constexpr const_iterator begin() const noexcept
     {
         return const_iterator{_str.c_str()};
     }
 
-    [[nodiscard]] const_iterator end() const noexcept
+    [[nodiscard]] constexpr const_iterator end() const noexcept
     {
         return const_iterator{_str.c_str() + _str.size()};
     }
 
-    bool pop_component()
+    /** Pop the last component.
+     * 
+     * Removes the last component, or:
+     *  - if empty, the result is: ..
+     *  - if absolute, the result is: .
+     *  - if there are only dots, add one more dot.
+     */
+    constexpr void pop_component()
     {
+        using namespace std::literals;
+
         if (_str.empty()) {
-            return false;
-        }
-
-        if (auto const i = _str.rfind('.'); i == _str.npos) {
-            _str.clear();
-            return true;
+            _str = ".."s;
+        } else if (auto const p = prefix(); p == _str.size()) {
+            if (p != 1) {
+                _str += '.';
+            }
         } else {
-            _str.erase(i);
-            return true;
-        }
-    }
-
-    fqname& operator/=(std::string_view component)
-    {
-        assert(component.empty() or (component.first() != '.' and component.last() != '.'));
-
-        if (not _str.empty()) {
-            _str += '.';
-        }
-        _str += component;
-        return *this;
-    }
-
-    [[nodiscard]] fqname operator/(std::string_view component)
-    {
-        auto tmp = *this;
-        tmp /= component;
-        return tmp;
-    }
-
-    fqname& operator/=(fqname const& other)
-    {
-        if (other.is_absolute()) {
-            *this = other;
-            return *this;
-        }
-
-        auto leading = true;
-        for (auto component : other) {
-            if (component.empty()) {
-                assert(leading);
-                pop_component();
+            if (auto const i = _str.rfind('.'); i == _str.npos) {
+                _str.clear();
             } else {
-                leading = false;
-                *this /= component;
+                _str.erase(i);
             }
         }
     }
 
+    constexpr fqname& add_component(std::string_view component)
+    {
+        assert(component.find('.') != component.npos);
+
+        if (component.empty()) {
+            _str += '.';
+
+        } else {
+            if (not _str.empty()) {
+                _str += '.';
+            }
+            _str += component;
+        }
+        return *this;
+    }
+
+    constexpr fqname& operator/=(fqname const& rhs)
+    {
+        if (rhs.is_absolute()) {
+            *this = rhs;
+            return *this;
+        }
+
+        for (auto component : rhs) {
+            if (component.empty()) {
+                pop_component();
+            } else {
+                add_component(component);
+            }
+        }
+        return *this;
+    }
+
+    constexpr fqname operator/(fqname const& rhs)
+    {
+        auto tmp = *this;
+        tmp /= rhs;
+        return tmp;
+    }
+
+    constexpr fqname& operator/=(std::string_view rhs)
+    {
+        return *this /= fqname{rhs};
+    }
+
+    constexpr fqname operator/(std::string_view rhs)
+    {
+        return *this / fqname{rhs};
+    }
+
+    /** Generate a lexically normal path.
+     * 
+     */
+    constexpr fqname lexically_normal() const
+    {
+        auto r = fqname{};
+        r._str.reserve(_str.size());
+
+        auto is_prefix = true;
+        for (auto component: *this) {
+            if (component.empty()) {
+                if (is_prefix) {
+                    r.add_component(component);
+                } else {
+                    r.pop_component();
+                }
+            } else {
+                r.add_component(component);
+                is_prefix = false;
+            }
+        }
+
+        return r;
+    }
+
 private:
     std::string _str = {};
+
 };
 
 } // namespace hk

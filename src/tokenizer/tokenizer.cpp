@@ -1,7 +1,6 @@
 
 #include "tokenizer.hpp"
 #include "token_parsers.hpp"
-#include "utility/module.hpp"
 #include "utility/fixed_fifo.hpp"
 #include <gsl/gsl>
 #include <cassert>

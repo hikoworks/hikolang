@@ -4,7 +4,6 @@
 #include "token.hpp"
 #include "line_table.hpp"
 #include "char_category.hpp"
-#include "utility/module.hpp"
 #include "utility/generator.hpp"
 #include <concepts>
 #include <string>
