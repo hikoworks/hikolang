@@ -107,7 +107,7 @@ public:
 
     static_assert(std::allocator_traits<allocator_type>::is_always_equal::value);
 
-    ~fqname()
+    constexpr ~fqname()
     {
         if (_capacity != 0) {
             auto allocator = allocator_type{};
@@ -115,6 +115,8 @@ public:
         }
     }
 
+    /** Create empty fully qualified name.
+     */
     constexpr fqname() noexcept : _buffer1(), _buffer2(), _offsets(), _size(0), _prefix(0), _capacity(0)
     {
         std::fill_n(&_buffer1[0], _buffer1_size, 0);
@@ -122,7 +124,9 @@ public:
         std::fill_n(&_offsets[0], _offsets_size, 0);
     }
 
-    fqname(fqname const &other)
+    /** Copy a fully qualified name.
+     */
+    constexpr fqname(fqname const &other)
     {
         if (other._capacity != 0) {
             auto allocator = allocator_type{};
@@ -139,7 +143,9 @@ public:
         _capacity = other._capacity;
     }
 
-    fqname(fqname&& other)
+    /** Move a fully qualified name.
+     */
+   constexpr fqname(fqname&& other)
     {
         if (other._capacity != 0) {
             _ptr = other._ptr;
@@ -158,7 +164,9 @@ public:
         other._capacity = 0;
     }
 
-    fqname& operator=(fqname const& other)
+    /** Copy-assign a fully qualified name.
+     */
+    constexpr fqname& operator=(fqname const& other)
     {
         if (this == &other) {
             return *this;
@@ -191,7 +199,9 @@ public:
         return *this;
     }
 
-    fqname& operator=(fqname&& other)
+    /** Move-assign a fully qualified name.
+     */
+    constexpr fqname& operator=(fqname&& other)
     {
         if (this == &other) {
             return *this;
@@ -218,6 +228,22 @@ public:
         other._prefix = 0;
         other._capacity = 0;
         return *this;
+    }
+
+    /** Create a fully qualified name from a string.
+     * 
+     * @throws std::invalid_argument With too many prefix dots.
+     */
+    constexpr fqname(std::string_view str) : fqname()
+    {
+        auto i = 0uz;
+        while (i != str.size()) {
+            auto j = str.find('.', i);
+            j = std::min(j, str.size());
+
+            append_component(str.substr(i, j));
+            i = j;
+        }
     }
 
     [[nodiscard]] constexpr friend bool operator==(fqname const& lhs, fqname const& rhs) noexcept
@@ -253,13 +279,6 @@ public:
         return _prefix;
     }
 
-    constexpr fqname& set_prefix(size_t prefix)
-    {
-        assert(prefix <= 15);
-        _prefix = gsl::narrow_cast<uint8_t>(prefix);
-        return *this;
-    }
-
     [[nodiscard]] constexpr bool is_absolute() const noexcept
     {
         return prefix() == 1;
@@ -285,7 +304,7 @@ public:
         return const_iterator{this, size()};
     }
 
-    void clear()
+    constexpr void clear()
     {
         if (_capacity != 0) {
             auto allocator = allocator_type{};
@@ -309,6 +328,8 @@ public:
 
     constexpr void reserve(size_t cap)
     {
+        assert(cap < 256);
+
         if (cap <= capacity()) {
             return;
         }
@@ -325,7 +346,7 @@ public:
         _capacity = cap;
     }
 
-    fqname& operator+=(std::string_view component)
+    constexpr fqname& append_component(std::string_view component)
     {
         assert(_size < 15);
 
@@ -340,27 +361,83 @@ public:
         return *this;
     }
 
-    [[nodiscard]] std::string_view operator[](size_t i) const
+    constexpr fqname& pop_component()
+    {
+        assert(_size != 0);
+        --_size;
+        return *this;
+    }
+
+    constexpr fqname& operator/=(fqname const& rhs)
+    {
+        for (auto i = 0uz; i != std::min(rhs._prefix, _size); ++i) {
+            pop_component();
+        }
+
+        for (auto i = 0uz; i != rhs._size; ++i) {
+            append_component(rhs[i]);
+        }
+
+        return *this;
+    }
+
+    constexpr fqname& operator/=(std::string_view str)
+    {
+        return *this /= fqname{str};
+    }
+
+    [[nodiscard]] constexpr fqname operator/(fqname const& rhs) const
+    {
+        auto tmp = *this;
+        return tmp /= rhs;
+    }
+
+    [[nodiscard]] constexpr fqname operator/(std::string_view str) const
+    {
+        return *this / fqname{str};
+    }
+
+    [[nodiscard]] constexpr std::string_view operator[](size_t i) const
     {
         return std::string_view(get_span(i));
     }
 
-    [[nodiscard]] std::string_view first() const
+    [[nodiscard]] constexpr std::string_view first() const
     {
         return (*this)[0];
     }
 
-    [[nodiscard]] std::string_view last() const
+    [[nodiscard]] constexpr std::string_view last() const
     {
         return (*this)[size() - 1];
     }
 
+    [[nodiscard]] constexpr std::string string() const
+    {
+        auto r = std::string{};
+        if (_capacity) {
+            r.reserve(_prefix + get_offset(size()) + _size);
+        }
 
+        for (auto i = 0uz; i != _prefix; ++i) {
+            r += '.';
+        }
+        
+        for (auto i = 0uz; i != _size; ++i) {
+            if (i != 0uz) {
+                r += '.';
+            }
+            r += (*this)[i];
+        }
+
+        return r;
+    }
 
 private:
+    constexpr static size_t _this_size = 32uz;
+    constexpr static size_t _offsets_size = 16uz;
     constexpr static size_t _buffer1_size = sizeof(uint8_t *);
-    constexpr static size_t _buffer2_size = 32uz - 18uz - _buffer1_size;
-    constexpr static size_t _offsets_size = 16;
+    constexpr static size_t _buffer2_size = _this_size - 2 - _offsets_size - _buffer1_size;
     constexpr static size_t _internal_space = _buffer1_size + _buffer2_size + _offsets_size;
 
     // 256 bits.

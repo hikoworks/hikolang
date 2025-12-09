@@ -32,7 +32,7 @@ namespace hk {
 
     if (it[num_prefix_dots] == token::identifier) {
         if (auto id = it->identifier_value()) {
-            r += *id;
+            r.append_component(*id);
             it += num_prefix_dots + 1;
         } else {
             ctx.add((it + num_prefix_dots)->begin(), (it + num_prefix_dots)->end(), hkc_error::insecure_identifier, "identifier `{}`: {}", it->string_view(), id.error());
@@ -47,7 +47,7 @@ namespace hk {
 
         if (*it == token::identifier) {
             if (auto id = it->identifier_value()) {
-                r += *id;
+                r.append_component(*id);
                 ++it;
             } else {
                 ctx.add(it->begin(), it->end(), hkc_error::insecure_identifier, "identifier `{}`: {}", it->string_view(), id.error());
