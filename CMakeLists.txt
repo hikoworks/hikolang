@@ -121,8 +121,6 @@ add_library(hk_objects OBJECT
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/lazy_vector.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/log.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/log.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/module.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/module.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/path.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/path.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/read_file.cpp"
