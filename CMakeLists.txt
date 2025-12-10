@@ -185,6 +185,7 @@ if(BUILD_TESTING)
         "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer/tokenizer_semicolon_tests.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/tokenizer/tokenizer_tests.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/git_tests.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/fqname_tests.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/read_file_tests.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/strings_tests.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/unicode_tests.cpp"

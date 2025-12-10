@@ -189,7 +189,7 @@ public:
 
     constexpr fqname& add_component(std::string_view component)
     {
-        assert(component.find('.') != component.npos);
+        assert(component.find('.') == component.npos);
 
         if (component.empty()) {
             _str += '.';
