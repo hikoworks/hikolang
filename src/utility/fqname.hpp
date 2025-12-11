@@ -26,9 +26,9 @@ public:
 
         class pointer {
         public:
-            pointer(std::string_view other) noexcept : _value(other) {}
+            constexpr pointer(std::string_view other) noexcept : _value(other) {}
 
-            [[nodiscard]] std::string_view const* operator->() const noexcept
+            [[nodiscard]] constexpr std::string_view const* operator->() const noexcept
             {
                 return std::addressof(_value);
             }
@@ -113,13 +113,18 @@ public:
     constexpr fqname& operator=(fqname const&) = default;
     constexpr fqname& operator=(fqname&&) = default;
 
-    constexpr fqname(std::string_view other) : _str(other) {}
-    constexpr fqname(std::string other) : _str(std::move(other)) {}
-    constexpr fqname(char const *other) : _str(other) {}
+    constexpr explicit fqname(std::string_view other) : _str(other) {}
+    constexpr explicit fqname(std::string other) : _str(std::move(other)) {}
+    constexpr explicit fqname(char const *other) : _str(other) {}
 
     [[nodiscard]] constexpr friend bool operator==(fqname const& lhs, fqname const& rhs) noexcept
     {
         return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+    }
+
+    [[nodiscard]] constexpr friend bool operator==(fqname const& lhs, std::string_view rhs) noexcept
+    {
+        return lhs == fqname{rhs};
     }
 
     [[nodiscard]] constexpr friend std::strong_ordering operator<=>(fqname const& lhs, fqname const& rhs) noexcept
@@ -151,9 +156,35 @@ public:
         return not is_absolute();
     }
 
+    [[nodiscard]] constexpr std::string_view first_skip_prefix() const noexcept
+    {
+        auto const i = prefix();
+        auto const j = _str.find('.', i);
+        if (j == _str.npos) {
+            return std::string_view{_str}.substr(i);
+        } else {
+            return std::string_view{_str}.substr(i, j - i);
+        }
+    }
+
+    [[nodiscard]] constexpr std::string_view last() const noexcept
+    {
+        auto const i = _str.rfind('.');
+        if (i == _str.npos) {
+            return _str;
+        } else {
+            return std::string_view{_str}.substr(i + 1);
+        }
+    }
+
     [[nodiscard]] constexpr const_iterator begin() const noexcept
     {
         return const_iterator{_str.c_str()};
+    }
+
+    [[nodiscard]] constexpr const_iterator begin_skip_prefix() const noexcept
+    {
+        return const_iterator{_str.c_str() + prefix()};
     }
 
     [[nodiscard]] constexpr const_iterator end() const noexcept
@@ -168,23 +199,36 @@ public:
      *  - if absolute, the result is: .
      *  - if there are only dots, add one more dot.
      */
-    constexpr void pop_component()
+    constexpr fqname& pop_component()
     {
         using namespace std::literals;
 
         if (_str.empty()) {
+            // Empty path is already relative, now go back by one.
             _str = ".."s;
-        } else if (auto const p = prefix(); p == _str.size()) {
-            if (p != 1) {
-                _str += '.';
-            }
+
+        } else if (_str == "."s) {
+            // The root, remains the root.
+
+        } else if (prefix() == _str.size()) {
+            // If there are just leading dots, add one more.
+            _str += '.';
+
+        } else if (auto const i = _str.rfind('.'); i == _str.npos) {
+            // _str was a single component relative path, clear it completely.
+            _str.clear();
+
         } else {
-            if (auto const i = _str.rfind('.'); i == _str.npos) {
-                _str.clear();
-            } else {
+            // Remove only the component first.
+            _str.erase(i + 1);
+
+            if (prefix() != _str.size()) {
+                // If there are more components remove the trailing dot.
                 _str.erase(i);
             }
         }
+
+        return *this;
     }
 
     constexpr fqname& add_component(std::string_view component)
@@ -192,35 +236,50 @@ public:
         assert(component.find('.') == component.npos);
 
         if (component.empty()) {
-            _str += '.';
+            pop_component();
 
         } else {
-            if (not _str.empty()) {
+            if (prefix() != _str.size()) {
+                // If there was a component before, first add a trailing dot.
                 _str += '.';
             }
             _str += component;
         }
+
         return *this;
     }
 
+    /** Concatonate paths.
+     * 
+     *  - If rhs is an absolute path then it is returned.
+     *  - Otherwise the paths are appended, maintaining the correct number of
+     *    dots.
+     */
     constexpr fqname& operator/=(fqname const& rhs)
     {
-        if (rhs.is_absolute()) {
-            *this = rhs;
+        if (rhs.prefix() == 1) {
+            _str = rhs._str;
             return *this;
-        }
 
-        for (auto component : rhs) {
-            if (component.empty()) {
-                pop_component();
+        } else if (rhs.prefix() == 0) {
+            if (prefix() != _str.size()) {
+                _str.reserve(_str.size() + 1 + rhs._str.size());
+                _str += '.';
+            }
+            _str += rhs._str;
+
+        } else {
+            if (prefix() == _str.size()) {
+                _str += std::string_view{rhs._str}.substr(1);   
             } else {
-                add_component(component);
+                _str += rhs._str;
             }
         }
+
         return *this;
     }
 
-    constexpr fqname operator/(fqname const& rhs)
+    constexpr fqname operator/(fqname const& rhs) const
     {
         auto tmp = *this;
         tmp /= rhs;
@@ -232,34 +291,58 @@ public:
         return *this /= fqname{rhs};
     }
 
-    constexpr fqname operator/(std::string_view rhs)
+    constexpr fqname operator/(std::string_view rhs) const
     {
         return *this / fqname{rhs};
     }
 
     /** Generate a lexically normal path.
      * 
+     * Remove all double dot `..` from the path by removing the preceding name.
+     * Unless at the prefix of the path where it will accumulate as an extra
+     * dot.
+     * 
+     * Absolute paths will always remain absolute.
+     * 
+     * @return A path without any double dot `..`.
      */
     constexpr fqname lexically_normal() const
     {
         auto r = fqname{};
         r._str.reserve(_str.size());
 
-        auto is_prefix = true;
-        for (auto component: *this) {
-            if (component.empty()) {
-                if (is_prefix) {
-                    r.add_component(component);
-                } else {
-                    r.pop_component();
-                }
-            } else {
-                r.add_component(component);
-                is_prefix = false;
-            }
+        auto const pre = prefix();
+
+        auto it = begin();
+        for (auto i = 0uz; i != pre; ++i, ++it) {
+            r._str += '.';
+        }
+
+        for (; it != end(); ++it) {
+            r.add_component(*it);
         }
 
         return r;
+    }
+
+    /** Make a path relative to the base.
+     * 
+     *  1. If the this path is relative, append it to @a base.
+     *  2. lexically_normal() the resulting path.
+     */
+    constexpr fqname lexically_absolute(fqname const& base)
+    {
+        return (base / *this).lexically_normal();
+    }
+
+    /** Make a path relative to the base.
+     * 
+     *  1. If the this path is relative, append it to @a base.
+     *  2. lexically_normal() the resulting path.
+     */
+    constexpr fqname lexically_absolute(std::string_view base)
+    {
+        return lexically_absolute(fqname{base});
     }
 
 private:
