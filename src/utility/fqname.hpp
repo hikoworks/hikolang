@@ -189,13 +189,15 @@ public:
 
     constexpr fqname& add_component(std::string_view component)
     {
+        using namespace std::literals;
+
         assert(component.find('.') == component.npos);
 
         if (component.empty()) {
             _str += '.';
 
         } else {
-            if (not _str.empty()) {
+            if (not _str.empty() and _str != "."s) {
                 _str += '.';
             }
             _str += component;
