@@ -54,6 +54,21 @@ public:
         return _child_repositories;
     }
 
+    /** Get all the anchors declared in this repository.
+     * 
+     * @note Only sources that pass conditional compilation are returned.
+     * @return Pointers to the source files.
+     */
+    [[nodiscard]] generator<source*> get_anchors() const;
+
+    /** Get all the modules belonging to the anchor declared in this repository.
+     * 
+     * @note Only sources that pass conditional compilation are returned.
+     * @param anchor The anchor that modules belong to.
+     * @return Pointers to the source files.
+     */
+    [[nodiscard]] generator<source*> get_modules_by_anchor(fqname anchor) const;
+
 private:
     /** sources.
      * 

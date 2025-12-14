@@ -212,6 +212,16 @@ void repository::recursive_scan_prologues(repository_flags flags)
     }
 }
 
+[[nodiscard]] generator<source*> repository::get_anchors() const
+{
+    co_return;
+}
+
+[[nodiscard]] generator<source*> repository::get_modules_by_anchor(fqname anchor) const
+{
+    co_return;
+}
+
 [[nodiscard]] repository& repository::get_child_repository(repository_url const& remote, std::filesystem::path child_path)
 {
     auto it =

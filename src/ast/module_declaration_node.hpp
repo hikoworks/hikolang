@@ -33,13 +33,6 @@ public:
      */
     expression_node_ptr condition = nullptr;
 
-    /** Indicates if the module is a fallback module.
-     *
-     * A fallback module is a module that is compiled when no other module of
-     * the same name will be compiled.
-     */
-    bool is_fallback = false;
-
     module_declaration_node(char const* first) : node(first) {}
 
     /** The result of the compilation condition.

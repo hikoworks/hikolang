@@ -4,7 +4,7 @@
 
 [_documentation_](documentation.md)__?__
 `library` [_string_literal_](string_literal.md) [_version_literal_](version_literal.md)
-    [_guard_expression_](guard_expression.md)__?__ `;`
+    __(__ `if` [_guard_expression_](guard_expression.md) __)?__ `;`
 
 
 ## Semantics
@@ -26,10 +26,5 @@ The compiler will automatically create:
 
 The optional [_guard_expression_](guard_expression.md) is evaluated during the
 prologue-scan phase of compilation, this checks if the file should be compiled.
-If no [_guard_expression_](guard_expression.md) is specified then the program
-is compiled during the `build`-step.
-
-Multiple files may have the same name, only if the conditional
-compilation is mutually exclusive. If a file has a `fallback` condition, it will
-be used if no other file with the same name is compiled.
-
+If no [_guard_expression_](guard_expression.md) is specified then the file
+is compiled when all other [_guard_expression_](guard_expression.md) fail.

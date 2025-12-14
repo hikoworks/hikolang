@@ -28,11 +28,7 @@ namespace hk {
     }
 
     // Optional conditional compilation.
-    if (*it == "fallback") {
-        r->is_fallback = true;
-        ++it;
-
-    } else if (*it == "if") {
+    if (*it == "if") {
         ++it;
         return ctx.add(first, it->end(), hkc_error::unimplemented);
     }

@@ -5,7 +5,7 @@
 [_documentation_](documentation.md)__?__
 `module` [_fqname_](fqname.md)
     [_version_literal_](version_literal.md)__?__
-    __(__ `if` [_guard_expression_](guard_expression.md) __|__ `fallback` __)?__
+    __(__ `if` [_guard_expression_](guard_expression.md) __)?__
     `;`
 
 
@@ -37,14 +37,6 @@ version number is treated as-if it is higher than any other.
 
 The optional [_guard_expression_](guard_expression.md) is evaluated during the
 prologue-scan phase of compilation, this checks if the file should be compiled.
-Multiple files may have the same module-name, only if the conditional
-compilation is mutually exclusive.
-
-There are three different guards:
-
- - No guard expression: Compile the file.
- - `if` [_guard_expression_](guard_expression.md): Compile the file if the expression
-   yields true.
- - `fallback`: Compile the file if none of the other files with the same
-   module-name has been compiled.
+If no [_guard_expression_](guard_expression.md) is specified then the file
+is compiled when all other [_guard_expression_](guard_expression.md) fail.
 
