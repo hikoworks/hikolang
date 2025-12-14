@@ -3,8 +3,8 @@
 ## Syntax
 
 [_documentation_](documentation.md)__?__
-`library` [_string_literal_](string_literal.md) [_version_literal_](version_literal.md)
-    __(__ `if` [_guard_expression_](guard_expression.md) __)?__ `;`
+`library` [_string-literal_](string_literal.md) [_version-literal_](version_literal.md)
+    [_build-guard_](build_guard.md)__?__ `;`
 
 
 ## Semantics

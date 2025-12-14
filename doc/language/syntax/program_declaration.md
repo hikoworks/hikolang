@@ -5,7 +5,7 @@
 [_documentation_](documentation.md)__?__
 `program` [_string_literal_](string_literal.md)
     [_version_literal_](version_literal.md)__?__
-    __(__ `if` [_guard_expression_](guard_expression.md) __)?__ `;`
+    [_build-guard_](build_guard.md)__?__ `;`
 
 
 ## Semantics

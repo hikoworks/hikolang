@@ -21,24 +21,21 @@ namespace hk {
     auto const first = it->begin();
     auto r = std::unique_ptr<ast::top_node>{};
     if (auto module_node = parse_module_declaration(it, ctx)) {
-        auto r_ = std::make_unique<ast::module_node>(first);
-        r_->declaration = std::move(module_node).value();
+        auto r_ = std::make_unique<ast::module_node>(first, std::move(module_node).value());
         r = std::move(r_);
 
     } else if (to_bool(module_node.error())) {
         return std::unexpected{module_node.error()};
 
     } else if (auto program_node = parse_program_declaration(it, ctx)) {
-        auto r_ = std::make_unique<ast::program_node>(first);
-        r_->declaration = std::move(program_node).value();
+        auto r_ = std::make_unique<ast::program_node>(first, std::move(program_node).value());
         r = std::move(r_);
 
     } else if (to_bool(program_node.error())) {
         return std::unexpected{program_node.error()};
 
     } else if (auto library_node = parse_library_declaration(it, ctx)) {
-        auto r_ = std::make_unique<ast::library_node>(first);
-        r_->declaration = std::move(library_node).value();
+        auto r_ = std::make_unique<ast::library_node>(first, std::move(library_node).value());
         r = std::move(r_);
 
     } else if (to_bool(library_node.error())) {

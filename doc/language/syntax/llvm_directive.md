@@ -2,7 +2,7 @@
 
 ## Syntax
 
-`llvm`　`{` [_bracketed_text_](bracketed_text.md) `}`
+`llvm`　`{` [_bracketed-text_](bracketed_text.md) `}`
 
 ## Semantics
 The `llvm` block is used to include LLVM assembly code within the source code.
@@ -11,7 +11,7 @@ It allows developers to write low-level LLVM instructions directly in their code
 This is used to implement the standard library and allow other developers to write
 low-level code.
 
-The [_bracketed_text_](bracketed_text.md) contains the LLVM assembly code, which
+The [_bracketed-text_](bracketed_text.md) contains the LLVM assembly code, which
 is passed completely as-is to the LLVM compiler. The code is limitedly parsed to
 extract special variables that are used to access variables in the surrounding
 code.

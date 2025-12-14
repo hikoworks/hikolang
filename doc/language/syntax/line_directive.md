@@ -2,7 +2,7 @@
 
 ## Syntax
 
-`#line` [_decimal_literal_](decimal_literal.md) __(__ [_string_literal_](string_literal.md) __)__
+`#line` [_decimal-literal_](decimal_literal.md) __(__ [_string-literal_](string_literal.md) __)__
 
 ## Semantics
 The `#line` directive is used to set the path, file name, and line number for

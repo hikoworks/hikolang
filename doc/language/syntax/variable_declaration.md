@@ -2,7 +2,7 @@
 
 ## Syntax
 
-[_storage_class_](storage_class.md)__?__ [_binding_mode_](binding_mode.md) [_name_](name.md) _type_declaration_**?**
+[_storage-class_](storage_class.md)__?__ [_binding-mode_](binding_mode.md) [_name_](name.md) _type-declaration_**?**
 [_initializer_](initializer.md)__?__
 
 ## Semantics

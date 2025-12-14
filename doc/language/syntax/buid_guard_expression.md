@@ -1,24 +1,24 @@
-# guard-expression
+# build-guard-expression
 
 ## Syntax
 
-`(` _guard_expression_ `)` __|__\
-`not` _guard_expression_ __|__\
-_guard_expression_ `and` _guard_expression_ __|__\
-_guard_expression_ `or` _guard_expression_ __|__\
-_guard_expression_ `in` _guard_expression_ __|__\
-_guard_expression_ `not` `in` _guard_expression_ __|__\
-_guard_expression_ `==` _guard_expression_ __|__\
-_guard_expression_ `!=` _guard_expression_ __|__\
-_guard_expression_ `<` _guard_expression_ __|__\
-_guard_expression_ `>` _guard_expression_ __|__\
-_guard_expression_ `<=` _guard_expression_ __|__\
-_guard_expression_ `>=` _guard_expression_ __|__\
-[`_fqname_`](fqname.md) __|__\
-[`_string_literal_`](string_literal.md) __|__\
-[`_version_literal_`](version_literal.md) __|__\
-[`_integer_literal_`](integer_literal.md) __|__\
-[`_boolean_literal_`](boolean_literal.md)
+`(` _build-guard-expression_ `)` __|__\
+`not` _build-guard-expression_ __|__\
+_build-guard-expression_ `and` _build-guard-expression_ __|__\
+_build-guard-expression_ `or` _build-guard-expression_ __|__\
+_build-guard-expression_ `in` _build-guard-expression_ __|__\
+_build-guard-expression_ `not` `in` _build-guard-expression_ __|__\
+_build-guard-expression_ `==` _build-guard-expression_ __|__\
+_build-guard-expression_ `!=` _build-guard-expression_ __|__\
+_build-guard-expression_ `<` _build-guard-expression_ __|__\
+_build-guard-expression_ `>` _build-guard-expression_ __|__\
+_build-guard-expression_ `<=` _build-guard-expression_ __|__\
+_build-guard-expression_ `>=` _build-guard-expression_ __|__\
+[_fqname_](fqname.md) __|__\
+[_string-literal_](string_literal.md) __|__\
+[_version-literal_](version_literal.md) __|__\
+[_integer-literal_](integer_literal.md) __|__\
+[_boolean-literal_](boolean_literal.md)
 
 
 ### Operators

@@ -3,11 +3,11 @@
 ## Syntax
 
 `import` `git` _git-url_ *git-rev*__?__
-    __(__ `if` [_guard_expression_](guard_expression.md) __)?__ `;`
+    [_build-quard_](build_guard.md)__?__ `;`
 
-git-url := [_string_literal_](string_literal.md)
+git-url := [_string-literal_](string_literal.md)
 
-git-rev := [_string_literal_](string_literal.md)
+git-rev := [_string-literal_](string_literal.md)
 
 
 ## Semantics

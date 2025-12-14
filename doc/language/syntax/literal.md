@@ -2,7 +2,7 @@
 
 ## Syntax
 
-_base_literal_ [_unit_expression_](unit_expression.md)__?__ [_tag_](tag.md)__*__
+_base_literal_ [_unit-expression_](unit_expression.md)__?__ [_tag_](tag.md)__*__
 
 ### base_literal
 [_integer-literal_](integer_literal.md)  __|__\

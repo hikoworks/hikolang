@@ -8,14 +8,20 @@ namespace hk::ast {
 
 class library_node : public top_node {
 public:
-    library_declaration_node_ptr declaration;
+    library_node(char const* first, std::unique_ptr<library_declaration_node> declaration) : top_node(first), _declaration(std::move(declaration)) {}
 
-    library_node(char const* first) : top_node(first) {}
+    [[nodiscard]] top_declaration_node &declaration() const override
+    {
+        return *_declaration;
+    }
 
     [[nodiscard]] generator<node *> children() const override
     {
-        co_yield declaration.get();
+        co_yield _declaration.get();
     }
+
+private:
+    std::unique_ptr<library_declaration_node> _declaration;
 
 };
 

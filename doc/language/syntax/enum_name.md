@@ -2,7 +2,7 @@
 
 ## Syntax
 
-[_identifier_](identifier.md) __(__ `(` [_type_list_](type_list.md) `)` __)?__
+[_identifier_](identifier.md) __(__ `(` [_type-list_](type_list.md) `)` __)?__
 
 ## Semantics
 

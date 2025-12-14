@@ -2,11 +2,11 @@
 
 ## Syntax
 
-`:` [_type_expression_](type_expression.md) __|__\
-`:=` [_type_expression_](type_expression.md) __|__\
-`:^` [_type_expression_](type_expression.md) __|__\
-`:!` [_type_expression_](type_expression.md)
+`:` [_type-expression_](type_expression.md) __|__\
+`:=` [_type-expression_](type_expression.md) __|__\
+`:^` [_type-expression_](type_expression.md) __|__\
+`:!` [_type-expression_](type_expression.md)
 
 ## Semantics
-See [_coerce_operators_](coerce_operators.md) for more information on the
+See [_coerce-operators_](coerce_operators.md) for more information on the
 meaning of `:`, `:=`, `:^` and `:!`.

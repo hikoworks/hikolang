@@ -8,14 +8,20 @@ namespace hk::ast {
 
 class program_node : public top_node {
 public:
-    program_declaration_node_ptr declaration;
+    program_node(char const* first, std::unique_ptr<program_declaration_node> declaration) : top_node(first), _declaration(std::move(declaration)) {}
 
-    program_node(char const* first) : top_node(first) {}
+    [[nodiscard]] top_declaration_node &declaration() const override
+    {
+        return *_declaration;
+    }
 
     [[nodiscard]] generator<node *> children() const override
     {
-        co_yield declaration.get();
+        co_yield _declaration.get();
     }
+
+private:
+    std::unique_ptr<program_declaration_node> _declaration;
 };
 
 using program_node_ptr = std::unique_ptr<program_node>;

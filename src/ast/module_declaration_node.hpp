@@ -1,8 +1,7 @@
 
 #pragma once
 
-#include "node.hpp"
-#include "expression_node.hpp"
+#include "top_declaration_node.hpp"
 #include "utility/fqname.hpp"
 #include "utility/semantic_version.hpp"
 #include "utility/enum_variant.hpp"
@@ -11,7 +10,7 @@
 
 namespace hk::ast {
 
-class module_declaration_node : public node {
+class module_declaration_node : public top_declaration_node {
 public:
     /** The name of the module.
      *
@@ -27,13 +26,7 @@ public:
      */
     semantic_version version = {};
 
-    /** The compilation condition.
-     *
-     * Must be true for the module to be compiled.
-     */
-    expression_node_ptr condition = nullptr;
-
-    module_declaration_node(char const* first) : node(first) {}
+    module_declaration_node(char const* first) : top_declaration_node(first) {}
 
     /** The result of the compilation condition.
      */
@@ -42,12 +35,6 @@ public:
         return false;
     };
 
-    [[nodiscard]] generator<node *> children() const override
-    {
-        if (condition) {
-            co_yield condition.get();
-        }
-    }
 
 };
 

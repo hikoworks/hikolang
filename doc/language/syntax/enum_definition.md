@@ -2,10 +2,10 @@
 
 ## Syntax
 
-`enum` [_relative_fqname_](relative_fqname.md)
-    __(__ `[` [_argument_list_](argument_list.md) `]` __)?__
-    __(__ `(` [_type_list_](type_list.md) `)` __)?__
-    `{` [_enum_name_list_](enum_name_list.md) `}` `;`
+`enum` [_relative-fqname_](relative_fqname.md)
+    __(__ `[` [_argument-list_](argument_list.md) `]` __)?__
+    __(__ `(` [_type-list_](type_list.md) `)` __)?__
+    `{` [_enum-name-list_](enum_name_list.md) `}` `;`
 
 
 

@@ -3,9 +3,9 @@
 ## Syntax
 
 `import` `zip` _zip-url_
-    __(__ `if` [_guard_expression_](guard_expression.md) __)?__ `;`
+    [_build-quard_](build_guard.md)__?__ `;`
 
-zip-url := [_string_literal_](string_literal.md)
+zip-url := [_string-literal_](string_literal.md)
 
 ## Semantics
 

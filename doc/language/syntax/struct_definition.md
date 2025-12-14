@@ -24,12 +24,12 @@ b += struct {
 ### A struct-definition expression
 An expression which returns a struct type.
 
-`struct` __(__ `[` [_argument_list_](argument_list.md) `]` __)?__ __(__ `(` [_inheritance_list_](inheritance_list.md) `)` __)?__ `{` [_statement-list_](statement_list.md) `}` `;`
+`struct` __(__ `[` [_argument-list_](argument_list.md) `]` __)?__ __(__ `(` [_inheritance-list_](inheritance_list.md) `)` __)?__ `{` [_statement-list_](statement_list.md) `}` `;`
 
 ### A struct-definition statement
 A statement which is syntactic sugar for a struct-definition and variable declaration expression.
 
-`struct` [_identifier_](identifier.md)  __(__ `[` [_argument_list_](argument_list.md) `]` __)?__ __(__ `(` [_inheritance_list_](inheritance_list.md) `)` __)?__ `{` [_statement-list_](statement_list.md) `}` `;`
+`struct` [_identifier_](identifier.md)  __(__ `[` [_argument-list_](argument_list.md) `]` __)?__ __(__ `(` [_inheritance-list_](inheritance_list.md) `)` __)?__ `{` [_statement-list_](statement_list.md) `}` `;`
 
 
 ## Semantics

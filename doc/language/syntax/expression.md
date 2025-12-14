@@ -16,7 +16,7 @@
 [_try-control-expression_](try_control_expression.md) __|__
 [_switch-control-expression_](switch_control_expression.md) __|__
 [_lambda_](lambda.md) __|__
-[_struct_definition_](struct_definition.md) __|__
+[_struct-definition_](struct_definition.md) __|__
 
 ## Semantics
 An _expression_ is a sequence of symbols that can be evaluated to produce a

@@ -11,6 +11,6 @@ A name that is a path traversing modules or namespaces. It is mostly used
 for declaring types in another namespace than the current, and for declaring
 modules.
 
-See [_relative_fqname_](relative_fqname.md) for names that are relative to
+See [_relative-fqname_](relative_fqname.md) for names that are relative to
 the current name or module.
 

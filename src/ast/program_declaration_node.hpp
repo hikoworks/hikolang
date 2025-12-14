@@ -1,14 +1,14 @@
 
 #pragma once
 
-#include "node.hpp"
-#include "expression_node.hpp"
+#include "top_declaration_node.hpp"
+#include "build_guard_expression_node.hpp"
 #include "utility/semantic_version.hpp"
 #include <string>
 
 namespace hk::ast {
 
-class program_declaration_node : public node {
+class program_declaration_node : public top_declaration_node {
 public:
     /** The stem of the filename of the program.
      *
@@ -23,22 +23,9 @@ public:
      */
     semantic_version version = {};
 
-    /** The compilation condition.
-     *
-     * Must be true for the module to be compiled.
-     */
-    expression_node_ptr condition = nullptr;
 
-    bool is_fallback = false;
+    program_declaration_node(char const* first) : top_declaration_node(first) {}
 
-    program_declaration_node(char const* first) : node(first) {}
-
-    [[nodiscard]] generator<node *> children() const override
-    {
-        if (condition) {
-            co_yield condition.get();
-        }
-    }
 
 };
 

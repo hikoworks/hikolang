@@ -2,7 +2,7 @@
 
 ## Syntax
 
-[_type_expression_](type_expression.md) __(__ `,` [_type_expression_](type_expression.md) __)*__
+[_type-expression_](type_expression.md) __(__ `,` [_type_expression_](type_expression.md) __)*__
 
 ## Semantics
 

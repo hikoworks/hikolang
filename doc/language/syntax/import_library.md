@@ -3,10 +3,10 @@
 ## Syntax
 
 `import` `library` _lib-name_
-    [_version_literal_](version_literal.md)__?__
-    __(__ `if` [_guard_expression_](guard_expression.md) __)?__ `;`
+    [_version-literal_](version_literal.md)__?__
+    [_build-quard_](build_guard.md)__?__ `;`
 
-lib-name := [_string_literal_](string_literal.md)
+lib-name := [_string-literal_](string_literal.md)
 
 
 ## Semantics

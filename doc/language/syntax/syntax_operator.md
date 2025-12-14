@@ -8,7 +8,7 @@
 
 associativity := __(__ `prefix` __|__ `suffix` __|__ `ltr` __|__ `rtl` __)__
 
-precedence := [_integer_literal_](integer_literal.md)
+precedence := [_integer-literal_](integer_literal.md)
 
 function_name := [_identifier_](identifier.md)
 
