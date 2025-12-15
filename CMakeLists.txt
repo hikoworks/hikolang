@@ -40,7 +40,7 @@ find_package(libgit2 CONFIG REQUIRED)
 find_package(OpenSSL REQUIRED)
 
 add_library(hk_objects OBJECT
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/ast/expression_node.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/ast/build_guard_expression_node.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/ast/import_library_declaration_node.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/ast/import_module_declaration_node.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/ast/import_repository_declaration_node.hpp"
@@ -61,6 +61,14 @@ add_library(hk_objects OBJECT
     "${CMAKE_CURRENT_SOURCE_DIR}/src/error/hkc_error.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/consume.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/consume.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/parse_build_guard_binary_operator.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/parse_build_guard_binary_operator.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/parse_build_guard_expression.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/parse_build_guard_expression.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/parse_build_guard_primary.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/parse_build_guard_primary.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/parse_build_guard.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/parse_build_guard.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/parse_context.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/parse_fqname.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/parser/parse_fqname.hpp"
