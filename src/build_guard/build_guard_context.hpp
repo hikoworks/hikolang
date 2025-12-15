@@ -5,6 +5,7 @@
 #include "build_guard_value.hpp"
 #include "utility/semantic_version.hpp"
 #include "utility/fqname.hpp"
+#include <bit>
 
 namespace hk {
 
@@ -36,12 +37,16 @@ enum class platform_type {
 enum class cpu_arch {
     x86,
     arm
-}
-
-enum class {
-    target,
-    host
 };
+
+struct register_info {
+    uint8_t pointer_bits;
+    uint8_t register_bits;
+    uint8_t limb_bits;
+    std::endian endian;
+};
+
+
 
 class build_guard_context {
 public:
@@ -49,10 +54,22 @@ public:
     build_guard_context(build_guard_context&&) = delete;
     build_guard_context& operator=(build_guard_context const&) = delete;
     build_guard_context& operator=(build_guard_context&&) = delete;
-    build_guard_context()
+    build_guard_context() = default;
 
-    [[nodiscard]] build_guard_value get(fqname const &name);
+    /** Get a value by name and target.
+     * 
+     * @param name The name of the value.
+     * @param target_index Index of the target.
+     * @param host For the local host that emulates the target.
+     * @return The value.
+     */
+    [[nodiscard]] build_guard_value get(fqname const &name, size_t target_index, bool host);
 
+    /** Set a custom value from the environment / command-line.
+     * 
+     * @param name The name of the value
+     * @param value The value
+     */
     void set_custom(fqname const& name, build_guard_value const& value);
 
 private:
