@@ -324,6 +324,12 @@ public:
      */
     [[nodiscard]] std::expected<std::string, utf8_security_error> operator_value() const;
 
+    /** Get integer value.
+     * 
+     * @return The integer representation of the integer value.
+     */
+    [[nodiscard]] long long integer_value() const;
+
     /** Convert a version token to its semantic version value.
      * 
      * @note It is UNDEFINED BEHAVIOR to call this function if the token is not a version literal.

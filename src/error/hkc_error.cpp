@@ -59,6 +59,12 @@ std::string hkc_error_category::message(int code) const
         return "Missing a name for a module."s;
     case hkc_error::missing_top_declaration:
         return "Missing the top-declaration in the prologue."s;
+    case hkc_error::missing_expression:
+        return "Missing expression."s;
+    case hkc_error::missing_rhs_of_binary_operator:
+        return "Missing right-hand-side operator of this binary operator."s;
+    case hkc_error::missing_closing_parenthesis:
+        return "Missing closing paranthesis ')'."s;
     case hkc_error::invalid_fqname:
         return "Invalid syntax of a fully qualified name."s;
     case hkc_error::invalid_prologue_statement:

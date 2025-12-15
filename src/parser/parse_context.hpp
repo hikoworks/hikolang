@@ -30,6 +30,12 @@ public:
         return std::unexpected{it->code()};
     }
 
+    std::unexpected<hkc_error> add(char const* first, hkc_error error, std::string message = std::string{})
+    {
+        auto const [it, _] = errors().add(lines(), first, nullptr, error, std::move(message));
+        return std::unexpected{it->code()};
+    }
+
     /** Add an error to the list.
      *
      *  @tparam ErrorCode The error being raised, including the format string.
@@ -39,7 +45,7 @@ public:
      *  @return A unexpected error containing the error code.
      */
     template<typename... Args>
-    std::unexpected<hkc_error> add(char const* first, char const* last, hkc_error error, std::format_string<Args...> fmt = {}, Args&&... args)
+    std::unexpected<hkc_error> add(char const* first, char const* last, hkc_error error, std::format_string<Args...> fmt, Args&&... args)
     {
         return add(first, last, error, std::format(std::move(fmt), std::forward<Args>(args)...));
     }
@@ -52,7 +58,7 @@ public:
      *  @return A unexpected error containing the error code.
      */
     template<typename... Args>
-    std::unexpected<hkc_error> add(char const* first, hkc_error error, std::format_string<Args...> fmt = {}, Args&&... args)
+    std::unexpected<hkc_error> add(char const* first, hkc_error error, std::format_string<Args...> fmt, Args&&... args)
     {
         return add(first, nullptr, error, std::format(std::move(fmt), std::forward<Args>(args)...));
     }
@@ -64,7 +70,7 @@ public:
      *  @return A unexpected error containing the error code.
      */
     template<typename... Args>
-    std::unexpected<hkc_error> add(hkc_error error, std::format_string<Args...> fmt = {}, Args&&... args)
+    std::unexpected<hkc_error> add(hkc_error error, std::format_string<Args...> fmt, Args&&... args)
     {
         return add(nullptr, nullptr, error, std::format(std::move(fmt), std::forward<Args>(args)...));
     }

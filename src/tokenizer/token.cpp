@@ -24,6 +24,16 @@ namespace hk {
     return identifier_value();
 }
 
+[[nodiscard]] long long token::integer_value() const
+{
+    assert(_kind == integer_literal);
+
+    long long x = 0;
+    auto const fcr = std::from_chars(begin(), end(), x, 10);
+    assert(fcr.ptr == end());
+
+    return x;
+}
 
 [[nodiscard]] std::pair<size_t, std::string> token::line_value() const
 {

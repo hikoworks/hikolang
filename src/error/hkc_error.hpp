@@ -47,6 +47,9 @@ enum class hkc_error : int {
     missing_as_name = 21008,
     missing_module_name = 21009,
     missing_top_declaration = 21010,
+    missing_expression = 21011,
+    missing_rhs_of_binary_operator = 21012,
+    missing_closing_parenthesis = 21013,
 
     // Error: syntax error 22xxx
     invalid_fqname = 22001,

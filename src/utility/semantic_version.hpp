@@ -74,6 +74,11 @@ struct semantic_version {
         return patch == std::numeric_limits<std::size_t>::max();
     }
 
+    [[nodiscard]] constexpr friend bool to_bool(semantic_version const& rhs)
+    {
+        return rhs.major == 0 and rhs.minor_is_wildcard() and rhs.patch_is_wildcard();
+    }
+
     /** Check if this semantic version is equal to another semantic version.
      * 
      * Two semantic versions are equal if their major, minor and patch versions are equal,

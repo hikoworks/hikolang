@@ -16,9 +16,8 @@ namespace hk {
     ++it;
 
     if (auto node = parse_build_guard_primary(it, ctx)) {
-
         if (auto top_node = parse_build_guard_expression(it, ctx, std::move(node).value(), 0)) {
-
+            return std::move(top_node).value();
         } else if (to_bool(node.error())) {
             return std::unexpected(node.error());
         } else {

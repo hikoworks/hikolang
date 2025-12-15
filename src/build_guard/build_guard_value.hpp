@@ -1,82 +1,168 @@
 
 #pragma once
 
+#include "utility/semantic_version.hpp"
 #include <string>
 #include <variant>
-#include "utility/semantic_version.hpp"
+#include <vector>
+#include <algorithm>
+#include <ranges>
+#include <stdexcept>
 
 namespace hk {
 
 class build_guard_value {
 public:
+    enum class bin_op {
+        _and,
+        _or,
+        in,
+        not_in,
+        eq,
+        ne,
+        lt,
+        gt,
+        le,
+        ge
+    };
+
     constexpr build_guard_value(build_guard_value const&) = default;
     constexpr build_guard_value(build_guard_value&&) = default;
     constexpr build_guard_value& operator=(build_guard_value const&) = default;
     constexpr build_guard_value& operator=(build_guard_value&&) = default;
     constexpr build_guard_value() = default;
+    constexpr build_guard_value(bool value) : _value(value) {}
+    constexpr build_guard_value(long long value) : _value(value) {}
+    constexpr build_guard_value(semantic_version value) : _value(value) {}
+    constexpr build_guard_value(std::string value) : _value(std::move(value)) {}
 
-    [[nodiscard]] constexpr bool to_bool() const
+    [[nodiscard]] constexpr friend bool binary_and(build_guard_value const& lhs, build_guard_value const& rhs)
     {
-        if (std::holds_alternative<std::monostate>(_value)) {
+        return to_bool(lhs) and to_bool(rhs);
+    }
+
+    [[nodiscard]] constexpr friend bool binary_or(build_guard_value const& lhs, build_guard_value const& rhs)
+    {
+        return to_bool(lhs) or to_bool(rhs);
+    }
+
+    [[nodiscard]] constexpr friend bool binary_in(build_guard_value const& lhs, build_guard_value const& rhs)
+    {
+        if (auto value = std::get_if<std::string>(&lhs._value)) {
+            if (auto container = std::get_if<std::vector<std::string>>(&rhs._value)) {
+                return std::ranges::contains(*container, *value);
+            }
+        }
+
+        throw std::invalid_argument("operants for 'in' have invalid type.");
+    }
+
+    [[nodiscard]] constexpr friend bool binary_eq(build_guard_value const& lhs, build_guard_value const& rhs)
+    {
+        if (std::holds_alternative<std::monostate>(lhs._value) and std::holds_alternative<std::monostate>(rhs._value)) {
+            return true;
+        }
+
+        if (auto lhs_ = std::get_if<bool>(&lhs._value)) {
+            if (auto rhs_ = std::get_if<bool>(&rhs._value)) {
+                return lhs_ == rhs_;
+            }
+        }
+
+        if (auto lhs_ = std::get_if<long long>(&lhs._value)) {
+            if (auto rhs_ = std::get_if<long long>(&rhs._value)) {
+                return lhs_ == rhs_;
+            }
+        }
+
+        if (auto lhs_ = std::get_if<semantic_version>(&lhs._value)) {
+            if (auto rhs_ = std::get_if<semantic_version>(&rhs._value)) {
+                return lhs_ == rhs_;
+            }
+        }
+
+        if (auto lhs_ = std::get_if<std::string>(&lhs._value)) {
+            if (auto rhs_ = std::get_if<std::string>(&rhs._value)) {
+                return lhs_ == rhs_;
+            }
+        }
+
+        if (auto lhs_ = std::get_if<std::vector<std::string>>(&lhs._value)) {
+            if (auto rhs_ = std::get_if<std::vector<std::string>>(&rhs._value)) {
+                return lhs_ == rhs_;
+            }
+        }
+
+        throw std::invalid_argument("operants for '==' have invalid type.");
+    }
+
+    [[nodiscard]] constexpr friend std::strong_ordering binary_cmp(build_guard_value const& lhs, build_guard_value const& rhs)
+    {
+        if (auto lhs_ = std::get_if<bool>(&lhs._value)) {
+            if (auto rhs_ = std::get_if<bool>(&rhs._value)) {
+                return lhs_ <=> rhs_;
+            }
+        }
+
+        if (auto lhs_ = std::get_if<long long>(&lhs._value)) {
+            if (auto rhs_ = std::get_if<long long>(&rhs._value)) {
+                return lhs_ <=> rhs_;
+            }
+        }
+
+        if (auto lhs_ = std::get_if<semantic_version>(&lhs._value)) {
+            if (auto rhs_ = std::get_if<semantic_version>(&rhs._value)) {
+                return lhs_ <=> rhs_;
+            }
+        }
+
+        if (auto lhs_ = std::get_if<std::string>(&lhs._value)) {
+            if (auto rhs_ = std::get_if<std::string>(&rhs._value)) {
+                return lhs_ <=> rhs_;
+            }
+        }
+
+        throw std::invalid_argument("operants for '<=>' have invalid type.");
+    }
+
+    [[nodiscard]] constexpr friend build_guard_value binary_op(bin_op op, build_guard_value const& lhs, build_guard_value const& rhs)
+    {
+        switch (op) {
+        case bin_op::_and: return binary_and(lhs, rhs);
+        case bin_op::_or: return binary_or(lhs, rhs);
+        case bin_op::in: return binary_in(lhs, rhs);
+        case bin_op::not_in: return not binary_in(lhs, rhs);
+        case bin_op::eq: return binary_eq(lhs, rhs);
+        case bin_op::ne: return not binary_eq(lhs, rhs);
+        case bin_op::lt: return binary_cmp(lhs, rhs) == std::strong_ordering::less;
+        case bin_op::gt: return binary_cmp(lhs, rhs) == std::strong_ordering::greater;
+        case bin_op::le: return binary_cmp(lhs, rhs) != std::strong_ordering::greater;
+        case bin_op::ge: return binary_cmp(lhs, rhs) != std::strong_ordering::less;
+        }
+        std::unreachable();
+    }
+
+    [[nodiscard]] constexpr friend bool to_bool(build_guard_value const& rhs)
+    {
+        if (std::holds_alternative<std::monostate>(rhs._value)) {
             return false;
-        } else if (auto bool_ptr = std::get_if<bool>(&_value)) {
-            return *bool_ptr;
-        } else if (auto long_long_ptr = std::get_if<long long>(&_value)) {
-            return *long_long_ptr != 0;
-        } else if (auto string_ptr = std::get_if<std::string>(&_value)) {
-            return not string_ptr->empty();
-        } else if (auto semantic_version_ptr = std::get_if<semantic_version>(&value)) {
-            return not semantic_version_ptr->empty();
+        } else if (auto bp = std::get_if<bool>(&rhs._value)) {
+            return *bp;
+        } else if (auto ip = std::get_if<long long>(&rhs._value)) {
+            return *ip != 0;
+        } else if (auto vp = std::get_if<semantic_version>(&rhs._value)) {
+            return to_bool(*vp);
+        } else if (auto sp = std::get_if<std::string>(&rhs._value)) {
+            return not sp->empty();
+        } else if (auto vsp = std::get_if<std::vector<std::string>>(&rhs._value)) {
+            return not vsp->empty();
         } else {
             std::unreachable();
         }
     }
-
-    constexpr std::optional<long long> to_long_long() const
-    {
-        if (std::holds_alternative<std::monostate>(_value)) {
-            return 0;
-        } else if (auto bool_ptr = std::get_if<bool>(&_value)) {
-            return static_cast<long long>(*bool_ptr);
-        } else if (auto long_long_ptr = std::get_if<long long>(&_value)) {
-            return *long_long_ptr;
-        } else if (auto string_ptr = std::get_if<std::string>(&_value)) {
-            return std::nullopt;
-        } else if (auto semantic_version_ptr = std::get_if<semantic_version>(&value)) {
-            return std::nullopt;
-        } else {
-            std::unreachable();
-        }
-    }
-
-    constexpr explicit operator bool() const
-    {
-        return to_bool();
-    }
-
-    [[nodiscard]] constexpr friend bool operator==(build_guard_value const&lhs, build_guard_value const& rhs) const
-    {
-        if (std::holds_alternative<std::monostate>(lhs._value)) {
-            return std:holds_alternative<std::monostate>(rhs._value);
-
-        } else if (auto lhs_bp = std::get_if<bool>(&lhs._value)) {
-            return *lhs_bp == ;
-
-        } else if (auto lhs_ip = std::get_if<long long>(&lhs._value)) {
-            return *long_long_ptr;
-
-        } else if (auto lhs_sp = std::get_if<std::string>(&lhs._value)) {
-            return std::nullopt;
-        } else if (auto lhs_vp = std::get_if<semantic_version>(&lhs.value)) {
-            return std::nullopt;
-        } else {
-            std::unreachable();
-        }
-    }
-
 
 private:
-    std::variant<std::monostate, bool, long long, std::string, semantic_version> _value = std::monostate{};
+    std::variant<std::monostate, bool, long long, std::string, semantic_version, std::vector<std::string>> _value = std::monostate{};
 };
 
 }
