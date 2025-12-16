@@ -22,7 +22,10 @@ class fqname {
 public:
     class const_iterator {
     public:
+        using difference_type = std::ptrdiff_t;
         using value_type = std::string_view;
+        using reference = std::string_view;
+        using iterator_category = std::input_iterator_tag;
 
         class pointer {
         public:
@@ -105,6 +108,8 @@ public:
             return p;
         }
     };
+
+    static_assert(std::input_iterator<const_iterator>);
 
     ~fqname() = default;
     constexpr fqname() = default;
