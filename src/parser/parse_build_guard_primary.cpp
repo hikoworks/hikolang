@@ -4,6 +4,7 @@
 #include "parse_fqname.hpp"
 #include "ast/build_guard_variable_node.hpp"
 #include "ast/build_guard_literal_node.hpp"
+#include "ast/build_guard_unary_operator_node.hpp"
 
 namespace hk {
 
@@ -31,6 +32,28 @@ namespace hk {
     if (*it == token::string_literal) {
         ++it;
         return std::make_unique<ast::build_guard_literal_node>(first, it->begin(), it->raw_string_value());
+    }
+
+    if (*it == "not") {
+        ++it;
+
+        if (auto optional_primary = parse_build_guard_primary(it, ctx)) {
+            if (auto optional_expr = parse_build_guard_expression(it, ctx, std::move(optional_primary).value(), 0)) {
+                auto op = std::make_unique<ast::build_guard_unary_operator_node>(first, it->begin(), build_guard_value::un_op::_not);
+                op->rhs = std::move(optional_expr).value();
+                return op;
+
+            } else if (to_bool(optional_expr.error())) {
+                return std::unexpected{optional_expr.error()};
+            } else {
+                std::unreachable();
+            }
+
+        } else if (to_bool(optional_primary.error())) {
+            return std::unexpected{optional_primary.error()};
+        } else {
+            return ctx.add(first, it->begin(), hkc_error::missing_expression);
+        }
     }
 
     if (*it == '(') {

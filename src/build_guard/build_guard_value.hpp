@@ -15,6 +15,7 @@ namespace hk {
 class build_guard_value {
 public:
     enum class bin_op { _and, _or, in, not_in, eq, ne, lt, gt, le, ge };
+    enum class un_op { _not };
 
     constexpr build_guard_value(build_guard_value const&) = default;
     constexpr build_guard_value(build_guard_value&&) = default;
@@ -57,8 +58,7 @@ public:
         return to_bool(lhs) or to_bool(rhs);
     }
 
-    [[nodiscard]] constexpr friend std::optional<bool>
-    binary_in(build_guard_value const& lhs, build_guard_value const& rhs)
+    [[nodiscard]] constexpr friend std::optional<bool> binary_in(build_guard_value const& lhs, build_guard_value const& rhs)
     {
         if (auto value = std::get_if<std::string>(&lhs._value)) {
             if (auto container = std::get_if<std::vector<std::string>>(&rhs._value)) {
@@ -69,8 +69,7 @@ public:
         return std::nullopt;
     }
 
-    [[nodiscard]] constexpr friend std::optional<bool>
-    binary_eq(build_guard_value const& lhs, build_guard_value const& rhs)
+    [[nodiscard]] constexpr friend std::optional<bool> binary_eq(build_guard_value const& lhs, build_guard_value const& rhs)
     {
         if (std::holds_alternative<std::monostate>(lhs._value) and std::holds_alternative<std::monostate>(rhs._value)) {
             return true;
@@ -139,7 +138,7 @@ public:
         return std::nullopt;
     }
 
-    [[nodiscard]] constexpr friend std::optional<bool>
+    [[nodiscard]] constexpr friend std::optional<build_guard_value>
     binary_op(bin_op op, build_guard_value const& lhs, build_guard_value const& rhs)
     {
         switch (op) {
@@ -150,24 +149,55 @@ public:
         case bin_op::in:
             return binary_in(lhs, rhs);
         case bin_op::not_in:
-            return not binary_in(lhs, rhs);
+            if (auto const r = binary_in(lhs, rhs)) {
+                return not *r;
+            } else {
+                return std::nullopt;
+            }
         case bin_op::eq:
             return binary_eq(lhs, rhs);
         case bin_op::ne:
-            return not binary_eq(lhs, rhs);
+            if (auto const r = binary_eq(lhs, rhs)) {
+                return not *r;
+            } else {
+                return std::nullopt;
+            }
         case bin_op::lt:
-            return binary_cmp(lhs, rhs) == std::strong_ordering::less;
+            if (auto const r = binary_cmp(lhs, rhs)) {
+                return *r == std::strong_ordering::less;
+            } else {
+                return std::nullopt;
+            }
         case bin_op::gt:
-            return binary_cmp(lhs, rhs) == std::strong_ordering::greater;
+            if (auto const r = binary_cmp(lhs, rhs)) {
+                return *r == std::strong_ordering::greater;
+            } else {
+                return std::nullopt;
+            }
         case bin_op::le:
-            return binary_cmp(lhs, rhs) != std::strong_ordering::greater;
+            if (auto const r = binary_cmp(lhs, rhs)) {
+                return *r != std::strong_ordering::greater;
+            } else {
+                return std::nullopt;
+            }
         case bin_op::ge:
-            return binary_cmp(lhs, rhs) != std::strong_ordering::less;
+            if (auto const r = binary_cmp(lhs, rhs)) {
+                return *r != std::strong_ordering::less;
+            } else {
+                return std::nullopt;
+            }
         }
         std::unreachable();
     }
 
-    
+    [[nodiscard]] constexpr friend std::optional<build_guard_value> unary_op(un_op op, build_guard_value const& rhs)
+    {
+        switch (op) {
+        case un_op::_not:
+            return not to_bool(rhs);
+        }
+        std::unreachable();
+    }
 
 private:
     std::variant<std::monostate, bool, long long, std::string, semantic_version, std::vector<std::string>> _value =
