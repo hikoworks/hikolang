@@ -60,14 +60,14 @@ public:
         return top().source();
     }
 
-    std::unexpected<hkc_error> add(hkc_error error)
+    std::unexpected<hkc_error> add(hkc_error error) const
     {
         using namespace std::literals;
         return _add(error, ""s);
     }
 
     template<typename... Args>
-    std::unexpected<hkc_error> add(hkc_error error, std::format_string<Args...> fmt, Args&&...args)
+    std::unexpected<hkc_error> add(hkc_error error, std::format_string<Args...> fmt, Args&&...args) const
     {
         return _add(error, std::format(std::move(fmt), std::forward<Args>(args)...));
     }
@@ -99,7 +99,7 @@ protected:
     node *_parent = nullptr;
 
 private:
-    std::unexpected<hkc_error> _add(hkc_error error, std::string message);
+    std::unexpected<hkc_error> _add(hkc_error error, std::string message) const;
 
 };
 

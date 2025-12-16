@@ -18,6 +18,11 @@ public:
     build_guard_literal_node(char const* first, char const* last, semantic_version value) :
         build_guard_expression_node(first, last), value(std::move(value)) {}
 
+    [[nodiscard]] std::expected<build_guard_value, hkc_error> evaluate(build_guard_context const& ctx) const override
+    {
+        return value;
+    }
+
 };
 
 }

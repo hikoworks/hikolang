@@ -69,6 +69,10 @@ std::string hkc_error_category::message(int code) const
         return "Invalid syntax of a fully qualified name."s;
     case hkc_error::invalid_prologue_statement:
         return "A prologue statement has an invalid syntax."s;
+    case hkc_error::invalid_operand_types:
+        return "Types of operands are invalid"s;
+    case hkc_error::unknown_build_guard_constant:
+        return "Unknown build-guard constant."s;
     case hkc_error::could_not_clone_repository:
         return "Unable to clone a repository."s;
     case hkc_error::insecure_identifier:

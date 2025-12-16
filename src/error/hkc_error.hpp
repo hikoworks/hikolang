@@ -55,6 +55,10 @@ enum class hkc_error : int {
     invalid_fqname = 22001,
     invalid_prologue_statement = 22002,
 
+    // Error: compile time evaluation 23xxx
+    invalid_operand_types = 23001,
+    unknown_build_guard_constant = 23002,
+    
     // Fatal: 30xxx
 
     // Security: 40xxx

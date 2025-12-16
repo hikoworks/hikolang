@@ -7,32 +7,50 @@ namespace hk::ast {
 
 class build_guard_binary_operator_node : public build_guard_expression_node {
 public:
-    enum class kind_type { none, _and, _or, in, not_in, eq, ne, lt, gt, le, ge };
-
     std::unique_ptr<build_guard_expression_node> lhs = {};
     std::unique_ptr<build_guard_expression_node> rhs = {};
-    kind_type kind = kind_type::none;
+    build_guard_value::bin_op kind;
 
-    build_guard_binary_operator_node(char const* first, char const* last, kind_type kind) :
+    build_guard_binary_operator_node(char const* first, char const* last, build_guard_value::bin_op kind) :
         build_guard_expression_node(first, last), kind(kind)
     {
     }
 
+    [[nodiscard]] std::expected<build_guard_value, hkc_error> evaluate(build_guard_context const& ctx) const override
+    {
+        auto const lhs_ = lhs->evaluate(ctx);
+        auto const rhs_ = rhs->evaluate(ctx);
+        if (not lhs_) {
+            return std::unexpected{lhs_.error()};
+        }
+        if (not rhs_) {
+            return std::unexpected{rhs_.error()};
+        }
+
+        if (auto optional_result = binary_op(kind, *lhs_, *rhs_)) {
+            return std::move(optional_result).value();
+        } else {
+            return add(hkc_error::invalid_operand_types, "lhs: {}, rhs: {}", lhs_->repr(), rhs_->repr());
+        }
+    }
+
     [[nodiscard]] size_t precedence() const
     {
+        // clang-format off
         switch (kind) {
-        case kind_type::none: std::unreachable();
-        case kind_type::_and: return 14;
-        case kind_type::_or: return 15;
-        case kind_type::in: return 5;
-        case kind_type::not_in: return 5;
-        case kind_type::eq: return 10;
-        case kind_type::ne: return 10;
-        case kind_type::lt: return 9;
-        case kind_type::gt: return 9;
-        case kind_type::le: return 9;
-        case kind_type::ge: return 9;
+        using enum build_guard_value::bin_op;
+        case _and: return 14;
+        case _or: return 15;
+        case in: return 5;
+        case not_in: return 5;
+        case eq: return 10;
+        case ne: return 10;
+        case lt: return 9;
+        case gt: return 9;
+        case le: return 9;
+        case ge: return 9;
         }
+        // clang-format on
         std::unreachable();
     }
 
