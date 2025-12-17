@@ -14,9 +14,9 @@ TEST_CASE(single_repository_scan)
     auto test_data_path = test::test_data_path();
     auto repository_path = std::filesystem::canonical(test_data_path / "single_repository_scan");
     auto repository = hk::repository{repository_path};
-    repository.scan_prologues(hk::repository_flags{});
+    repository.scan_prologues(hk::datum_namespace{});
 
-    auto nodes = std::ranges::to<std::vector>(repository.remote_repositories());
+    auto nodes = std::ranges::to<std::vector>(repository.remote_repositories(hk::datum_namespace{}));
     REQUIRE(nodes.size() == 1);
     REQUIRE(nodes[0]->url.url() == "https://github.com/hikoworks/hikolang-test-a.git");
     REQUIRE(nodes[0]->url.rev() == "main");
@@ -29,7 +29,7 @@ TEST_CASE(recursive_repository_scan)
     std::filesystem::copy(source_path, repository_path);
 
     auto repository = hk::repository{repository_path};
-    repository.recursive_scan_prologues(hk::repository_flags{});
+    repository.recursive_scan_prologues(hk::datum_namespace{}, hk::repository_flags{});
 
     REQUIRE(repository.child_repositories().size() == 2);
     REQUIRE(repository.child_repositories()[0]->remote.url() == "https://github.com/hikoworks/hikolang-test-a.git");

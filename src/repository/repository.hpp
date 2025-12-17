@@ -37,17 +37,16 @@ public:
 
     /** Scan the prologue of each *.hkm in the repository.
      * 
-     * @param force Force scanning even on files that were already parsed.
      */
-    void scan_prologues(repository_flags flags);
+    void scan_prologues(datum_namespace const& guard_namespace);
 
     /** Recusively clone and scan repositories.
      * 
      * @param force Force scanning even on files that were already parsed.
      */
-    void recursive_scan_prologues(repository_flags flags);
+    void recursive_scan_prologues(datum_namespace const& guard_namespace, repository_flags flags);
 
-    [[nodiscard]] generator<ast::import_repository_declaration_node*> remote_repositories() const;
+    [[nodiscard]] generator<ast::import_repository_declaration_node*> remote_repositories(datum_namespace const& guard_namespace) const;
 
     [[nodiscard]] std::vector<std::unique_ptr<repository>> const& child_repositories() const noexcept
     {
@@ -76,12 +75,6 @@ private:
      */
     std::vector<std::unique_ptr<source>> _sources_by_path;
 
-    /** sources.
-     * 
-     * @note sorted by name.
-     */
-    std::vector<source *> _sources_by_name;
-
     /** The root repository also has a list of child repositories.
      * 
      * @note sorted by url.
@@ -98,16 +91,15 @@ private:
      */
     bool gather_modules();
 
-    /** Sort modules to be searchable by module name.
+    /** Evaluate which files need to be compiled.
      */
-    void sort_modules();
+    std::expected<void, hkc_error> evaluate_conditional_compilation(datum_namespace const& guard_namespace);
 
     /** Parse all the modules in a repository.
      * 
      * @pre `sort_modules()` may need to be called.
-     * @param flags Flags for managing the remote git-repositories.
      */
-    bool parse_prologues(repository_flags flags);
+    bool parse_prologues();
 
     /** Get or make a module based on the path.
      * 

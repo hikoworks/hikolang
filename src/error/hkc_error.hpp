@@ -58,6 +58,8 @@ enum class hkc_error : int {
     // Error: compile time evaluation 23xxx
     invalid_operand_types = 23001,
     unknown_build_guard_constant = 23002,
+    duplicate_fallback_module = 23003,
+    duplicate_module = 23004,
     
     // Fatal: 30xxx
 

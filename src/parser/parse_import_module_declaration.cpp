@@ -1,6 +1,8 @@
 
 #include "parse_import_module_declaration.hpp"
 #include "parse_fqname.hpp"
+#include "parse_build_guard.hpp"
+#include "ast/build_guard_literal_node.hpp"
 
 namespace hk {
 
@@ -34,6 +36,14 @@ namespace hk {
         } else {
             return ctx.add(first, it->end(), hkc_error::missing_as_name);
         }
+    }
+
+    if (auto optional_build_guard = parse_build_guard(it, ctx)) {
+        r->build_guard = std::move(optional_build_guard).value();
+    } else if (to_bool(optional_build_guard.error())) {
+        return std::unexpected{optional_build_guard.error()};
+    } else {
+        r->build_guard = std::make_unique<ast::build_guard_literal_node>(it->begin(), it->begin(), true);
     }
 
     if (*it != ';') {

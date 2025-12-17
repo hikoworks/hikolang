@@ -27,6 +27,19 @@ public:
         program
     };
 
+    /** The abstract syntax tree of just the prologue.
+     * 
+     * - Empty when the source code is out-of-data.
+     */
+    std::unique_ptr<ast::top_node> prologue_ast;
+
+    /** If this source file should be compiled.
+     * 
+     * After reading the prologue the value of this flag is determined
+     * by the evaluation of the build-guard and possibly fallback.
+     */
+    bool to_be_compiled = false;
+
     /** Create a source from a file in the repository.
      * 
      * @param path The cannonical path to the source-code file.
@@ -78,7 +91,9 @@ public:
         return _lines;
     }
 
-    [[nodiscard]] generator<ast::import_repository_declaration_node *> remote_repositories() const;
+    [[nodiscard]] generator<ast::import_repository_declaration_node *> remote_repositories(datum_namespace const& guard_namespace) const;
+
+    std::expected<void, hkc_error> evaluate(datum_namespace const& guard_namespace);
 
     [[nodiscard]] friend std::strong_ordering cmp_sources(source const& lhs, source const& rhs) noexcept
     {
@@ -128,7 +143,6 @@ private:
      */
     semantic_version _version;
 
-
     /** List of errors found.
      */
     mutable error_list _errors;
@@ -162,11 +176,6 @@ private:
      */
     line_table _lines;
 
-    /** The abstract syntax tree of just the prologue.
-     * 
-     * - Empty when the source code is out-of-data.
-     */
-    std::unique_ptr<ast::top_node> _prologue_ast;
 
     /** The abstract syntax tree of the module.
      * 

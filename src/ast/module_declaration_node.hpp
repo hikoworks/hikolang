@@ -28,14 +28,6 @@ public:
 
     module_declaration_node(char const* first) : top_declaration_node(first) {}
 
-    /** The result of the compilation condition.
-     */
-    [[nodiscard]] bool condition_result() const
-    {
-        return false;
-    };
-
-
 };
 
 using module_declaration_node_ptr = std::unique_ptr<module_declaration_node>;

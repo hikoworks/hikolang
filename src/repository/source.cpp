@@ -91,14 +91,14 @@ std::expected<bool, std::error_code> source::parse_prologue()
         return false;
     }
 
-    _prologue_ast = nullptr;
+    prologue_ast = nullptr;
 
     auto errors = error_list{};
     auto ctx = parse_context(errors, _lines);
     auto p = const_cast<char const*>(_source_code.data());
     if (auto optional_ast = parse_top(p, ctx, false)) {
-        _prologue_ast = std::move(optional_ast).value();
-        _prologue_ast->fixup_top(this);
+        prologue_ast = std::move(optional_ast).value();
+        prologue_ast->fixup_top(this);
     } else if (to_bool(optional_ast.error())) {
         return std::unexpected{optional_ast.error()};
     } else {
@@ -109,14 +109,17 @@ std::expected<bool, std::error_code> source::parse_prologue()
     return true;
 }
 
-[[nodiscard]] generator<ast::import_repository_declaration_node *> source::remote_repositories() const
+[[nodiscard]] generator<ast::import_repository_declaration_node *> source::remote_repositories(datum_namespace const& guard_namespace) const
 {
-    if (_prologue_ast == nullptr) {
+    if (prologue_ast == nullptr) {
         co_return;
     }
 
-    for (auto &node :_prologue_ast->remote_repositories) {
-        co_yield node.get();
+    for (auto &node :prologue_ast->remote_repositories) {
+        assert(node->build_guard);
+        if (node->build_guard->evaluate(guard_namespace)) {
+            co_yield node.get();
+        }
     }
 }
 

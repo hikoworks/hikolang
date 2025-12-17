@@ -10,6 +10,8 @@ class build_guard_literal_node : public build_guard_expression_node {
 public:
     datum value;
 
+    build_guard_literal_node(char const* first, char const* last, bool value) :
+        build_guard_expression_node(first, last), value(value) {}
     build_guard_literal_node(char const* first, char const* last, long long value) :
         build_guard_expression_node(first, last), value(value) {}
     build_guard_literal_node(char const* first, char const* last, std::string value) :

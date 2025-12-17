@@ -20,8 +20,6 @@ public:
     std::vector<import_library_declaration_node_ptr> library_imports;
     std::vector<node_ptr> body;
 
-    bool build_guard_result = false;
-
     top_node(char const* first) : node(first) {}
 
     [[nodiscard]] virtual top_declaration_node &declaration() const = 0;

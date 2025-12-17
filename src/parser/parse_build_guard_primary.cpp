@@ -34,6 +34,16 @@ namespace hk {
         return std::make_unique<ast::build_guard_literal_node>(first, it->begin(), it->raw_string_value());
     }
 
+    if (*it == "true") {
+        ++it;
+        return std::make_unique<ast::build_guard_literal_node>(first, it->begin(), true);
+    }
+
+    if (*it == "false") {
+        ++it;
+        return std::make_unique<ast::build_guard_literal_node>(first, it->begin(), false);
+    }
+
     if (*it == "not") {
         ++it;
 

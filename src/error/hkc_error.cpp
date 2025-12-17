@@ -73,6 +73,10 @@ std::string hkc_error_category::message(int code) const
         return "Types of operands are invalid"s;
     case hkc_error::unknown_build_guard_constant:
         return "Unknown build-guard constant."s;
+    case hkc_error::duplicate_fallback_module:
+        return "There a multiple fallback modules with the same name."s;
+    case hkc_error::duplicate_module:
+        return "There are multiple modules with the same name for which the build-guard evaluates to true."s;
     case hkc_error::could_not_clone_repository:
         return "Unable to clone a repository."s;
     case hkc_error::insecure_identifier:
