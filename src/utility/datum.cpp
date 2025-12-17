@@ -41,7 +41,15 @@ datum::operator bool() const
     } else if (auto sp = std::get_if<std::string>(&_value)) {
         return std::format("\"{}\"", *sp);
     } else if (auto vsp = std::get_if<std::vector<std::string>>(&_value)) {
-        return std::format("{}", *vsp);
+        auto r = "["s;
+        for (auto &str : *vsp) {
+            if (r.size() > 1) {
+                r += ", "s;
+            }
+            r += std::format("\"{}\"", str);
+        }
+        r += ']';
+        return r;
     } else {
         std::unreachable();
     }
