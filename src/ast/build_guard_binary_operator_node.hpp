@@ -7,16 +7,29 @@ namespace hk::ast {
 
 class build_guard_binary_operator_node : public build_guard_expression_node {
 public:
+    enum class op_type {
+        _and,
+        _or,
+        in,
+        not_in,
+        eq,
+        ne,
+        lt,
+        gt,
+        le,
+        ge
+    };
+
     std::unique_ptr<build_guard_expression_node> lhs = {};
     std::unique_ptr<build_guard_expression_node> rhs = {};
-    build_guard_value::bin_op kind;
+    op_type op;
 
-    build_guard_binary_operator_node(char const* first, char const* last, build_guard_value::bin_op kind) :
-        build_guard_expression_node(first, last), kind(kind)
+    build_guard_binary_operator_node(char const* first, char const* last, op_type op) :
+        build_guard_expression_node(first, last), op(op)
     {
     }
 
-    [[nodiscard]] std::expected<build_guard_value, hkc_error> evaluate(build_guard_context const& ctx) const override
+    [[nodiscard]] std::expected<datum, hkc_error> evaluate(datum_namespace const& ctx) const override
     {
         auto const lhs_ = lhs->evaluate(ctx);
         auto const rhs_ = rhs->evaluate(ctx);
@@ -27,9 +40,21 @@ public:
             return std::unexpected{rhs_.error()};
         }
 
-        if (auto optional_result = binary_op(kind, *lhs_, *rhs_)) {
-            return std::move(optional_result).value();
-        } else {
+        try {
+            switch (op) {
+            case op_type::_and: return *lhs_ and *rhs_;
+            case op_type::_or: return *lhs_ or *rhs_;
+            case op_type::in: return in(*lhs_, *rhs_);
+            case op_type::not_in: return not in(*lhs_, *rhs_);
+            case op_type::eq: return *lhs_ == *rhs_;
+            case op_type::ne: return *lhs_ != *rhs_;
+            case op_type::lt: return *lhs_ < *rhs_;
+            case op_type::gt: return *lhs_ > *rhs_;
+            case op_type::le: return *lhs_ <= *rhs_;
+            case op_type::ge: return *lhs_ >= *rhs_;
+            }
+            std::unreachable();
+        } catch (std::invalid_argument const&) {
             return add(hkc_error::invalid_operand_types, "lhs: {}, rhs: {}", lhs_->repr(), rhs_->repr());
         }
     }
@@ -37,18 +62,17 @@ public:
     [[nodiscard]] size_t precedence() const
     {
         // clang-format off
-        switch (kind) {
-        using enum build_guard_value::bin_op;
-        case _and: return 14;
-        case _or: return 15;
-        case in: return 5;
-        case not_in: return 5;
-        case eq: return 10;
-        case ne: return 10;
-        case lt: return 9;
-        case gt: return 9;
-        case le: return 9;
-        case ge: return 9;
+        switch (op) {
+        case op_type::_and: return 14;
+        case op_type::_or: return 15;
+        case op_type::in: return 5;
+        case op_type::not_in: return 5;
+        case op_type::eq: return 10;
+        case op_type::ne: return 10;
+        case op_type::lt: return 9;
+        case op_type::gt: return 9;
+        case op_type::le: return 9;
+        case op_type::ge: return 9;
         }
         // clang-format on
         std::unreachable();

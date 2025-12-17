@@ -39,7 +39,7 @@ namespace hk {
 
         if (auto optional_primary = parse_build_guard_primary(it, ctx)) {
             if (auto optional_expr = parse_build_guard_expression(it, ctx, std::move(optional_primary).value(), 0)) {
-                auto op = std::make_unique<ast::build_guard_unary_operator_node>(first, it->begin(), build_guard_value::un_op::_not);
+                auto op = std::make_unique<ast::build_guard_unary_operator_node>(first, it->begin(), ast::build_guard_unary_operator_node::op_type::_not);
                 op->rhs = std::move(optional_expr).value();
                 return op;
 

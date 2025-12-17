@@ -7,24 +7,33 @@ namespace hk::ast {
 
 class build_guard_unary_operator_node : public build_guard_expression_node {
 public:
-    std::unique_ptr<build_guard_expression_node> rhs = {};
-    build_guard_value::un_op kind;
+    enum class op_type {
+        _not,
+    };
 
-    build_guard_unary_operator_node(char const* first, char const* last, build_guard_value::un_op kind) :
-        build_guard_expression_node(first, last), kind(kind)
+    std::unique_ptr<build_guard_expression_node> rhs = {};
+    op_type op;
+
+    build_guard_unary_operator_node(char const* first, char const* last, op_type op) :
+        build_guard_expression_node(first, last), op(op)
     {
     }
 
-    [[nodiscard]] std::expected<build_guard_value, hkc_error> evaluate(build_guard_context const& ctx) const override
+    [[nodiscard]] std::expected<datum, hkc_error> evaluate(datum_namespace const& ctx) const override
     {
         auto const rhs_ = rhs->evaluate(ctx);
         if (not rhs_) {
             return std::unexpected{rhs_.error()};
         }
 
-        if (auto optional_result = unary_op(kind, *rhs_)) {
-            return std::move(optional_result).value();
-        } else {
+        try {
+            switch (op) {
+            case op_type::_not:
+                return not *rhs_;
+            }
+            std::unreachable();
+
+        } catch (std::invalid_argument const&) {
             return add(hkc_error::invalid_operand_types, "rhs: {}", rhs_->repr());
         }
     }
@@ -32,9 +41,8 @@ public:
     [[nodiscard]] size_t precedence() const
     {
         // clang-format off
-        switch (kind) {
-        using enum build_guard_value::un_op;
-        case _not: return 3;
+        switch (op) {
+        case op_type::_not: return 3;
         }
         // clang-format on
         std::unreachable();

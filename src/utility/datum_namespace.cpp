@@ -1,10 +1,12 @@
 
-#include "build_guard_context.hpp"
+#include "datum_namespace.hpp"
 
 namespace hk {
 
-[[nodiscard]] build_guard_value const* build_guard_context::get(fqname const& name) const
+[[nodiscard]] datum const* datum_namespace::get(fqname const& name) const
 {
+    assert(name.is_absolute());
+
     auto const it = std::lower_bound(_items.begin(), _items.end(), name, [](auto const& item, auto const& x) {
         return item.name < x;
     });
@@ -15,8 +17,10 @@ namespace hk {
     return std::addressof(it->value);
 }
 
-build_guard_value& build_guard_context::set(fqname name, build_guard_value value)
+datum& datum_namespace::set(fqname name, datum value)
 {
+    assert(name.is_absolute());
+
     auto it = std::lower_bound(_items.begin(), _items.end(), name, [](auto const& item, auto const& x) {
         return item.name < x;
     });
@@ -24,6 +28,19 @@ build_guard_value& build_guard_context::set(fqname name, build_guard_value value
         it = _items.emplace(it, std::move(name), std::move(value));
     }
     return it->value;
+}
+
+void datum_namespace::remove(fqname const& name)
+{
+    assert(name.is_absolute());
+
+    auto it = std::lower_bound(_items.begin(), _items.end(), name, [](auto const& item, auto const& x) {
+        return item.name < x;
+    });
+    if (it == _items.end() or it->name != name) {
+        return;
+    }
+    _items.erase(it);
 }
 
 }
