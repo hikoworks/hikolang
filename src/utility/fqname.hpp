@@ -6,11 +6,11 @@
 #include <cassert>
 #include <iterator>
 #include <cstddef>
-#include <algorithm>
 #include <string_view>
 #include <memory>
 #include <bit>
 #include <compare>
+#include <format>
 
 namespace hk {
 
@@ -46,67 +46,25 @@ public:
         constexpr const_iterator& operator=(const_iterator const&) noexcept = default;
         constexpr const_iterator& operator=(const_iterator&&) noexcept = default;
 
-        constexpr const_iterator(char const* first) noexcept :
-            _first(first),
-            _last(fixup_last(first)) {}
+        const_iterator(char const* first) noexcept;
 
-        [[nodiscard]] constexpr friend bool operator==(const_iterator const& lhs, const_iterator const& rhs) noexcept
-        {
-            return lhs._first == rhs._first;
-        }
+        friend bool operator==(const_iterator const& lhs, const_iterator const& rhs) noexcept;
 
-        [[nodiscard]] constexpr friend bool operator==(const_iterator const& lhs, std::default_sentinel_t) noexcept
-        {
-            return lhs._first == nullptr or *lhs._first == '\0';
-        }
+        friend bool operator==(const_iterator const& lhs, std::default_sentinel_t) noexcept;
 
-        constexpr const_iterator& operator++()
-        {
-            assert(_last != nullptr);
+        const_iterator& operator++();
 
-            _first = _last;
-            if (*_first != '\0') {
-                assert(*_first == '.');
-                ++_first;
-            }
+        const_iterator operator++(int);
 
-            _last = fixup_last(_first);
-            return *this;
-        }
+        [[nodiscard]] std::string_view operator*() const;
 
-        constexpr const_iterator operator++(int)
-        {
-            auto tmp = *this;
-            ++(*this);
-            return tmp;
-        }
-
-        [[nodiscard]] constexpr std::string_view operator*() const
-        {
-            assert(_first != nullptr);
-            assert(_last != nullptr);
-            assert(_first <= _last);
-            return std::string_view{_first, _last};
-        }
-
-        [[nodiscard]] constexpr pointer operator->() const
-        {
-            return pointer{**this};
-        }
+        [[nodiscard]] pointer operator->() const;
 
     private:
         char const* _first = nullptr;
         char const* _last = nullptr;
 
-        [[nodiscard]] static char const* fixup_last(char const* p)
-        {
-            if (p != nullptr) {
-                while (*p != '.' and *p != '\0') {
-                    ++p;
-                }
-            }
-            return p;
-        }
+        [[nodiscard]] static char const* fixup_last(char const* p);
     };
 
     static_assert(std::input_iterator<const_iterator>);
@@ -122,80 +80,31 @@ public:
     constexpr explicit fqname(std::string other) : _str(std::move(other)) {}
     constexpr explicit fqname(char const *other) : _str(other) {}
 
-    [[nodiscard]] constexpr friend bool operator==(fqname const& lhs, fqname const& rhs) noexcept
-    {
-        return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
-    }
+    friend bool operator==(fqname const& lhs, fqname const& rhs) noexcept;
 
-    [[nodiscard]] constexpr friend bool operator==(fqname const& lhs, std::string_view rhs) noexcept
-    {
-        return lhs == fqname{rhs};
-    }
+    friend bool operator==(fqname const& lhs, std::string_view rhs) noexcept;
 
-    [[nodiscard]] constexpr friend std::strong_ordering operator<=>(fqname const& lhs, fqname const& rhs) noexcept
-    {
-        return std::lexicographical_compare_three_way(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
-    }
+    friend std::strong_ordering operator<=>(fqname const& lhs, fqname const& rhs) noexcept;
 
     [[nodiscard]] constexpr std::string const& string() const noexcept
     {
         return _str;
     }
 
-    [[nodiscard]] constexpr size_t prefix() const noexcept
-    {
-        if (auto const i = _str.find_first_not_of('.'); i != _str.npos) {
-            return i;
-        } else {
-            return _str.size();
-        }
-    }
+    [[nodiscard]] size_t prefix() const noexcept;
+    [[nodiscard]] bool is_absolute() const noexcept;
 
-    [[nodiscard]] constexpr bool is_absolute() const noexcept
-    {
-        return prefix() == 1;
-    }
+    [[nodiscard]] bool is_relative() const noexcept;
 
-    [[nodiscard]] constexpr bool is_relative() const noexcept
-    {
-        return not is_absolute();
-    }
+    [[nodiscard]] std::string_view first_skip_prefix() const noexcept;
 
-    [[nodiscard]] constexpr std::string_view first_skip_prefix() const noexcept
-    {
-        auto const i = prefix();
-        auto const j = _str.find('.', i);
-        if (j == _str.npos) {
-            return std::string_view{_str}.substr(i);
-        } else {
-            return std::string_view{_str}.substr(i, j - i);
-        }
-    }
+    [[nodiscard]] std::string_view last() const noexcept;
 
-    [[nodiscard]] constexpr std::string_view last() const noexcept
-    {
-        auto const i = _str.rfind('.');
-        if (i == _str.npos) {
-            return _str;
-        } else {
-            return std::string_view{_str}.substr(i + 1);
-        }
-    }
+    [[nodiscard]] const_iterator begin() const noexcept;
 
-    [[nodiscard]] constexpr const_iterator begin() const noexcept
-    {
-        return const_iterator{_str.c_str()};
-    }
+    [[nodiscard]] const_iterator begin_skip_prefix() const noexcept;
 
-    [[nodiscard]] constexpr const_iterator begin_skip_prefix() const noexcept
-    {
-        return const_iterator{_str.c_str() + prefix()};
-    }
-
-    [[nodiscard]] constexpr const_iterator end() const noexcept
-    {
-        return const_iterator{_str.c_str() + _str.size()};
-    }
+    [[nodiscard]] const_iterator end() const noexcept;
 
     /** Pop the last component.
      * 
@@ -204,57 +113,9 @@ public:
      *  - if absolute, the result is: .
      *  - if there are only dots, add one more dot.
      */
-    constexpr fqname& pop_component()
-    {
-        using namespace std::literals;
+    fqname& pop_component();
 
-        if (_str.empty()) {
-            // Empty path is already relative, now go back by one.
-            _str = ".."s;
-
-        } else if (_str == "."s) {
-            // The root, remains the root.
-
-        } else if (prefix() == _str.size()) {
-            // If there are just leading dots, add one more.
-            _str += '.';
-
-        } else if (auto const i = _str.rfind('.'); i == _str.npos) {
-            // _str was a single component relative path, clear it completely.
-            _str.clear();
-
-        } else {
-            // Remove only the component first.
-            _str.erase(i + 1);
-
-            if (prefix() != _str.size()) {
-                // If there are more components remove the trailing dot.
-                _str.erase(i);
-            }
-        }
-
-        return *this;
-    }
-
-    constexpr fqname& add_component(std::string_view component)
-    {
-        using namespace std::literals;
-
-        assert(component.find('.') == component.npos);
-
-        if (component.empty()) {
-            pop_component();
-
-        } else {
-            if (prefix() != _str.size()) {
-                // If there was a component before, first add a trailing dot.
-                _str += '.';
-            }
-            _str += component;
-        }
-
-        return *this;
-    }
+    fqname& add_component(std::string_view component);
 
     /** Concatonate paths.
      * 
@@ -262,46 +123,13 @@ public:
      *  - Otherwise the paths are appended, maintaining the correct number of
      *    dots.
      */
-    constexpr fqname& operator/=(fqname const& rhs)
-    {
-        if (rhs.prefix() == 1) {
-            _str = rhs._str;
-            return *this;
+    fqname& operator/=(fqname const& rhs);
 
-        } else if (rhs.prefix() == 0) {
-            if (prefix() != _str.size()) {
-                _str.reserve(_str.size() + 1 + rhs._str.size());
-                _str += '.';
-            }
-            _str += rhs._str;
+    fqname operator/(fqname const& rhs) const;
 
-        } else {
-            if (prefix() == _str.size()) {
-                _str += std::string_view{rhs._str}.substr(1);   
-            } else {
-                _str += rhs._str;
-            }
-        }
+    fqname& operator/=(std::string_view rhs);
 
-        return *this;
-    }
-
-    constexpr fqname operator/(fqname const& rhs) const
-    {
-        auto tmp = *this;
-        tmp /= rhs;
-        return tmp;
-    }
-
-    constexpr fqname& operator/=(std::string_view rhs)
-    {
-        return *this /= fqname{rhs};
-    }
-
-    constexpr fqname operator/(std::string_view rhs) const
-    {
-        return *this / fqname{rhs};
-    }
+    fqname operator/(std::string_view rhs) const;
 
     /** Generate a lexically normal path.
      * 
@@ -313,50 +141,47 @@ public:
      * 
      * @return A path without any double dot `..`.
      */
-    constexpr fqname lexically_normal() const
-    {
-        auto r = fqname{};
-        r._str.reserve(_str.size());
-
-        auto const pre = prefix();
-
-        auto it = begin();
-        for (auto i = 0uz; i != pre; ++i, ++it) {
-            r._str += '.';
-        }
-
-        for (; it != end(); ++it) {
-            r.add_component(*it);
-        }
-
-        return r;
-    }
+    fqname lexically_normal() const;
 
     /** Make a path relative to the base.
      * 
      *  1. If the this path is relative, append it to @a base.
      *  2. lexically_normal() the resulting path.
      */
-    constexpr fqname lexically_absolute(fqname const& base)
-    {
-        return (base / *this).lexically_normal();
-    }
+    fqname lexically_absolute(fqname const& base);
 
     /** Make a path relative to the base.
      * 
      *  1. If the this path is relative, append it to @a base.
      *  2. lexically_normal() the resulting path.
      */
-    constexpr fqname lexically_absolute(std::string_view base)
-    {
-        return lexically_absolute(fqname{base});
-    }
+    fqname lexically_absolute(std::string_view base);
 
 private:
     std::string _str = {};
 
 };
 
+[[nodiscard]] bool operator==(fqname::const_iterator const& lhs, fqname::const_iterator const& rhs) noexcept;
+
+[[nodiscard]] bool operator==(fqname::const_iterator const& lhs, std::default_sentinel_t) noexcept;
+
+[[nodiscard]] bool operator==(fqname const& lhs, fqname const& rhs) noexcept;
+
+[[nodiscard]] bool operator==(fqname const& lhs, std::string_view rhs) noexcept;
+
+[[nodiscard]] std::strong_ordering operator<=>(fqname const& lhs, fqname const& rhs) noexcept;
+
 } // namespace hk
+
+template<>
+struct std::formatter<hk::fqname, char> : public std::formatter<std::string, char> {
+    template<class FmtContext>
+    FmtContext::iterator format(hk::fqname x, FmtContext& ctx) const
+    {
+        return std::formatter<std::string, char>::format(x.string(), ctx);
+    }
+};
+
 
 

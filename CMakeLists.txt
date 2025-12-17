@@ -123,6 +123,7 @@ add_library(hk_objects OBJECT
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/enum_variant.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/fixed_fifo.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/fixed_string.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/fqname.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/fqname.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/generator.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/git_error.cpp"
