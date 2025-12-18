@@ -12,12 +12,29 @@
 
 namespace hk {
 
+[[nodiscard]] static std::vector<source*> sort_by_name(std::vector<std::unique_ptr<source>> const& sources)
+{
+    auto sources_by_name = std::vector<source*>{};
+    sources_by_name.reserve(sources.size());
+    for (auto& source : sources) {
+        source->to_be_compiled = false;
+        sources_by_name.push_back(source.get());
+    }
+
+    std::sort(sources_by_name.begin(), sources_by_name.end(), [](auto const& a, auto const& b) {
+        return cmp_names(*a, *b) == std::strong_ordering::less;
+    });
+
+    return sources_by_name;
+}
+
 repository::repository(std::filesystem::path path, repository_url remote) : remote(remote), path(std::move(path)) {}
 
 void repository::scan_prologues(datum_namespace const& guard_namespace)
 {
     gather_modules();
     parse_prologues();
+    _sources_by_name = sort_by_name(_sources_by_path);
     evaluate_conditional_compilation(guard_namespace);
 }
 
@@ -104,21 +121,10 @@ bool repository::gather_modules()
 
 std::expected<void, hkc_error> repository::evaluate_conditional_compilation(datum_namespace const& guard_namespace)
 {
-    auto sources_by_name = std::vector<source*>{};
-    sources_by_name.reserve(_sources_by_path.size());
-    for (auto& source : _sources_by_path) {
-        source->to_be_compiled = false;
-        sources_by_name.push_back(source.get());
-    }
-
-    std::sort(sources_by_name.begin(), sources_by_name.end(), [](auto const& a, auto const& b) {
-        return cmp_names(*a, *b) == std::strong_ordering::less;
-    });
-
     auto compile_fallback = true;
     source* fallback = nullptr;
     source* previous = nullptr;
-    for (auto source : sources_by_name) {
+    for (auto source : _sources_by_name) {
         if ((not previous or cmp_names(*previous, *source) != std::strong_ordering::equal) and fallback) {
             // Different module name, determine if the fallback needs to be
             // compiled. Then reset the fallback.

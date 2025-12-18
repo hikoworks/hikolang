@@ -91,8 +91,9 @@ jobs:
 
       - name: Publish Test Results to Codecov
         if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: codecov/test-results-action@v1
+        uses: codecov/codecov-action@v5
         with:
+          report_type: test_results
           token: ${{secrets.CODECOV_TOKEN}}
           files: ${{env.DEBUG_BUILD_DIR}}\hktests-dbg.xml
 

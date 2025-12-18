@@ -7,6 +7,7 @@
 #include "utility/repository_flags.hpp"
 #include "utility/generator.hpp"
 #include "source.hpp"
+#include "modules.hpp"
 #include <filesystem>
 #include <memory>
 #include <chrono>
@@ -38,7 +39,7 @@ public:
     /** Scan the prologue of each *.hkm in the repository.
      * 
      */
-    void scan_prologues(datum_namespace const& guard_namespace);
+    void scan_prologues(datum_namespace const& guard_namespace, module_list& modules);
 
     /** Recusively clone and scan repositories.
      * 
@@ -74,6 +75,12 @@ private:
      * @note sorted by path.
      */
     std::vector<std::unique_ptr<source>> _sources_by_path;
+
+    /** sources.
+     * 
+     * @note sorted by name.
+     */
+    std::vector<source*> _sources_by_name;
 
     /** The root repository also has a list of child repositories.
      * 
