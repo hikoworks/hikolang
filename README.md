@@ -90,6 +90,8 @@ fn qux(x, y) {
     return bar(x, $y=y)
 }
 ```
+
+
 ## Universal call syntax
 Functions and member functions may be called in two different ways:
  * `foo(a, b)`

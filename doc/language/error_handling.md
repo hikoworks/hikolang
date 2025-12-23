@@ -2,7 +2,7 @@
 
 For ease of use, errors are thrown and caught, but they are not exceptions,
 within this language we call them errors. Errors automatically convert a return
-value of a function into a `std.result[T]`
+value of a function into a `__result__[T]`
 
 A caller is responsible for catching all errors that can be thrown by an
 expression. The compiler will check if all errors that can be thrown are caught.
@@ -36,22 +36,34 @@ Features:
 By throwing or catching; an error-name is implicitly declared. The error-name
 is automatically added to the `std.error_code` enum.
 
+```
+enum std.error_code {
+    none,   // No error.
+    ...
+}
+```
 
-## std.result
+## __result__
 
-Any function which throws, rethrows *errors*, or ignore a *fatal-errors* will
-convert a function's return type from `T` (or `std.optional[T]`) to
-`std.result[T]`.
+Any function which throws or rethrows *errors* or *fatal-errors* will
+implicitly convert a function's return type from `T` to `__result__[T]`.
 
 ```
-enum std.result[T : type] {
-    none,
-    value(T),
-    error(std.error_code),
+enum __result__[T : type] {
+    value(T)
+    error(std.error_code)
     fatal_error(std.error_code)
 }
 ```
 
+Any expression that results in a `__result__[T]` will:
+ * On `error()` or `fatal_error()` directly jump to the matching `catch`-clause
+   or return from the function.
+ * On `value()` unpack `__result__[T]` to `T`.
+
+> [!CAUTION]
+> This is a builtin-type. It should not be explicitly constructed as it will
+> cause it to jump to the matching `catch`-clause or be unpacked.
 
 ## Throwing an error
 
@@ -82,8 +94,8 @@ caught, then the `throw` is converted to a `trap`.
 
 ```
 if (a < 0) {
-    throw out_of_bounds_error!, "a should be larger or equal to 0"
-    //                       ^ this makes it a fatal-error.
+    throw! out_of_bounds_error, "a should be larger or equal to 0"
+    //   ^ this makes it a fatal-error.
 }
 ```
 
@@ -125,6 +137,7 @@ are used to catch *errors* and *fatal-errors* that are thrown in the
 condition-expression of a control-expression. A `catch` clause must directly
 follow the clause with an condition-expression that can throw an *error*.
 
+
 The following control-expressions can have a `catch` clause:
  - `if` control-expression
  - `while` control-expressions
@@ -141,24 +154,26 @@ appear after the `else` clause. This `catch` clause will still only catch errors
 from the `if` condition-expression.
 
 A `catch` clause has a list of error-names to catch. An error-name without a
-suffix only catches *errors*, An error-name suffixed with an exclamation mark
+suffix only catches *errors*, An error-name prefixed with an exclamation mark
 `!` only catches *fatal-errors*. You can also use the glob `*` for any *error*
-and exclame-glob `*!` for any *fatal-error*.
+and bang-glob `!*` for any *fatal-error*.
 
 ```
 try {
     foo()
-} catch (out_of_bound_error, division_by_zero_error) {
+} catch (out_of_bound_error, division_by_zero_error) { // catches only *errors*
     throw my_error
-} catch (bad_alloc_error, bad_alloc_error!) {
-    throw!
-} catch (*, *!) {
+} catch! (bad_alloc_error) { // catches both *errors* and *fatal-errors*
+    throw // Rethrow as a *error*.
+} catch { // catches only *errors*.
     throw
+} catch! { // catches both *errors* and *fatal-errors*
+    throw! // Rethrow as a *fatal-error*
 }
 ```
 
 Inside the `catch` clause the special error-code variable `$?` will be set
-to the `std.error_code` value of the caught *error* or *fatal-error*. The `$?`
+to the `std.error` value of the caught *error* or *fatal-error*. The `$?`
 variable is not available outside of the `catch` clause.
 
 > [!NOTE]

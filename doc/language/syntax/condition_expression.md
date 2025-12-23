@@ -16,3 +16,7 @@ assignment expression. This is to prevent a common bug; confusing `=` with `==`.
 > assignment. To bypass this restriction, use a
 > [_sub-expression_](sub_expression.md).
 
+If an expression results in a `__result__[T]` then:
+ * On *error* or *fatal-error* directly go to the `catch`-clauses of the current
+   control-expression.
+ * On *value* peel the `__result__[T]` to `T`.
