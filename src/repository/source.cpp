@@ -7,13 +7,13 @@
 
 namespace hk {
 
-source::source(repository &parent, std::filesystem::path path) :
+source::source(hk::repository &parent, std::filesystem::path path) :
     _parent(gsl::make_not_null(&parent)), _source(std::move(path))
 {
     assert(std::filesystem::canonical(this->path()) == this->path());
 }
 
-source::source(repository &parent, fqname generating_module, size_t lineno) :
+source::source(hk::repository &parent, fqname generating_module, size_t lineno) :
     _parent(gsl::make_not_null(&parent)), _source(std::pair{std::move(generating_module), lineno})
 {
 
@@ -91,14 +91,14 @@ std::expected<bool, std::error_code> source::parse_prologue()
         return false;
     }
 
-    prologue_ast = nullptr;
+    _prologue_ast = nullptr;
 
     auto errors = error_list{};
     auto ctx = parse_context(errors, _lines);
     auto p = const_cast<char const*>(_source_code.data());
     if (auto optional_ast = parse_top(p, ctx, false)) {
-        prologue_ast = std::move(optional_ast).value();
-        prologue_ast->fixup_top(this);
+        _prologue_ast = std::move(optional_ast).value();
+        _prologue_ast->fixup_top(this);
     } else if (to_bool(optional_ast.error())) {
         return std::unexpected{optional_ast.error()};
     } else {
@@ -109,15 +109,38 @@ std::expected<bool, std::error_code> source::parse_prologue()
     return true;
 }
 
-[[nodiscard]] generator<ast::import_repository_declaration_node *> source::remote_repositories(datum_namespace const& guard_namespace) const
+std::expected<void, hkc_error> source::evaluate_build_guard(datum_namespace const& ctx)
 {
-    if (prologue_ast == nullptr) {
+    auto last_error = hkc_error::none;
+
+    if (_prologue_ast != nullptr) {
+        if (auto r = _prologue_ast->evaluate_build_guard(ctx); not r) {
+            last_error = r.error();
+        }
+    }
+
+    if (_ast != nullptr) {
+        if (auto r = _ast->evaluate_build_guard(ctx); not r) {
+            last_error = r.error();
+        }
+    }
+    
+    if (last_error != hkc_error::none) {
+        return std::unexpected{last_error};
+    }
+
+    return {};
+}
+
+[[nodiscard]] generator<ast::import_repository_declaration_node *> source::remote_repositories() const
+{
+    if (_prologue_ast == nullptr) {
+        // The prologue failed to parse. 
         co_return;
     }
 
-    for (auto &node :prologue_ast->remote_repositories) {
-        assert(node->build_guard);
-        if (node->build_guard->evaluate(guard_namespace)) {
+    for (auto &node : _prologue_ast->remote_repositories) {
+        if (node->enabled()) {
             co_yield node.get();
         }
     }

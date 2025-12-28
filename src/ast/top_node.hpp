@@ -57,6 +57,13 @@ public:
         fixup(nullptr);
     }
 
+    /** Is this top node enabled.
+     * 
+     * Reasons for this top node to be valid:
+     *  * build-guard result is true.
+     */
+    [[nodiscard]] virtual bool enabled() noexcept = 0;
+
 private:
     hk::source *_source = nullptr;
 };

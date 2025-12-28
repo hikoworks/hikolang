@@ -29,13 +29,16 @@ public:
     {
     }
 
-    [[nodiscard]] std::expected<datum, hkc_error> evaluate(datum_namespace const& ctx) const override
+    [[nodiscard]] std::expected<datum, hkc_error> evaluate_expression(datum_namespace const& ctx) const override
     {
-        auto const lhs_ = lhs->evaluate(ctx);
-        auto const rhs_ = rhs->evaluate(ctx);
+        assert(lhs != nullptr);
+        auto const lhs_ = lhs->evaluate_expression(ctx);
         if (not lhs_) {
             return std::unexpected{lhs_.error()};
         }
+
+        assert(rhs != nullptr);
+        auto const rhs_ = rhs->evaluate_expression(ctx);
         if (not rhs_) {
             return std::unexpected{rhs_.error()};
         }

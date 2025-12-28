@@ -19,9 +19,9 @@ public:
     {
     }
 
-    [[nodiscard]] std::expected<datum, hkc_error> evaluate(datum_namespace const& ctx) const override
+    [[nodiscard]] std::expected<datum, hkc_error> evaluate_expression(datum_namespace const& ctx) const override
     {
-        auto const rhs_ = rhs->evaluate(ctx);
+        auto const rhs_ = rhs->evaluate_expression(ctx);
         if (not rhs_) {
             return std::unexpected{rhs_.error()};
         }

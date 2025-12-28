@@ -19,7 +19,7 @@ public:
     build_guard_literal_node(char const* first, char const* last, semantic_version value) :
         build_guard_expression_node(first, last), value(std::move(value)) {}
 
-    [[nodiscard]] std::expected<datum, hkc_error> evaluate(datum_namespace const& ctx) const override
+    [[nodiscard]] std::expected<datum, hkc_error> evaluate_expression(datum_namespace const& ctx) const override
     {
         return value;
     }

@@ -17,7 +17,6 @@ namespace hk {
     auto sources_by_name = std::vector<source*>{};
     sources_by_name.reserve(sources.size());
     for (auto& source : sources) {
-        source->to_be_compiled = false;
         sources_by_name.push_back(source.get());
     }
 
@@ -30,12 +29,12 @@ namespace hk {
 
 repository::repository(std::filesystem::path path, repository_url remote) : remote(remote), path(std::move(path)) {}
 
-void repository::scan_prologues(datum_namespace const& guard_namespace)
+void repository::scan_prologues(datum_namespace const& guard_namespace, module_list& modules)
 {
     gather_modules();
     parse_prologues();
     _sources_by_name = sort_by_name(_sources_by_path);
-    evaluate_conditional_compilation(guard_namespace);
+    evaluate_build_guard(guard_namespace);
 }
 
 bool repository::gather_modules()
@@ -119,47 +118,17 @@ bool repository::gather_modules()
     return modified;
 }
 
-std::expected<void, hkc_error> repository::evaluate_conditional_compilation(datum_namespace const& guard_namespace)
+std::expected<void, hkc_error> repository::evaluate_build_guard(datum_namespace const& ctx)
 {
-    auto compile_fallback = true;
-    source* fallback = nullptr;
-    source* previous = nullptr;
-    for (auto source : _sources_by_name) {
-        if ((not previous or cmp_names(*previous, *source) != std::strong_ordering::equal) and fallback) {
-            // Different module name, determine if the fallback needs to be
-            // compiled. Then reset the fallback.
-            fallback->to_be_compiled = compile_fallback;
-            compile_fallback = true;
-            fallback = nullptr;
+    auto last_error = hkc_error::none;
+    for (auto &source : _sources_by_path) {
+        if (auto r = source->evaluate_build_guard(ctx); not r.has_value()) {
+            last_error = r.error();
         }
-
-        auto const* build_guard = source->prologue_ast->declaration().build_guard.get();
-        if (build_guard) {
-            if (auto optional_x = build_guard->evaluate(guard_namespace)) {
-                if (*optional_x) {
-                    source->to_be_compiled = true;
-                    if (not compile_fallback) {
-                        return source->prologue_ast->declaration().add(hkc_error::duplicate_module);
-                    }
-                    compile_fallback = false;
-                }
-
-            } else {
-                return std::unexpected{optional_x.error()};
-            }
-
-        } else if (fallback) {
-            fallback->prologue_ast->declaration().add(hkc_error::duplicate_fallback_module);
-            return source->prologue_ast->declaration().add(hkc_error::duplicate_fallback_module);
-
-        } else {
-            fallback = source;
-        }
-
-        previous = source;
     }
-    if (fallback) {
-        fallback->to_be_compiled = compile_fallback;
+    
+    if (last_error != hkc_error::none) {
+        return std::unexpected{last_error};
     }
 
     return {};
@@ -199,8 +168,10 @@ void repository::recursive_scan_prologues(datum_namespace const& guard_namespace
     auto all_nodes = std::map<repository_url, all_nodes_item>{};
     auto todo = std::set<repository_url>{};
 
-    scan_prologues(guard_namespace);
-    for (auto const node_ptr : remote_repositories(guard_namespace)) {
+    auto modules = module_list{};
+
+    scan_prologues(guard_namespace, modules);
+    for (auto const node_ptr : remote_repositories()) {
         auto [it, inserted] = all_nodes.emplace(node_ptr->url, all_nodes_item{});
         it->second.nodes.insert(node_ptr);
         todo.emplace(node_ptr->url);
@@ -240,8 +211,8 @@ void repository::recursive_scan_prologues(datum_namespace const& guard_namespace
             continue;
         }
 
-        child_repo.scan_prologues(guard_namespace);
-        for (auto node_ptr : child_repo.remote_repositories(guard_namespace)) {
+        child_repo.scan_prologues(guard_namespace, modules);
+        for (auto node_ptr : child_repo.remote_repositories()) {
             all_nodes.emplace(node_ptr->url, node_ptr);
             todo.emplace(node_ptr->url);
         }
@@ -262,13 +233,12 @@ void repository::recursive_scan_prologues(datum_namespace const& guard_namespace
     }
 }
 
-[[nodiscard]] generator<ast::import_repository_declaration_node*>
-repository::remote_repositories(datum_namespace const& guard_namespace) const
+[[nodiscard]] generator<ast::import_repository_declaration_node*> repository::remote_repositories() const
 {
     for (auto const& source: _sources_by_path) {
         assert(source);
-        if (source->to_be_compiled) {
-            for (auto const& remote : source->remote_repositories(guard_namespace)) {
+        if (source->enabled()) {
+            for (auto const& remote : source->remote_repositories()) {
                 co_yield remote;
             }
         }

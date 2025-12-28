@@ -7,7 +7,7 @@
 #include "utility/repository_flags.hpp"
 #include "utility/generator.hpp"
 #include "source.hpp"
-#include "modules.hpp"
+#include "module_list.hpp"
 #include <filesystem>
 #include <memory>
 #include <chrono>
@@ -36,6 +36,11 @@ public:
      */
     repository(std::filesystem::path path, repository_url remote = repository_url{});
 
+    [[nodiscard]] friend bool operator==(repository const& lhs, repository const& rhs) noexcept
+    {
+        return lhs.remote == rhs.remote;
+    }
+
     /** Scan the prologue of each *.hkm in the repository.
      * 
      */
@@ -47,7 +52,11 @@ public:
      */
     void recursive_scan_prologues(datum_namespace const& guard_namespace, repository_flags flags);
 
-    [[nodiscard]] generator<ast::import_repository_declaration_node*> remote_repositories(datum_namespace const& guard_namespace) const;
+    /** Get the remote repositories imported by this repository.
+     * 
+     * @pre `scan_prologues()` must be called first.
+     */
+    [[nodiscard]] generator<ast::import_repository_declaration_node*> remote_repositories() const;
 
     [[nodiscard]] std::vector<std::unique_ptr<repository>> const& child_repositories() const noexcept
     {
@@ -98,9 +107,9 @@ private:
      */
     bool gather_modules();
 
-    /** Evaluate which files need to be compiled.
+    /** Evaluate the build guards.
      */
-    std::expected<void, hkc_error> evaluate_conditional_compilation(datum_namespace const& guard_namespace);
+    std::expected<void, hkc_error> evaluate_build_guard(datum_namespace const& ctx);
 
     /** Parse all the modules in a repository.
      * 

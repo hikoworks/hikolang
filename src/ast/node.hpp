@@ -4,6 +4,7 @@
 #include "error/hkc_error.hpp"
 #include "tokenizer/line_table.hpp"
 #include "utility/generator.hpp"
+#include "utility/datum_namespace.hpp"
 #include <string>
 #include <memory>
 #include <variant>
@@ -76,6 +77,12 @@ public:
     {
         co_return;
     }
+
+    /** Evaluate conditional compilation expressions.
+     * 
+     * @param ctx The namespace used by the compilation expressions.
+     */
+    virtual std::expected<void, hkc_error> evaluate_build_guard(datum_namespace const& ctx);
 
     virtual char const *fixup(node *parent)
     {

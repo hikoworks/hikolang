@@ -14,9 +14,10 @@ TEST_CASE(single_repository_scan)
     auto test_data_path = test::test_data_path();
     auto repository_path = std::filesystem::canonical(test_data_path / "single_repository_scan");
     auto repository = hk::repository{repository_path};
-    repository.scan_prologues(hk::datum_namespace{});
+    auto modules = hk::module_list{};
+    repository.scan_prologues(hk::datum_namespace{}, modules);
 
-    auto nodes = std::ranges::to<std::vector>(repository.remote_repositories(hk::datum_namespace{}));
+    auto nodes = std::ranges::to<std::vector>(repository.remote_repositories());
     REQUIRE(nodes.size() == 1);
     REQUIRE(nodes[0]->url.url() == "https://github.com/hikoworks/hikolang-test-a.git");
     REQUIRE(nodes[0]->url.rev() == "main");

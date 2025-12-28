@@ -12,7 +12,7 @@ public:
 
     build_guard_variable_node(char const *first, char const *last, fqname name) : build_guard_expression_node(first, last), name(name) {}
 
-    [[nodiscard]] std::expected<datum, hkc_error> evaluate(datum_namespace const& ctx) const override
+    [[nodiscard]] std::expected<datum, hkc_error> evaluate_expression(datum_namespace const& ctx) const override
     {
         if (auto optional_value = ctx.get(name)) {
             return *optional_value;

@@ -27,19 +27,6 @@ public:
         program
     };
 
-    /** The abstract syntax tree of just the prologue.
-     * 
-     * - Empty when the source code is out-of-data.
-     */
-    std::unique_ptr<ast::top_node> prologue_ast;
-
-    /** If this source file should be compiled.
-     * 
-     * After reading the prologue the value of this flag is determined
-     * by the evaluation of the build-guard and possibly fallback.
-     */
-    bool to_be_compiled = false;
-
     /** Create a source from a file in the repository.
      * 
      * @param path The cannonical path to the source-code file.
@@ -57,6 +44,22 @@ public:
      */
     [[nodiscard]] bool is_generated() const noexcept;
 
+    /** The source file is enabled.
+     * 
+     */
+    [[nodiscard]] bool enabled() const
+    {
+        if (_prologue_ast != nullptr) {
+            return _prologue_ast->enabled();
+        }
+        if (_ast != nullptr) {
+            return _ast->enabled();
+        }
+
+        // Compilation failed.
+        return false;
+    }
+
     /** The kind of source this is.
      * 
      *  - unknown: The prologue has not been scanned or there was an error.
@@ -65,6 +68,12 @@ public:
      *  - library: The source code will generate an FFI-library.
      */
     [[nodiscard]] kind_type kind() const noexcept;
+
+    [[nodiscard]] repository &repository() const noexcept
+    {
+        assert(_parent != nullptr);
+        return *_parent;
+    }
 
     /** Path to the source code.
      * 
@@ -91,9 +100,13 @@ public:
         return _lines;
     }
 
-    [[nodiscard]] generator<ast::import_repository_declaration_node *> remote_repositories(datum_namespace const& guard_namespace) const;
+    /** Remote Repository
+     * 
+     * @pre `evaluate(datum_namespace const&)` must be called first.
+     */
+    [[nodiscard]] generator<ast::import_repository_declaration_node *> remote_repositories() const;
 
-    std::expected<void, hkc_error> evaluate(datum_namespace const& guard_namespace);
+    std::expected<void, hkc_error> evaluate_build_guard(datum_namespace const& ctx);
 
     [[nodiscard]] friend std::strong_ordering cmp_sources(source const& lhs, source const& rhs) noexcept
     {
@@ -126,7 +139,7 @@ public:
     }
 
 private:
-    gsl::not_null<repository *> _parent;
+    hk::repository* _parent = nullptr;
 
     /** The name of the module.
      * 
@@ -176,6 +189,11 @@ private:
      */
     line_table _lines;
 
+    /** The abstract syntax tree of just the prologue.
+     * 
+     * - Empty when the source code is out-of-data.
+     */
+    std::unique_ptr<ast::top_node> _prologue_ast;
 
     /** The abstract syntax tree of the module.
      * 

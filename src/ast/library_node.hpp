@@ -20,9 +20,14 @@ public:
         co_yield _declaration.get();
     }
 
+    [[nodiscard]] bool enabled() noexcept override
+    {
+        assert(_declaration != nullptr);
+        return _declaration->enabled();
+    }
+
 private:
     std::unique_ptr<library_declaration_node> _declaration;
-
 };
 
 using library_node_ptr = std::unique_ptr<library_node>;
