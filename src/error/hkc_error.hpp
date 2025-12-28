@@ -60,6 +60,7 @@ enum class hkc_error : int {
     unknown_build_guard_constant = 23002,
     duplicate_fallback_module = 23003,
     duplicate_module = 23004,
+    missing_anchor_module = 23005,
     
     // Fatal: 30xxx
 

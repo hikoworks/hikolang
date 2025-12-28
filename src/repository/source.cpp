@@ -1,5 +1,6 @@
 
 #include "source.hpp"
+#include "repository.hpp"
 #include "utility/read_file.hpp"
 #include "parser/parse_top.hpp"
 #include "parser/parse_context.hpp"
@@ -8,20 +9,20 @@
 namespace hk {
 
 source::source(hk::repository &parent, std::filesystem::path path) :
-    _parent(gsl::make_not_null(&parent)), _source(std::move(path))
+    _parent(gsl::make_not_null(&parent)), _source_filename(std::move(path))
 {
     assert(std::filesystem::canonical(this->path()) == this->path());
 }
 
 source::source(hk::repository &parent, fqname generating_module, size_t lineno) :
-    _parent(gsl::make_not_null(&parent)), _source(std::pair{std::move(generating_module), lineno})
+    _parent(gsl::make_not_null(&parent)), _source_filename(std::pair{std::move(generating_module), lineno})
 {
 
 }
 
 [[nodiscard]] bool source::is_generated() const noexcept
 {
-    return not std::holds_alternative<std::filesystem::path>(_source);
+    return not std::holds_alternative<std::filesystem::path>(_source_filename);
 }
 
 [[nodiscard]] source::kind_type source::kind() const noexcept
@@ -41,8 +42,13 @@ source::source(hk::repository &parent, fqname generating_module, size_t lineno) 
 
 [[nodiscard]] std::filesystem::path const& source::path() const
 {
-    assert(std::holds_alternative<std::filesystem::path>(_source));
-    return std::get<std::filesystem::path>(_source);
+    assert(std::holds_alternative<std::filesystem::path>(_source_filename));
+    return std::get<std::filesystem::path>(_source_filename);
+}
+
+[[nodiscard]] ast::top_declaration_node& source::file_declaration() const
+{
+    return top().declaration();
 }
 
 [[nodiscard]] std::expected<bool, std::error_code> source::load()
@@ -144,6 +150,66 @@ std::expected<void, hkc_error> source::evaluate_build_guard(datum_namespace cons
             co_yield node.get();
         }
     }
+}
+
+[[nodiscard]] std::strong_ordering cmp_sources(source const& lhs, source const& rhs) noexcept
+{
+    if (auto r = lhs.source_filename().index() <=> rhs.source_filename().index(); r != std::strong_ordering::equal) {
+        return r;
+    } else if (lhs.source_filename().index() == 0) {
+        return std::get<std::filesystem::path>(lhs.source_filename()) <=> std::get<std::filesystem::path>(rhs.source_filename());
+    } else {
+        return std::get<std::pair<fqname, size_t>>(lhs.source_filename()) <=> std::get<std::pair<fqname, size_t>>(rhs.source_filename());
+    }
+}
+
+[[nodiscard]] std::partial_ordering cmp_names(source const& lhs, source const& rhs) noexcept
+{
+    if (lhs.name().index() == 0 or rhs.name().index() == 0) {
+        return std::partial_ordering::unordered;
+    } else if (auto _ = lhs.name().index() <=> rhs.name().index(); _ != std::strong_ordering::equal) {
+        return _;
+    } else {
+        switch (lhs.name().index()) {
+        case 1:
+            if (auto _ = std::get<1>(lhs.name()) <=> std::get<1>(rhs.name()); _ == std::strong_ordering::equal) {
+                return lhs.repository().path <=> rhs.repository().path;
+            } else {
+                return _;
+            }
+        case 2:
+            if (auto _ = std::get<2>(lhs.name()) <=> std::get<2>(rhs.name()); _ == std::strong_ordering::equal) {
+                return lhs.repository().path <=> rhs.repository().path;
+            } else {
+                return _;
+            }
+        case 3:
+            if (auto _ = std::get<3>(lhs.name()) <=> std::get<3>(rhs.name()); _ == std::strong_ordering::equal) {
+                return lhs.repository().path <=> rhs.repository().path;
+            } else {
+                return _;
+            }
+        }
+        std::unreachable();
+    }
+}
+
+[[nodiscard]] std::strong_ordering cmp_versions(source const& lhs, source const& rhs) noexcept
+{
+    if (auto _ = lhs.kind() <=> rhs.kind(); _ != std::strong_ordering::equal) {
+        return _;
+    }
+
+    if (auto _ = lhs.version() <=> rhs.version(); _ == std::strong_ordering::equal) {
+        return lhs.repository().path <=> rhs.repository().path;
+    } else {
+        return _;
+    }
+}
+
+[[nodiscard]] bool is_child_of(source const& child, source const& parent) noexcept
+{
+    return is_child_of(child.module_name(), parent.module_name());
 }
 
 } // namespace hk

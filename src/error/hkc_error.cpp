@@ -77,6 +77,8 @@ std::string hkc_error_category::message(int code) const
         return "There a multiple fallback modules with the same name."s;
     case hkc_error::duplicate_module:
         return "There are multiple modules with the same name for which the build-guard evaluates to true."s;
+    case hkc_error::missing_anchor_module:
+        return "Module must be a sub-module of an anchor-module in the same repository."s;
     case hkc_error::could_not_clone_repository:
         return "Unable to clone a repository."s;
     case hkc_error::insecure_identifier:

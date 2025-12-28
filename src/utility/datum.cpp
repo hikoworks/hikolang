@@ -15,7 +15,7 @@ datum::operator bool() const
     } else if (auto ip = std::get_if<long long>(&_value)) {
         return *ip != 0;
     } else if (auto vp = std::get_if<semantic_version>(&_value)) {
-        return to_bool(*vp);
+        return static_cast<bool>(*vp);
     } else if (auto sp = std::get_if<std::string>(&_value)) {
         return not sp->empty();
     } else if (auto vsp = std::get_if<std::vector<std::string>>(&_value)) {

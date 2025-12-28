@@ -17,11 +17,10 @@ namespace hk {
  * to indicate that they are wild cards.
  */
 struct semantic_version {
-    std::size_t major = 0;
+    std::size_t major = std::numeric_limits<std::size_t>::max();
     std::size_t minor = std::numeric_limits<std::size_t>::max();
     std::size_t patch = std::numeric_limits<std::size_t>::max();
 
-    constexpr semantic_version() noexcept = default;
     constexpr semantic_version(semantic_version&&) noexcept = default;
     constexpr semantic_version(const semantic_version&) noexcept = default;
     constexpr semantic_version& operator=(semantic_version&&) noexcept = default;
@@ -37,10 +36,21 @@ struct semantic_version {
      * @param patch The patch version, defaults to `std::numeric_limits<std::size_t>::max()`.
      */
     constexpr semantic_version(
-        std::size_t major,
+        std::size_t major = std::numeric_limits<std::size_t>::max(),
         std::size_t minor = std::numeric_limits<std::size_t>::max(),
         std::size_t patch = std::numeric_limits<std::size_t>::max()) noexcept
         : major(major), minor(minor), patch(patch) {}
+
+    /** Create a version number that is the highest possible.
+     */
+    [[nodiscard]] constexpr static semantic_version make_max() noexcept
+    {
+        auto r = semantic_version{};
+        r.major = std::numeric_limits<std::size_t>::max() - 1;
+        r.minor = std::numeric_limits<std::size_t>::max() - 1;
+        r.patch = std::numeric_limits<std::size_t>::max() - 1;
+        return r;
+    } 
 
     /** Create a semantic version from a string.
      * 
@@ -74,10 +84,15 @@ struct semantic_version {
         return patch == std::numeric_limits<std::size_t>::max();
     }
 
-    [[nodiscard]] constexpr friend bool to_bool(semantic_version const& rhs)
+    [[nodiscard]] constexpr bool empty() const noexcept
     {
-        return rhs.major == 0 and rhs.minor_is_wildcard() and rhs.patch_is_wildcard();
+        return major == std::numeric_limits<std::size_t>::max();
     }
+
+    [[nodiscard]] constexpr explicit operator bool() const noexcept
+    {
+        return not empty();
+    } 
 
     /** Check if this semantic version is equal to another semantic version.
      * 
@@ -103,7 +118,13 @@ struct semantic_version {
     [[nodiscard]] constexpr friend std::strong_ordering operator<=>(semantic_version const& lhs, semantic_version const& rhs) noexcept
     {
         if (lhs.major != rhs.major) {
-            return lhs.major <=> rhs.major;
+            if (lhs.major == std::numeric_limits<size_t>::max()) {
+                return std::strong_ordering::less;
+            } else if (rhs.major == std::numeric_limits<size_t>::max()) {
+                return std::strong_ordering::greater;
+            } else {
+                return lhs.major <=> rhs.major;
+            }
         }
 
         if (lhs.minor_is_wildcard() or rhs.minor_is_wildcard()) {

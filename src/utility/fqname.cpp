@@ -4,9 +4,7 @@
 
 namespace hk {
 
-fqname::const_iterator::const_iterator(char const* first) noexcept :
-    _first(first),
-    _last(fixup_last(first)) {}
+fqname::const_iterator::const_iterator(char const* first) noexcept : _first(first), _last(fixup_last(first)) {}
 
 [[nodiscard]] bool operator==(fqname::const_iterator const& lhs, fqname::const_iterator const& rhs) noexcept
 {
@@ -96,6 +94,7 @@ fqname::const_iterator fqname::const_iterator::operator++(int)
     return not is_absolute();
 }
 
+
 [[nodiscard]] std::string_view fqname::first_skip_prefix() const noexcept
 {
     auto const i = prefix();
@@ -133,7 +132,7 @@ fqname::const_iterator fqname::const_iterator::operator++(int)
 }
 
 /** Pop the last component.
- * 
+ *
  * Removes the last component, or:
  *  - if empty, the result is: ..
  *  - if absolute, the result is: .
@@ -192,7 +191,7 @@ fqname& fqname::add_component(std::string_view component)
 }
 
 /** Concatonate paths.
- * 
+ *
  *  - If rhs is an absolute path then it is returned.
  *  - Otherwise the paths are appended, maintaining the correct number of
  *    dots.
@@ -212,7 +211,7 @@ fqname& fqname::operator/=(fqname const& rhs)
 
     } else {
         if (prefix() == _str.size()) {
-            _str += std::string_view{rhs._str}.substr(1);   
+            _str += std::string_view{rhs._str}.substr(1);
         } else {
             _str += rhs._str;
         }
@@ -239,13 +238,13 @@ fqname fqname::operator/(std::string_view rhs) const
 }
 
 /** Generate a lexically normal path.
- * 
+ *
  * Remove all double dot `..` from the path by removing the preceding name.
  * Unless at the prefix of the path where it will accumulate as an extra
  * dot.
- * 
+ *
  * Absolute paths will always remain absolute.
- * 
+ *
  * @return A path without any double dot `..`.
  */
 fqname fqname::lexically_normal() const
@@ -268,7 +267,7 @@ fqname fqname::lexically_normal() const
 }
 
 /** Make a path relative to the base.
- * 
+ *
  *  1. If the this path is relative, append it to @a base.
  *  2. lexically_normal() the resulting path.
  */
@@ -278,7 +277,7 @@ fqname fqname::lexically_absolute(fqname const& base)
 }
 
 /** Make a path relative to the base.
- * 
+ *
  *  1. If the this path is relative, append it to @a base.
  *  2. lexically_normal() the resulting path.
  */
@@ -287,4 +286,15 @@ fqname fqname::lexically_absolute(std::string_view base)
     return lexically_absolute(fqname{base});
 }
 
+[[nodiscard]] bool is_child_of(fqname const& child, fqname const& parent) noexcept
+{
+    auto jt = child.begin();
+    for (auto it = parent.begin(); it != parent.end(); ++it, ++jt) {
+        if (jt == child.end() or *it != *jt) {
+            return false;
+        }
+    }
+    return true;
 }
+
+} // namespace hk

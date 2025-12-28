@@ -172,6 +172,15 @@ private:
 
 [[nodiscard]] std::strong_ordering operator<=>(fqname const& lhs, fqname const& rhs) noexcept;
 
+/** Check if the first argument is a child of the second argument.
+ * 
+ * @param child The child name.
+ * @param parent The parent name.
+ * @return true if @a child starts with all the components of @a parent.  
+ */
+[[nodiscard]] bool is_child_of(fqname const& child, fqname const& parent) noexcept;
+
+
 } // namespace hk
 
 template<>
