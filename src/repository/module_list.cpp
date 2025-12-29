@@ -2,36 +2,57 @@
 #include "module_list.hpp"
 #include "repository.hpp"
 #include <compare>
+#include <unordered_set>
 
 namespace hk {
 
-void module_list::add(source& s)
+void module_list::clear()
 {
-    if (s.enabled() and s.kind() == source::kind_type::module) {
-        _sources.push_back(std::addressof(s));
-        _fixed = false;
+    _sources.clear();
+
+#ifndef _NDEBUG
+    _deduplicated = true;
+    _marked_used = true;
+#endif
+}
+
+void module_list::add(hk::source& source)
+{
+    if (source.enabled()) {
+        _sources.push_back(std::addressof(source));
+
+#ifndef _NDEBUG
+        _deduplicated = false;
+        _marked_used = false;
+#endif
     }
 }
 
 [[nodiscard]] source* module_list::find(fqname const& name) const
 {
-    if (not _fixed) {
-        const_cast<module_list*>(this)->fixup();
-        assert(_fixed);
-    }
+#ifndef _NDEBUG
+    assert(_deduplicated);
+#endif
+
+    assert(name.is_absolute());
 
     auto it = std::lower_bound(_sources.begin(), _sources.end(), name, [](auto const& item, auto const& x) {
-        return item->module_name() < x;
+        if (item->kind() == source::kind_type::module) {
+            return item->module_name() < x;
+        } else {
+            // Anything that is not a module is less.
+            return true;
+        }
     });
 
-    if (it != _sources.end() and (*it)->module_name() == name) {
+    if (it != _sources.end() and (*it)->kind() == source::kind_type::module and (*it)->module_name() == name) {
         return *it;
     }
 
     return nullptr;
 }
 
-void module_list::fixup()
+void module_list::deduplicate()
 {
     // cmp_names will sort on:
     //  * kind: program, library, module
@@ -58,7 +79,8 @@ void module_list::fixup()
             if (not anchor_stack.empty() and anchor_stack.back()->module_name() == (*it)->module_name()) {
                 assert(it != _sources.begin());
                 assert(*(it - 1) == anchor_stack.back());
-                if (cmp_versions(**(it - 1), **it) == std::strong_ordering::less) {
+
+                if (cmp_versions(*anchor_stack.back(), **it) == std::strong_ordering::less) {
                     // The previous anchor had a lower version, remove it and replace with the new anchor.
                     it = _sources.erase(it - 1);
                     anchor_stack.back() = *it;
@@ -95,7 +117,41 @@ void module_list::fixup()
         }
     }
 
-    _fixed = true;
+#ifndef _NDEBUG
+    _deduplicated = true;
+#endif
+}
+
+void module_list::mark_used(std::vector<source*> todo)
+{
+    // Clear the used flag on all sources.
+    for (auto source : _sources) {
+        source->set_used(false);
+    }
+
+    auto done = std::unordered_set<source*>{};
+    while (not todo.empty()) {
+        // Move entry from todo to done.
+        auto source = todo.back();
+        todo.pop_back();
+        done.insert(source);
+
+        source->set_used(true);
+
+        for (auto import_declaration : source->imported_modules()) {
+            if (auto imported_module_ptr = find(import_declaration->name)) {
+                // Add the imported module to the todo list.
+                if (done.find(imported_module_ptr) == done.end()) {
+                    todo.push_back(imported_module_ptr);
+                }
+
+            } else {
+                import_declaration->add(hkc_error::imported_module_not_found);
+            }
+        }
+    }
+
+    _marked_used = true;
 }
 
 } // namespace hk

@@ -79,6 +79,8 @@ std::string hkc_error_category::message(int code) const
         return "There are multiple modules with the same name for which the build-guard evaluates to true."s;
     case hkc_error::missing_anchor_module:
         return "Module must be a sub-module of an anchor-module in the same repository."s;
+    case hkc_error::imported_module_not_found:
+        return "Imported module was not found in project"s;
     case hkc_error::could_not_clone_repository:
         return "Unable to clone a repository."s;
     case hkc_error::insecure_identifier:

@@ -61,6 +61,7 @@ enum class hkc_error : int {
     duplicate_fallback_module = 23003,
     duplicate_module = 23004,
     missing_anchor_module = 23005,
+    imported_module_not_found = 23006,
     
     // Fatal: 30xxx
 
