@@ -152,6 +152,11 @@ std::expected<void, hkc_error> source::evaluate_build_guard(datum_namespace cons
     }
 }
 
+[[nodiscard]] generator<ast::import_module_declaration_node*> source::imported_modules() const
+{
+    std::terminate();
+}
+
 [[nodiscard]] std::strong_ordering cmp_sources(source const& lhs, source const& rhs) noexcept
 {
     if (auto r = lhs.source_filename().index() <=> rhs.source_filename().index(); r != std::strong_ordering::equal) {

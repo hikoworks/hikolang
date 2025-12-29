@@ -66,6 +66,9 @@ void module_list::deduplicate()
 
     for (auto it = _sources.begin(); it != _sources.end(); ++it) {
         if (it != _sources.begin() and cmp_names(**(it - 1), **it) == std::strong_ordering::equal) {
+            // TODO handle fallback.
+            std::terminate();
+            
             // Two modules with the same name in the same repository.
             anchor_stack.back()->file_declaration().add(hkc_error::duplicate_module);
             (*it)->file_declaration().add(hkc_error::duplicate_module);
