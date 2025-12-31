@@ -49,8 +49,6 @@ namespace hk {
         r->build_guard = std::move(optional_build_guard).value();
     } else if (to_bool(optional_build_guard.error())) {
         return std::unexpected{optional_build_guard.error()};
-    } else {
-        r->build_guard = std::make_unique<ast::build_guard_literal_node>(it->begin(), it->begin(), true);
     }
 
     if (*it != ';') {

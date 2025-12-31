@@ -146,7 +146,7 @@ std::expected<void, hkc_error> source::evaluate_build_guard(datum_namespace cons
     }
 
     for (auto &node : _prologue_ast->remote_repositories) {
-        if (node->enabled()) {
+        if (to_bool(node->enabled())) {
             co_yield node.get();
         }
     }

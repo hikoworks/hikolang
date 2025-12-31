@@ -64,7 +64,7 @@ public:
     /** The source file is enabled.
      *
      */
-    [[nodiscard]] bool enabled() const
+    [[nodiscard]] logic enabled() const
     {
         if (_prologue_ast != nullptr) {
             return _prologue_ast->enabled();
@@ -74,7 +74,7 @@ public:
         }
 
         // Compilation failed.
-        return false;
+        return logic::X;
     }
 
     /** Is this module used by this project.

@@ -237,7 +237,7 @@ void repository::recursive_scan_prologues(datum_namespace const& guard_namespace
 {
     for (auto const& source: _sources_by_path) {
         assert(source);
-        if (source->enabled()) {
+        if (to_bool(source->enabled())) {
             for (auto const& remote : source->remote_repositories()) {
                 co_yield remote;
             }

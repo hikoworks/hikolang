@@ -2,6 +2,7 @@
 
 #include "node.hpp"
 #include "build_guard_expression_node.hpp"
+#include "utility/logic.hpp"
 #include <string>
 
 namespace hk::ast {
@@ -30,23 +31,28 @@ public:
 
     std::expected<void, hkc_error> evaluate_build_guard(datum_namespace const& ctx) override
     {
-        assert(build_guard != nullptr);
-        if (auto r = build_guard->evaluate_expression(ctx)) {
-            _build_guard_result = static_cast<bool>(*r);
+        if (build_guard == nullptr) {
+            // Fallback.
+            _build_guard_result = logic::_;
             return {};
+
+        } else if (auto r = build_guard->evaluate_expression(ctx)) {
+            _build_guard_result = to_logic(static_cast<bool>(*r));
+            return {};
+
         } else {
-            _build_guard_result = false;
+            _build_guard_result = logic::X;
             return std::unexpected{r.error()};
         }
     }
 
-    [[nodiscard]] bool enabled() noexcept
+    [[nodiscard]] logic enabled() noexcept
     {
         return _build_guard_result;
     }
 
 private:
-    bool _build_guard_result = false;
+    logic _build_guard_result = logic::F;
 };
 
 }

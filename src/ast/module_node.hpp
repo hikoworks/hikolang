@@ -17,10 +17,14 @@ public:
 
     [[nodiscard]] generator<node *> children() const override
     {
+        for (auto _ : top_node::children()) {
+            co_yield _;
+        }
+        
         co_yield _declaration.get();
     }
 
-    [[nodiscard]] bool enabled() noexcept override
+    [[nodiscard]] logic enabled() noexcept override
     {
         assert(_declaration != nullptr);
         return _declaration->enabled();

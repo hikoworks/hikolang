@@ -18,7 +18,7 @@ void module_list::clear()
 
 void module_list::add(hk::source& source)
 {
-    if (source.enabled()) {
+    if (to_bool(source.enabled())) {
         _sources.push_back(std::addressof(source));
 
 #ifndef _NDEBUG
@@ -66,8 +66,14 @@ void module_list::deduplicate()
 
     for (auto it = _sources.begin(); it != _sources.end(); ++it) {
         if (it != _sources.begin() and cmp_names(**(it - 1), **it) == std::strong_ordering::equal) {
-            // TODO handle fallback.
-            std::terminate();
+            // Remove a fallback source if another source of the same name
+            // exists. If there are two fallbacks, then they may remain and
+            // cause a duplicate_module error.
+            if ((*(it - 1))->enabled() == logic::_ and (*it)->enabled() == logic::T) {
+                it = _sources.erase(it - 1);
+            } else if ((*(it - 1))->enabled() == logic::T and (*it)->enabled() == logic::_) {
+                it = _sources.erase(it) - 1;
+            }
             
             // Two modules with the same name in the same repository.
             anchor_stack.back()->file_declaration().add(hkc_error::duplicate_module);

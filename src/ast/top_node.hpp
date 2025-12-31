@@ -7,6 +7,7 @@
 #include "import_repository_declaration_node.hpp"
 #include "import_module_declaration_node.hpp"
 #include "import_library_declaration_node.hpp"
+#include "utility/logic.hpp"
 #include <vector>
 
 namespace hk::ast {
@@ -62,7 +63,7 @@ public:
      * Reasons for this top node to be valid:
      *  * build-guard result is true.
      */
-    [[nodiscard]] virtual bool enabled() noexcept = 0;
+    [[nodiscard]] virtual logic enabled() noexcept = 0;
 
 private:
     hk::source *_source = nullptr;
