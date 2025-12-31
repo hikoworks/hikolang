@@ -68,7 +68,7 @@ struct logic_unary_truth_table {
     [[nodiscard]] constexpr logic operator[](logic rhs) const noexcept
     {
         auto tmp = _table;
-        tmp <<= std::to_underlying(rhs) << 1;
+        tmp >>= std::to_underlying(rhs) << 1;
         tmp &= 0b11;
         return static_cast<logic>(tmp);
     }

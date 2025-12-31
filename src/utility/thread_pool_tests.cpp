@@ -16,12 +16,15 @@ TEST_CASE(simple_test)
         });
     }
 
-    // Wait for completion of all jobs.
-    for (auto i = 0uz; i != futures.size(); ++i) {
-        futures[i].wait();
-    }
+    pool.wait();
 
     REQUIRE(count == futures.size());
+
+    // Wait for completion of all jobs.
+    for (auto i = 0uz; i != futures.size(); ++i) {
+        using namespace std::literals;
+        REQUIRE(futures[i].wait_for(0s) == std::future_status::ready);
+    }
 
     // Check if all the results of the jobs are accounted for.
     auto check = std::bitset<futures.size()>{};

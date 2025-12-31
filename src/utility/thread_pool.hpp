@@ -6,6 +6,7 @@
 #include <condition_variable>
 #include <mutex>
 #include <stop_token>
+#include <vector>
 #include <cassert>
 
 namespace hk {
@@ -51,6 +52,10 @@ public:
 
     thread_pool(size_t max_num_threads);
 
+    [[nodiscard]] bool empty() const;
+
+    void wait() const;
+
     void schedule(std::unique_ptr<thread_pool_base> work);
 
     template<typename F, typename... Args>
@@ -74,38 +79,48 @@ private:
         thread_item(thread_pool* pool);
     };
 
+    [[nodiscard]] std::pair<bool, std::unique_lock<std::mutex>> _empty(std::unique_lock<std::mutex> lock) const;
     [[nodiscard]] std::pair<thread_item*, std::unique_lock<std::mutex>> idle_thread(std::unique_lock<std::mutex> lock);
 
     static void runner(std::stop_token token, thread_pool::thread_item* item, thread_pool* pool);
 
-    std::mutex _mutex;
-    std::condition_variable _idle_thread_condition;
+    mutable std::mutex _mutex;
+    mutable std::condition_variable _idle_thread_condition;
     size_t _max_num_threads;
     std::vector<std::unique_ptr<thread_item>> _threads;
 };
 
-[[nodiscard]] inline size_t num_cpus()
-{
-    if (auto _ = std::thread::hardware_concurrency()) {
-        return _;
-    } else {
-        return 1;
-    }
-}
+/** The number of CPUs found on the system
+ * 
+ * @return The number of CPUs found, or 1 if the number of CPUs can not be
+ *         determined.
+ */
+[[nodiscard]] size_t num_cpus();
 
-inline std::atomic<size_t> _max_num_threads = num_cpus();
 
-[[nodiscard]] inline size_t max_num_threads()
-{
-    return _max_num_threads.load(std::memory_order::relaxed);
-}
+/** The maximum number of threads to use for computational tasks.
+ * 
+ * @info The default is `num_cpus()`;
+ * @return The maximum number of threads to use.
+ */
+[[nodiscard]] size_t max_num_threads();
 
-inline size_t set_max_num_threads(size_t new_max_threads)
-{
-    assert(new_max_threads != 0);
-    return _max_num_threads.exchange(new_max_threads, std::memory_order::relaxed);
-}
+/** Set the maximum number of threads to use.
+ * 
+ * @param new_max_threads The new maximum threads to use.
+ * @return The previous maximum number of threads to use.
+ */
+size_t set_max_num_threads(size_t new_max_threads);
 
+/** Add a task to the global thread-pool.
+ * 
+ * @note You can change the size of the pool by calling `set_max_num_threads()`.
+ * @note This function will block if the thread pool is full.
+ * @param f The callable to schedule on the thread pool.
+ * @param args The arguments to pass to the callable when it will be scheduled.
+ *             These arguments are copied.
+ * @return A future with the return value of @a f.
+ */
 template<typename F, typename... Args>
 std::future<std::invoke_result_t<std::decay_t<F>, std::decay_t<Args>...>> async_on_pool(F&& f, Args&&... args)
 {
