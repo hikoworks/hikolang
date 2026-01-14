@@ -4,7 +4,6 @@
 #include "top_declaration_node.hpp"
 #include "utility/fqname.hpp"
 #include "utility/semantic_version.hpp"
-#include "utility/enum_variant.hpp"
 #include <string>
 #include <filesystem>
 

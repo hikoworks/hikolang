@@ -4,37 +4,47 @@
 #include <cstdint>
 #include <utility>
 #include <exception>
+#include <string_view>
 
 namespace hk {
 
+/** Logic type.
+ * 
+ * This is a logic-type a smaller version of VHDL's std_logic.
+ * 
+ */
 enum class logic : uint8_t {
+    /** False */
     F,
+    /** True */
     T,
+    /** Error */
     X,
+    /** Don't Care (third state) */
     _,
 };
 
-template<size_t N>
-[[nodiscard]] constexpr auto make_logic_truth_table(char const *str)
+/** Calculate a truth-table and pack it into a integer.
+ * 
+ * @param str A set of values represented by '0', '1', 'X', '-'. The left
+ *            most character will places in the least significant 2 bits.
+ */
+[[nodiscard]] constexpr uint32_t make_logic_truth_table(std::string_view str)
 {
-    using int_type = std::conditional_t<N == 16, uint32_t, uint8_t>;
-    auto r = int_type{};
+    auto r = uint32_t{0};
 
-    for (auto i = N; i != 0; --i) {
+    for (auto i = str.size(); i != 0; --i) {
         r <<= 2;
         switch (str[i - 1]) {
-        case 'F':
         case '0':
             r |= std::to_underlying(logic::F);
             break;
-        case 'T':
         case '1':
             r |= std::to_underlying(logic::T);
             break;
         case 'X':
             r |= std::to_underlying(logic::X);
             break;
-        case '_':
         case '-':
             r |= std::to_underlying(logic::_);
             break;
@@ -45,11 +55,25 @@ template<size_t N>
     return r;
 }
 
-struct logic_binary_truth_table {
+/** Create a truth table for logic functions.
+ * 
+ */
+struct logic_truth_table {
     uint32_t _table;
 
-    [[nodiscard]] constexpr logic_binary_truth_table(char const str[17]) : _table(make_logic_truth_table<16>(str)) {}
+    /** Create a truth table.
+     * 
+     * @param str A set of values represented by '0', '1', 'X', '-'. The left
+     *            most character will places in the least significant 2 bits.
+     */
+    [[nodiscard]] constexpr logic_truth_table(std::string_view str) : _table(make_logic_truth_table(str)) {}
 
+    /** Extract a value from the table.
+     * 
+     * @param lhs Index on the minor axis.
+     * @param rhs Index on the major axis.
+     * @return The value at the given coordinates
+     */
     [[nodiscard]] constexpr logic operator[](logic lhs, logic rhs) const noexcept
     {
         auto tmp = _table;
@@ -58,13 +82,12 @@ struct logic_binary_truth_table {
         tmp &= 0b11;
         return static_cast<logic>(tmp);
     }
-};
 
-struct logic_unary_truth_table {
-    uint8_t _table;
-
-    [[nodiscard]] constexpr logic_unary_truth_table(char const str[5]) : _table(make_logic_truth_table<4>(str)) {}
-
+    /** Extract a value from the table.
+     * 
+     * @param lhs Index in the table.
+     * @return The value at the given index
+     */
     [[nodiscard]] constexpr logic operator[](logic rhs) const noexcept
     {
         auto tmp = _table;
@@ -107,7 +130,7 @@ struct logic_unary_truth_table {
  */
 [[nodiscard]] constexpr logic operator|(logic lhs, logic rhs) noexcept
 {
-    constexpr auto tt = logic_binary_truth_table{"01X-11X1XXXX-1X-"};
+    constexpr auto tt = logic_truth_table{"01X-11X1XXXX-1X-"};
     return tt[lhs, rhs];
 }
 
@@ -122,7 +145,7 @@ struct logic_unary_truth_table {
  */
 [[nodiscard]] constexpr logic operator&(logic lhs, logic rhs) noexcept
 {
-    constexpr auto tt = logic_binary_truth_table{"00X001X-XXXX0-X-"};
+    constexpr auto tt = logic_truth_table{"00X001X-XXXX0-X-"};
     return tt[lhs, rhs];
 }
 
@@ -137,7 +160,7 @@ struct logic_unary_truth_table {
  */
 [[nodiscard]] constexpr logic operator^(logic lhs, logic rhs) noexcept
 {
-    constexpr auto tt = logic_binary_truth_table{"01X-10X-XXXX--X-"};
+    constexpr auto tt = logic_truth_table{"01X-10X-XXXX--X-"};
     return tt[lhs, rhs];
 }
 
@@ -149,7 +172,7 @@ struct logic_unary_truth_table {
  */
 [[nodiscard]] constexpr logic operator~(logic rhs) noexcept
 {
-    constexpr auto tt = logic_unary_truth_table{"10X-"};
+    constexpr auto tt = logic_truth_table{"10X-"};
     return tt[rhs];
 }
 
