@@ -50,14 +50,34 @@ class thread_pool {
 public:
     ~thread_pool() = default;
 
+    /** Create a thread pool.
+     * 
+     * @param max_num_threads The maximum number of threads to spawn.
+     */
     thread_pool(size_t max_num_threads);
 
     [[nodiscard]] bool empty() const;
 
+    /** Wait until all work is completed.
+     */
     void wait() const;
 
+    /** Schedule work.
+     * 
+     * @note This function blocks if there are not enough threads to schedule
+     *       the work right now.
+     * @param work The work to schedule.
+     */
     void schedule(std::unique_ptr<thread_pool_base> work);
 
+    /** Schedule work.
+     * 
+     * @note This function blocks if there are not enough threads to schedule
+     *       the work right now.
+     * @param f The callable object to schedule for execution.
+     * @param args The arguments to pass to the callable.
+     * @return A future holding the result of the work.
+     */
     template<typename F, typename... Args>
     std::future<std::invoke_result_t<std::decay_t<F>, std::decay_t<Args>...>> operator()(F&& f, Args&&... args)
     {
