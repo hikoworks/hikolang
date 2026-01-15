@@ -1,18 +1,22 @@
 
 #include "symbol_table.hpp"
 #include "utility/algorithm.hpp"
+#include <algorithm>
 
 namespace hk {
 
-symbol_table::symbol_table(std::span<symbol_table const*> tables)
+symbol_table::symbol_table(std::span<symbol_table const*> tables) : _tables()
 {
-    auto tables_ = std::vector<container_type const*>{};
-    tables_.reserve(tables.size());
+    auto const size = std::accumulate(tables.begin(), tables.end(), 0uz, [](auto const& item) {
+        return item.size();
+    });
+    _tables.reserve(size)
+
     for (auto const& table : tables) {
-        tables_.push_back(std::addressof(table->_table));
+        _table.append_range(*table);
     }
 
-    multi_merge(tables_, _table);
+    std::sort(_tables.begin(), _tables.end());
 }
 
 hk::symbol *symbol_table::add(fqname name, std::shared_ptr<hk::symbol> symbol)
