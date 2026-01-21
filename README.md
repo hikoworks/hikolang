@@ -104,7 +104,8 @@ cloned into the `_hkdeps` directory, by recursively scanning the
 repositories.
 
 Directory structure within a repository is free-form; the compilation
-order is determined after scanning the prologue of each module (a file).
+order and conditional compilation is determined after scanning the
+prologue of each module (a file).
 
 ## Compile-time allocations survive into runtime.
 Since a lot of code will be executed at compile-time it is likely that
@@ -124,6 +125,45 @@ So allocations during compilation must survive into the executable.
     - `__pointer_relocate__()` will be called.
  * The read-write `.alloc` section is part of the normal allocation,
    allowing deallocation and reusing.
+
+## Enum with associated values
+Enums members have zero or more associated values, like the following
+optional type, which is a template. Template arguments use the bracketed
+argument syntax.
+
+```
+enum optional[T : type] {
+  none
+  some(T)
+}
+```
+
+Niche values and niche-mask allow optimization to compress the enum's index-tag to
+occupy the same space as the associated value. For example the address of a reference
+can never be zero, so this niche-value can be used for `none` with an
+optional reference.
+
+## Capturing string literals
+String literals with the `t` prefix like the following `t"Hello {foo()}"`
+are converted to a tuple of the following form: `("Hello {1:}", foo())`.
+
+## Types are values
+All types are constructed from templates. Returned types are interned; two types
+returned from the same template with same arguments are identical.
+
+Templates are normal functions that return a type, and like normal functions may have
+an overload-set. Templates may be modified, at compile time, before the template is
+used to instantiate a type. Since all functions are templates, any type-template in
+a type decoration on arguments and return types are not instantiated until that
+function is called.
+
+
+A partially instantiated template returns a wrapper template that calls the original
+template with the remaining arguments. This means that a type returned from the
+wrapper template still is identified as comming from the original template.
+
+For ease of use when a zero argument template is used where a type is needed it is
+automatically instantiated there.
 
 ## Elaboration Phase
 Certain languages have a separate elaboration phase during compilation.
