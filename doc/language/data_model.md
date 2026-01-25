@@ -4,15 +4,133 @@ This chapter describes how functions, types, templates and values work in this
 language.
 
 Here are a couple of rules in this language:
- - Types are first class values, and can be passed to functions or type templates.
+ - Types are first class values, and can be passed to functions or type
+   templates.
  - All function and type definitions are always templates.
- - A type definition is an alternate representation of a function that returns a type.
+ - A type definition is an alternate representation of a function that returns a
+   type.
  - Multiple type and function definition with the same name form a overload set.
- - Type and function definitions may be modified until the whole overload set is frozen.
+ - Type and function definitions may be modified until the whole overload set is
+   frozen.
  - An overload set is frozen when a type or function is instantiated.
  - Functions and types are lazilly evaluated to delay freezing; functions and
    global variables are recursively evaluated when they are exported, after
    processing the last statement of a file.
+
+
+## Function Definition
+
+All functions definition are templates of functions, for which partial or full
+specializations are generated depending the arguments that are passed to the
+function in a call.
+
+A function definition consist of the following components:
+ - Name
+ - Argument declarations
+ - Return type declaration
+ - Attributes
+ - Code-Block
+
+The name of the function is recorded in the context where the function is
+defined. One or more functions with the same name form an overload-set.
+
+The signature of a function differentiates between different functions within an
+overload-set. The signature of a function includes: argument types and
+`constrain()`-attributes.
+
+When a function-call is compiled the following is done:
+ - Collect all overload-sets based on the name in:
+   + In the current context, surrounding contexts, up to the root namespace.
+   + In the context of the type definitions of any of the call's arguments;
+     ADR (Argument Depended Lookup)
+ - Each function in the collected overload-sets is matched with the function's
+   argument and `constraint()` expressions. This will cause these overload-sets
+   to be frozen.
+ - The best matching function is selected, and this function is instantiated
+   and compiled.
+ - A (partial) specialization of that function is generated, at which time the
+   code-block is compiled.
+ - As an optimization functions are de-duplicated; which may cause multiple
+   functions to have the same address.
+
+> [!NOTE]
+> Because the return type of functions are not part of the signature
+> it delays freezing of return types. This could delay freezing of important
+> types like `error_code`.
+
+
+### Best matching function
+
+The best function of a collection of overload-sets is chosen in the following
+priority order:
+ 1. The longest start sequence of perfect matching argument types.
+ 2. The largest number of perfect matching argument types.
+ 3. The longest start sequence of derived argument types.
+ 4. The largest number of derived argument types.
+ 5. The rest.
+
+If at each step there are functions that have an equal number of arguments
+that match, the rest of the arguments are matched using the same priority order.
+
+If after this there is more than one function with the same priority then
+the compiler will emit an "ambiguous function" call error.
+
+
+### Freezing
+
+When a function call is compiled the full overload-sets that match that function
+call is frozen. This means that from this point forward no new functions can
+be added to the overload-set, nor can the signatures of these functions be
+modified.
+
+During this freeze the types used in every signature of the overload-set needs
+to recursively be frozen as well.
+
+### (Partial) Specialization
+
+A second level of freezing happens when one of the templates in the overload-set
+gets specialized/instantiated, at this point the code-block of this template can
+no longer be modified, and the code-block gets compiled and triggers freezing
+from any call and type usage in this code-block.
+
+
+## Type Definition
+
+All type definition are templates of types, for which partial or full
+specializations are generated depending the arguments that are passed when
+creating a concrete type.
+
+```
+struct foo[T : type] (barrable) constrain(T : numeric) {
+  var x : T
+
+  fn bar(y : T) {
+    return x + y
+  }
+}
+```
+
+A type definition consists of the following:
+ - meta-type `struct`,
+ - name `foo`,
+ - template-arguments `[T : type]`,
+ - inheritance list `(barrable)`,
+ - attributes `constrain(T : numeric)`,
+ - code-block
+
+A type definition is a different syntactic form of a function definition (a
+function returning a type); hence a type definition is part of an overload set
+of this function definition.
+
+A meta-type is a function that returns a type template, for example `struct` and
+`enum` are meta-types. The functions `struct()`, `enum()` are called to return a
+function-template with template-arguments, which in turn returns a concrete
+type.
+
+
+
+
+
 
 ## Templates
 
