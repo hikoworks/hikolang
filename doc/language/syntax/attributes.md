@@ -40,14 +40,19 @@ This function will not return.
 An implementation must terminate the application if the function does
 return. Or proof that the function will not return.
 
-### pre()
+### pre(expression)
 Pre-condition is checked before calling the function.
 
-### post()
+### post(expression)
 Post-condition is checked after calling the function.
 
 A post-condition on a type will run after an object is modified.
 
+### constrain(expression)
+A condition that is checked when matching if the template arguments
+are valid for this specific overload in the overload-set.
+
+Constrain can also contain guard conditions.
 
 ### std.no_inline
 Calls to this function are never inlined.

@@ -1,4 +1,4 @@
-# variable-declaration
+# variable-definition
 
 ## Syntax
 

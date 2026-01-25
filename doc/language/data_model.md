@@ -16,46 +16,46 @@ Here are a couple of rules in this language:
 
 ## Templates
 
-Function and type definitions are always templates in this language.
+All function-, type- and (global) variables-definitions are templates. One or more
+definitions with different signatures with the same name form a overload-set.
 
+Each of the following functions form the `foo` overload-set:
+```
+fn foo(x: int) { return x + 42 }
+fn foo(x) { return x + 1 }
+fn foo() { return 0 }
+```
 
-## Overload sets
+Both of the following type-templates form the `bar` overload-set:
+```
+struct bar[T: type] { var x : T }
+struct bar { var x : int }
+```
 
+Both of the following global variable-templates form the `qux` overload-set.
+`qux_init()` is evaluated at compile time if possible:
+```
+var[T: type] qux : T = qux_init(T)
+var qux : int = qux_init(int)
+```
 
+An overload set is lazilly evaluated, which means they may be modified after the
+definition. This makes it possible to add members to a type after its definition
+and even by a different module or repository. After a overload set is frozen
+it can no longer be modified.
 
+### Freezing
 
-## Compilation Order
+These are the main ways that a overload-set becomes frozen:
+ - Code-statements at file level will cause overload-sets that are used
+   to be frozen.
+ - After a `program` is parsed the `main()` function is compiled and
+   overload-sets that are used will be frozen.
+ - After a `library` is parsed all the exported functions and
+   global-variables are compiled and overload-sets that are used will be frozen.
+ - Recursively all type annotations used in the signatures of an overload
+   set are frozen.
 
-The compilation order is important when we are describing how the compiler
-knows which types are visible and complete.
-
-Compilation starts after the prologue-scan which will read every source file
-in the repository and each imported repository.
-
-Each file is then compiled in random order while satisfying that all imported
-modules of a file are compiled first. In incremental/language server mode,
-files may trigger recompilation of files and their dependent files.
-
-Each file is compiled statement-by-statement, as-if they executed in a
-interpreter, for example:
- - type-template definition.
- - function-template definition.
- - global variable definition.
- - executable statements
-
-> [!NOTE]
-> All types and function declarations are templates in this language.
-
-At this time function and type declarations remain in their "modifiable" state,
-this means:
- - Other versions of type and functions can be added to the overload set.
- - It is possible to modify types by removing and adding members to types,
-   as-if types are mutable values.
-
-During the statement-by-statement compilation there may also be normal code
-statments at file scope that will be executed that for example can make these
-modifications of types. These code statements can cause types and functions
-to transition to "frozen" and "instantiated" state.
 
 
 

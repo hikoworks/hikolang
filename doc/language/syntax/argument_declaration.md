@@ -2,15 +2,19 @@
 
 ## Syntax
 
-[_binding_mode_](binding_mode.md)__?__ [_name_](name.md) [_type_declaration_](type_declaration.md)__?__
-__(__ `=` [_expression_](expression.md) __)?__ __|__\
+[_binding_mode_]__?__ [_name_] [_type-annotation_]__?__ __(__ `=` [_expression_] __)?__ __|__\
 
-[_literal_](literal.md) [_type_declaration_](type_declaration.md)__?__ __|__\
+[_literal_] [_type-annotation_]__?__ __|__\
 
-`(` [_expression_](expression.md) `)` [_type_declaration_](type_declaration.md)__?__ __|__\
+`(` [_expression_] `)` [_type-annotation_]__?__ __|__\
 
-[_binding_mode_](binding_mode.md)__?__ [_name_](name.md)`...` [_type_declaration_](type_declaration.md)__?__
+[_binding_mode_]__?__ [_name_]`...` [_type-annotation_]__?__
 
+[_type-annotation_]: type_annotation.md
+[_binding_mode_]: binding_mode.md
+[_expression_]: expression.md
+[_literal_]: literal.md
+[_name_]: name.md
 
 ## Semantics
 Declares an argument for a function or lambda with a [_name_](name.md)

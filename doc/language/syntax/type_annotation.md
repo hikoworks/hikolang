@@ -1,4 +1,4 @@
-# type-declaration
+# type-annotation
 
 ## Syntax
 

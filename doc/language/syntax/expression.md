@@ -8,7 +8,7 @@
 [_tag_](tag.md) __|__
 [_context-argument_](context_argument.md) __|__
 [_positional-argument_](positional_argument.md) __|__
-[_variable-declaration_](variable_declaration.md) __|__
+[_variable-definition_](variable_definition.md) __|__
 [_operator-expression_](operator_expression.md) __|__
 [_if-control-expression_](if_control_expression.md) __|__
 [_while-control-expression_](while_control_expression.md) __|__
