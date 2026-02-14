@@ -48,7 +48,7 @@ bool repository::gather_modules()
     auto existing_source_paths = vector_set<std::reference_wrapper<std::filesystem::path const>>{};
     for (auto& m : _sources_by_path) {
         if (not m->is_generated()) {
-            existing_source_paths.add(m->path());
+            existing_source_paths.emplace(m->path());
         }
     }
 
@@ -66,7 +66,7 @@ bool repository::gather_modules()
         }
 
         auto source_path = std::filesystem::canonical(entry.path());
-        if (not visited_directories.add(source_path)) {
+        if (auto [_, inserted] = visited_directories.emplace(source_path); not inserted) {
             // This directory has already been visited; a potential symlink loop.
             if (entry.is_directory()) {
                 it.disable_recursion_pending();
@@ -82,7 +82,7 @@ bool repository::gather_modules()
             continue;
         }
 
-        if (not existing_source_paths.contains_and_erase(source_path)) {
+        if (existing_source_paths.erase(source_path) == 0) {
             // The module did not exist yet.
             modified = true;
 
@@ -104,14 +104,14 @@ bool repository::gather_modules()
     for (auto const& p : existing_source_paths) {
         modified = true;
 
-        it = std::lower_bound(it, _sources_by_path.end(), p, [](auto const& e, auto const& p) {
+        it = std::lower_bound(it, _sources_by_path.end(), p.key, [](auto const& e, auto const& p) {
             if (e->is_generated()) {
                 return true;
             } else {
                 return e->path() < p;
             }
         });
-        assert(it != _sources_by_path.end() and not(*it)->is_generated() and (*it)->path() == p);
+        assert(it != _sources_by_path.end() and not(*it)->is_generated() and (*it)->path() == p.key);
         it = _sources_by_path.erase(it);
     }
 

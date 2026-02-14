@@ -208,6 +208,8 @@ if(BUILD_TESTING)
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/strings_tests.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/thread_pool_tests.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/unicode_tests.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/vector_map_tests.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/utility/vector_set_tests.cpp"
         "${CMAKE_CURRENT_BINARY_DIR}/src/test_utilities/paths.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/test_utilities/paths.hpp"
     )
