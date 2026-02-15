@@ -16,6 +16,7 @@
 [_literal_]: literal.md
 [_name_]: name.md
 
+
 ## Semantics
 Declares an argument for a function or lambda with a [_name_](name.md)
 which can be used as a variable inside the function's or lambda's code-block.

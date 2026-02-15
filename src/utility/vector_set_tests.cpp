@@ -3,8 +3,9 @@
 
 using set_type = hk::vector_set<int>;
 
-// This requires [[no_unique_address]] to work, which it should be on clang.
+#if __has_cpp_attribute(no_unique_address)
 static_assert(sizeof(set_type::item_type) == sizeof(set_type::key_type));
+#endif
 
 TEST_SUITE(vector_set_suite)
 {
