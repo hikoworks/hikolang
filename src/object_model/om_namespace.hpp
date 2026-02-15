@@ -15,7 +15,6 @@ class om_namespace : public om_object {
 public:
 
 private:
-    om_namespace *_parent = nullptr;
 };
 
 }

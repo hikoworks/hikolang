@@ -20,6 +20,8 @@ public:
 
 
 private:
+    om_object *_parent = nullptr;
+
     /** The dictionary of the object
      */
     vector_map<std::string, std::shared_ptr<om_object>> _dict;
