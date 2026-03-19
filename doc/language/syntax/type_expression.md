@@ -7,7 +7,7 @@
 
 ## Semantics
 
-A _type_expression_ is a [_expression_](expression.md) which is evaluted at
+A _type_expression_ is a [_expression_](expression.md) which is evaluated at
 compile time to a:
  - type
  - type-template
