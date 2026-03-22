@@ -28,10 +28,10 @@ Here is a table of the standard operators:
  |         30 | `trap a`    | right-to-left | [_trap_operator_](trap_operator.md)          |
  |         31 | `a catch b` | left-to-right | [_catch_operator_](catch_operator.md)        |
  |         40 | `a : b`     | left-to-right | [_coerce_operator_](coerce_operators.md)     |
- |         40 | `a := b`    | left-to-right | [_coerce_operator_](coerce_operators.md)     |
+ |         40 | `a :: b`    | left-to-right | [_coerce_operator_](coerce_operators.md)     |
  |         40 | `a :^ b`    | left-to-right | [_coerce_operator_](coerce_operators.md)     |
  |         40 | `a :! b`    | left-to-right | [_coerce_operator_](coerce_operators.md)     |
- |         49 | `a ** b`    | left-to-right | `__pow__(a, b)`                              |   
+ |         49 | `a ** b`    | left-to-right | `__pow__(a, b)`                              |
  |         50 | `a * b`     | left-to-right | `__mul__(a, b)`                              |
  |         50 | `a / b`     | left-to-right | `__div__(a, b)`                              |
  |         50 | `a % b`     | left-to-right | `__mod__(a, b)`                              |

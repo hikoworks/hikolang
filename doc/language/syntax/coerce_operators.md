@@ -3,7 +3,7 @@
 ## Syntax
 
 [_expression_](expression.md) `:` [_type-expression_](type_expression.md) __|__\
-[_expression_](expression.md) `:=` [_type-expression_](type_expression.md) __|__\
+[_expression_](expression.md) `::` [_type-expression_](type_expression.md) __|__\
 [_expression_](expression.md) `:^` [_type-expression_](type_expression.md) __|__\
 [_expression_](expression.md) `:!` [_type-expression_](type_expression.md)
 
@@ -38,8 +38,8 @@ When converting a value to a type:
  - The value is converted by calling the `__convert__` function.
  - It is a **static error** if the value could not be converted.
 
-### Exact match coerce operator `:=`
-The exact match coerce operator `:=` is used to specifically check the type of a
+### Exact match coerce operator `::`
+The exact match coerce operator `::` is used to specifically check the type of a
 a variable or expression.
 
 It is a **static error** if the type of the value of the
