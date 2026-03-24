@@ -5,6 +5,20 @@
 [_storage-class_](storage_class.md)__?__ [_binding-mode_](binding_mode.md) [_name_](name.md) _type-declaration_**?**
 [_initializer_](initializer.md)__?__
 
+[_fqname_](fqname.md) __(__ `[` [_argument_declaration_list](argument_declaration_list.md) `]` __)?__
+  _assignment_operator_ [_expression_](expression.md)
+
+### assignment_operator
+
+`=` __|__ `:=` __|__ `@=` __|__
+
+`+=` __|__ `-=` __|__ `*=` __|__ `/=` __|__ `%=` __|__
+
+`&=` __|__ `|=` __|__ `^=` __|__
+
+`<<=` __|__ `>>=`
+
+
 ## Semantics
 Declares a variable with a [_name_](name.md) which can be used in the scope or
 child scopes where the variable is declared.

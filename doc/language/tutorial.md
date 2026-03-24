@@ -7,14 +7,28 @@ access that value. A variable is introduced in a scope by using the `:=`
 assignment-operator. A variable's value may be modified later within the scope.
 
 ```
-sum := 0 : i32
+sum := 42 : i32
 for (x in 0..=100) {
     sum := sum + x
     sum += 1
 }
 ```
 
-### const
+
+### const type qualifier
+
+The const qualifier modifies a type which changes the default permissions; member variables
+cannot be directly modified and non-const member functions can't be called. However
+you may do these things through a non-const reference.
+
+A const qualifier can be added to a type by adding the `const` keyword in front of the type:
+
+```
+var a := 42 : i32
+var b := 42 : const i32
+var c := a : const i32
+var d := a : const
+```
 
 ### frozen
 
