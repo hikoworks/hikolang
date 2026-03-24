@@ -14,21 +14,48 @@ for (x in 0..=100) {
 }
 ```
 
+### Type
 
-### const type qualifier
+The type of the variable is copied from the expression on the right hand side.
 
-The const qualifier modifies a type which changes the default permissions; member variables
-cannot be directly modified and non-const member functions can't be called. However
-you may do these things through a non-const reference.
+Sometimes it is required to convert the type of the expression to make a proper
+variable. In the example `sum := 42 : i32` the literal `42` has the implicit
+type `int[42..=42]`. Since a `int[42..=42]` can only hold the value `42` it
+needs to be converted to a integer with a larger interval, in this case `i32`.
 
-A const qualifier can be added to a type by adding the `const` keyword in front of the type:
+### Type capabilities
+
+A type is associated with capabilities, which determines if member-functions
+associated with that type can be called.
+
+By default all capabilities are turned on by default. When converting to a
+reference, capabilities can be implicitly removed. Capabilities can only be
+explicitly added.
+
+The following capabilities exists by default:
+
+   match        | remove       | add          | Description
+  :------------ |:------------ |:------------ |:---------------
+   `#mutable`   | `#-mutable`  | `#+mutable`  | Can call member functions that mutate members variables
+   `#private`   | `#-private`  | `#+private`  | Can call member functions from the private interface.
+
 
 ```
-var a := 42 : i32
-var b := 42 : const i32
-var c := a : const i32
-var d := a : const
+// Function that removes the `mutable` capability of the argument passed in.
+fn foo(a : &T #-mutable) {}
+// Function can only be called when the argument has the `mutable` capability.
+fn bar(a : &T #mutable) {}
+// Error: function arguments can not implicitly add a capability.
+//fn baz(a: &T #+mutable) {}
+
+a := T()               // Constructors implicitly remove `private` capability.
+b := &a : #-mutable    // Remove `mutable` capability.
+// c := &b : #mutable  // Error: `b` is not `mutable`.
+// d := &b : #private  // Error: `b` is not `private`.
+e := &b : #+mutable    // Explicit add `mutable` capability.
+bar(e)
 ```
+
 
 ### frozen
 
@@ -92,4 +119,24 @@ foo.bar = fn(self : foo, x) {
 
 x = foo(5) // seals foo, including foo.bar
 y = x.bar(42)
+```
+
+# Aspect Oriented Programming
+
+```
+fn bar(x : int) {
+    return x
+}
+
+fn baz(x : int) {
+    return x + 1
+}
+
+fn foo(x : int) {
+    return x + 42
+}
+
+fn before /ba./(x : int) {
+    print(x)
+}
 ```
