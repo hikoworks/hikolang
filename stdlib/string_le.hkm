@@ -1,3 +1,5 @@
+module std.string endian == "little"
+namespace std
 
 class string {
     union {
@@ -10,6 +12,11 @@ class string {
             var _sso : array[__builtin_i8, 15]
             var _flags : __builtin_i8 = 0x8f
         }
+    }
+
+    fn _ptr(ref self : string, return ?&__i8[])
+    {
+
     }
 
     fn _sso() -> __builtin_i1

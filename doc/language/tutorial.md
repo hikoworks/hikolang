@@ -2,141 +2,223 @@
 
 ## Variables
 
-A variable is manages the storage of a value of a specified type and a way to
-access that value. A variable is introduced in a scope by using the `:=`
-assignment-operator. A variable's value may be modified later within the scope.
+A variable binds a name with a memory location that stores an object of a
+specific type. The memory location is managed by the variable, when the
+variable goes out-of-scope the object at the memory location is destroyed
+and the memory location may be reused.
+
+A variable is introduced to the scope using `var <name> = <expression>`.
+The object from the `<expression>` on the right hand side is
+copied into the memory location managed by the variable.
+The type of the copy adds the `mut` type-category to the type.
+
+Example of a variable:
 
 ```
-sum := 42 : i32
-for (x in 0..=100) {
-    sum := sum + x
-    sum += 1
+var sum = 42.0              // 42.0 : f64
+for (var x in 0..=10) {     // x : int[0..=10]
+    sum = sum + x
 }
+print(sum)
 ```
 
-### Type
+> [!NOTE]
+> In the example above we convert the type of the literal `42` (`int[42..=42]`) to
+> an integer with a larger range `i32`. If we did not change this type then we would not
+> be able to change the value to anything but `42`.
 
-The type of the variable is copied from the expression on the right hand side.
 
-Sometimes it is required to convert the type of the expression to make a proper
-variable. In the example `sum := 42 : i32` the literal `42` has the implicit
-type `int[42..=42]`. Since a `int[42..=42]` can only hold the value `42` it
-needs to be converted to a integer with a larger interval, in this case `i32`.
+## Immutable
 
-### Type capabilities
+The `let <name> = <expr>` creates an immutable variable, the variable is
+first initialized, then the variable is sealed. Meaning the `mut` type-category
+is removed from the type, and the managed object-value is frozen so that it can't
+be changed at all.
 
-A type is associated with capabilities, which determines if member-functions
-associated with that type can be called.
-
-By default all capabilities are turned on by default. When converting to a
-reference, capabilities can be implicitly removed. Capabilities can only be
-explicitly added.
-
-The following capabilities exists by default:
-
-   match        | remove       | add          | Description
-  :------------ |:------------ |:------------ |:---------------
-   `#mutable`   | `#-mutable`  | `#+mutable`  | Can call member functions that mutate members variables
-   `#private`   | `#-private`  | `#+private`  | Can call member functions from the private interface.
-
+Example of the immutables `x` and `y`:
 
 ```
-// Function that removes the `mutable` capability of the argument passed in.
-fn foo(a : &T #-mutable) {}
-// Function can only be called when the argument has the `mutable` capability.
-fn bar(a : &T #mutable) {}
-// Error: function arguments can not implicitly add a capability.
-//fn baz(a: &T #+mutable) {}
-
-a := T()               // Constructors implicitly remove `private` capability.
-b := &a : #-mutable    // Remove `mutable` capability.
-// c := &b : #mutable  // Error: `b` is not `mutable`.
-// d := &b : #private  // Error: `b` is not `private`.
-e := &b : #+mutable    // Explicit add `mutable` capability.
-bar(e)
-```
-
-
-### frozen
-
-### Sealing variables
-
-```
-foo := 42
-seal foo
-// `foo` and the value `42` can no longer be modified
-```
-
-### Definitions
-
-An immutable is like a variable, except that it's value can not be modified
-after its introduction, we call this "sealing". An immutable is introduced in a
-scope by using the `=` definition-operator.
-
-```
-sum := 0 : i32
-for (x in 0..=100) {
-    y = x + 1
-    sum += y
+var sum = 42 : i32          // 42 : int[42..=42], sum : i32
+for (let x in 0..=10) {     // x : int[0..=10]
+    let y = x + 10          // y : int[10..=20]
+    sum = sum + x
 }
+print(sum)
 ```
 
-Types may specify that bindings to a definition is lazilly-sealed, this means
-that the definition can be modified up-to the point where the definition is
-used/read. For example a function-overload-set is not sealed until one of the
-functions in the set is called. Functions also implement the merge-operator,
-which will merge the previous definition with the new definition; adding a
-function to the overload-set.
+`let` is implemented as syntactic sugar:
 
 ```
-foo = fn() {
-    return 42 : i32
-}
-
-foo = fn(x) {
-    return 42 + x : i32
-}
-
-x = foo() // Seals immutable `foo`
-y = foo(3)
+var <name> = <expr>
+seal <name>
 ```
 
-Here is another example of a lazilly-sealed definition of a member-function
-being added to an existing type.
+## Reference
+
+A reference provides indirect access to an existing object.
+
+Instead of owning its own storage, a reference points to another object and forwards all operations to it.
+References do not copy or move values; they alias an existing object.
 
 ```
-foo = struct {
-    a = 0 : i32
-
-    fn __init__(self, a) {
-        self.a = a
-    }
-}
-
-foo.bar = fn(self : foo, x) {
-    return self.a + x
-}
-
-x = foo(5) // seals foo, including foo.bar
-y = x.bar(42)
+var a = 42 : i32      // a : i32
+ref b = a             // b : &i32
+b = 1
+print(a)              // prints "1"
 ```
 
-# Aspect Oriented Programming
+Here, `b` and `a` refer to the same underlying object. Assigning through b modifies a.
+
+
+### Mutability and references
+
+References preserve or restrict the capabilities of the object they refer to:
+ - A `ref` requires the object to be mutable
+ - Through a `ref`, mutation is allowed
 
 ```
-fn bar(x : int) {
-    return x
+var <name> = <expr> : &mut
+```
+
+This is syntactic sugar for:
+ - converting <expr> into a reference (&)
+ - requiring the referenced type to have the mutable capability
+
+### Reseating references
+
+A reference normally continues to point to the same object, but it can be reseated
+using low-level operations:
+ - `get_pointer()`
+ - `set_pointer()`
+
+These operate on the underlying pointer representation.
+
+> [!NOTE]
+> The pointer is an opaque LLVM pointer. It supports pointer arithmetic and can
+> be used to build higher-level abstractions such as slices or spans.
+
+### Sealing references
+
+Sealing a reference:
+
+```
+var a = 42 : i32
+ref b = a
+seal b
+```
+
+ - prevents reseating `b` (the reference becomes fixed)
+ - removes the ability to mutate through the reference `b`
+ - freezes the referenced object managed by `a`; this means
+   you can no longer modify this object
+
+## View
+
+A `view` is a restricted reference.
+
+It refers to an object, but does not allow mutation through that reference.
+Unlike a copy, a view is still live—it reflects changes made elsewhere.
+
+```
+var a = 42 : i32      // a : i32
+view b = a            // b : &const i32
+a = 1
+print(b)              // prints "1"
+```
+
+Even though `b` cannot modify the object, it still observes changes made through other references.
+
+### Capabilities
+A view removes the mutable capability from the referenced type:
+
+```
+var <name> = <expr> : &const
+```
+This:
+ - creates a reference (`&`)
+ - removes the ability to mutate through it (`const`)
+
+Important distinction, A view is not:
+ - a copy
+ - a snapshot
+
+It is:
+ - a reference with restricted capabilities
+
+### Notes on mutability
+Mutability controls what operations are allowed through a given reference—it does not guarantee that a value cannot change.
+Even if you only hold a view, the underlying object may still be modified through other references.
+
+### Common pitfall
+
+```
+let x = <expr> : &const
+```
+
+This creates:
+ - a non-reseatable reference (due to let)
+ - to a non-mutable object (&const)
+ - and freezes the referenced object
+
+This combination is often unintended and therefore considered an error.
+If this behavior is required, it must be written explicitly:
+
+```
+var x = <expr> : &const
+seal x
+```
+
+This version makes three things explicit that were previously implicit:
+References are aliases, not just “pointers”
+Mutability is a capability of access, not a property of the value itself
+A view is live but restricted, not a snapshot
+If you want, the next step would be aligning the let/seal section with this same “capability model” language so everything reads as one system instead of separate features.
+
+
+
+
+
+## Function Definition
+
+```
+fn foo(a) {
+    return a + 42
 }
 
-fn baz(x : int) {
-    return x + 1
-}
+let b = foo(1)    // b : int[43..=43]
+print(b)          // prints "43"
+```
 
-fn foo(x : int) {
-    return x + 42
-}
+### Argument Types
 
-fn before /ba./(x : int) {
-    print(x)
-}
+`fn foo(a) {}` forwarding:
+ - variable -> reference
+ - move from variable -> move
+ - immutable -> view
+ - reference -> reference
+ - view -> view
+
+`fn foo(var a)` copy/move to an internal variable.
+
+`fn foo(let a)` copy/move to an internal immutable.
+
+`fn foo(ref a)` or `fn foo(var a : &mut)` a mutable reference to an object.
+ - variable -> reference
+ - immutable (error)
+ - reference -> reference
+ - view (error)
+
+`fn foo(view a)` or `fn foo(var a : &const)` a non-mutable reference to an object.
+ - variable -> view
+ - immutable -> view
+ - reference -> view
+ - view -> view
+
+```
+fn bar(let a) {}
+fn baz(ref a) {}
+fn qux(view a) {}
+
+fn baz(var a : &) {}
+fn qux(var a : &const) {}
 ```
