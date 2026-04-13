@@ -2,9 +2,9 @@ Tutorial - Table of Contents
 ============================
 
 0. [Program Structure](Program_Structure.md) 
-1. First Values and Execution
-2. Variables (First Contact with the System)
-3. Ranged Integers (Introduce the First “Weird Rule”)
+1. [Values](Values.md)
+2. [Variables](Variables.md)
+3. [Ranged Integers](Ranged_Integers.md)
 4. Conversions (Make It Usable)
 5. Type Annotations & Inference
 6. References and Mutability
