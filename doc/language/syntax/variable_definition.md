@@ -2,25 +2,21 @@
 
 ## Syntax
 
-[_storage-class_](storage_class.md)__?__ [_binding-mode_](binding_mode.md) [_name_](name.md) _type-declaration_**?**
+[_storage-class_](storage_class.md)__?__ [_binding-mode_](binding_mode.md) [_fqname_](fqname.md) _type-declaration_**?**
 [_initializer_](initializer.md)__?__
 
-[_fqname_](fqname.md) __(__ `[` [_argument_declaration_list](argument_declaration_list.md) `]` __)?__
-  _assignment_operator_ [_expression_](expression.md)
 
-### assignment_operator
+### binding_mode
 
-`=` __|__ `:=` __|__ `@=` __|__
+_binding-mode_ __:=__ `var` __|__ `let` __|__ `ref` __|__ `view` 
 
-`+=` __|__ `-=` __|__ `*=` __|__ `/=` __|__ `%=` __|__
+### type_declaration
 
-`&=` __|__ `|=` __|__ `^=` __|__
-
-`<<=` __|__ `>>=`
+_type-declaration_ __:=__ [_coerce-operator_](coerce_operator.md) [_type-expression_](type_expression.md)
 
 
 ## Semantics
-Declares a variable with a [_name_](name.md) which can be used in the scope or
+Declares a variable with a [_fqname_](fqname.md) which can be used in the scope or
 child scopes where the variable is declared.
 
 Variable declarations may appear in the following contexts:
@@ -47,3 +43,26 @@ determined (no type, no default constructor, no initializer, etc.) then the
 result of the variable declaration is `void` and therefor can not be used
 as part of another expression.
 
+### initializer
+
+
+
+### binding modes
+
+All binding modes are syntactic sugar around `var`.
+
+`let a = expr` desugars into:
+```
+var a = expr
+seal a
+```
+
+`ref a = expr` desugars into:
+```
+var a : & = expr
+```
+
+`view a = expr` desugars into:
+```
+var b : &const = expr
+```

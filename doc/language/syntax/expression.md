@@ -1,6 +1,17 @@
 # Expression
 
-## Syntax
+## Operators
+
+ * Assignment operators:
+   `a = b`, `a += b`, `a -= b`, `a *= b`, `a /= b`, `a %= b`, `a &= b`, `a |= b`, `a ^= b`
+ * Increment operators: `++a`, `--a`, `a++`, `a--`
+ * Arithmatic:
+   `+a`, `-a`, `a + b`, `a - b`, `a * b`, `a / b`, `a % b`, `a & b`, `a | b`, `a ^ b`, `a << b`, `a >> b`
+ * Logical: `not a`, `a and b`, `a or b`, `a xor b`
+ * Comparison: `a == b`, `a != b`, `a < b`, `a > b`, `a <= b`, `a >= b`, `a <=> b`
+ * 
+
+
 
 [_sub-expression_](sub_expression.md) __|__
 [_literal_](literal.md) __|__
