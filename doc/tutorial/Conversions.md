@@ -2,6 +2,21 @@ Tutorial - Conversions
 ======================
 
 
+```
+// Match-only, keep type from initializer
+var a ~ T = b
+var a ~^ &T = b
+var a ~! T = b
+
+// Match-then-convert
+var a := T = b
+var a : T = b
+var a :^ &T = b
+var a :! T = b
+```
+
+## Matching
+
 Exact match `:=`
 ----------------
 

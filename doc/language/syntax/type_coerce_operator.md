@@ -1,11 +1,14 @@
-# coerce operators
+# type-coerce-operators
 
 ## Syntax
 
-[_expression_](expression.md) `:` [_type-expression_](type_expression.md) __|__\
 [_expression_](expression.md) `:=` [_type-expression_](type_expression.md) __|__\
+[_expression_](expression.md) `:` [_type-expression_](type_expression.md) __|__\
 [_expression_](expression.md) `:^` [_type-expression_](type_expression.md) __|__\
-[_expression_](expression.md) `:!` [_type-expression_](type_expression.md)
+[_expression_](expression.md) `:!` [_type-expression_](type_expression.md) __|__\
+[_expression_](expression.md) `~` [_type-expression_](type_expression.md) __|__\
+[_expression_](expression.md) `~^` [_type-expression_](type_expression.md) __|__\
+[_expression_](expression.md) `~!` [_type-expression_](type_expression.md)
 
 ## Semantics
 The _coerce_operator_ is used to cast-to, convert or declare a type for a value
@@ -24,6 +27,44 @@ convert or check the value of the expression to the type of the
 The type is generally used to select the correct overload of a function or
 operator in the expression. After this the rules for each coerce-method are
 applied.
+
+  Operator  | Operation
+ :--------- |:------------------------------
+  `a ~ T`   | Check if `a` could be widened to `T`. Result is `a`
+  `a ~! T`  | Check if `a` could be truncated to `T`. Result is `a`
+  `a ~? T`  | Check if `a` could be narrowed to `T`. Result is `a`
+  `a ~^ &T` | Check if `a` could be upcasted to `T`. Result is `a`
+  `a := T`  | Check if type of `a` is exactly `T`. Result is `a`
+  `a : T`   | Widen `a` to `T`.
+  `a :! T`  | Truncate `a` to `T`.
+  `a :? T`  | Narrow `a` to `T`.
+  `a :^ &T` | Upcast `a` to `&T`.
+
+### Widen
+
+Widen is an (implicit) conversion of a value to a different type, where
+information never lost.
+
+Properties:
+ - The conversion can not throw
+ - When doing round-trip: widen followed by narrow; the result is equal to
+   the original, and the narrow conversion didn't throw.
+
+### Truncate
+
+Properties:
+ - The conversion can not throw
+ - Round to nearest value
+ - Clamp out-of-bound values
+
+### Narrow
+
+Properties:
+ - Throws on out-of-bound / out-of-domain values
+ - Round to nearest value
+
+### Upcast
+
 
 ### General coerce operator `:`
 The general coerce operator `:` is used convert a value to a specific type.
