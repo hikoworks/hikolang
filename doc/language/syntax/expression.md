@@ -9,7 +9,12 @@
    `+a`, `-a`, `a + b`, `a - b`, `a * b`, `a / b`, `a % b`, `a & b`, `a | b`, `a ^ b`, `a << b`, `a >> b`
  * Logical: `not a`, `a and b`, `a or b`, `a xor b`
  * Comparison: `a == b`, `a != b`, `a < b`, `a > b`, `a <= b`, `a >= b`, `a <=> b`
- * 
+ * Member Access: `a.<name>`
+ * Make Reference `&a`
+ * Function call: `a[...]`, `a(...)`
+ * Type coercion: `a : T`, `a := T`, `a :^ T`, `a :! T`
+
+
 
 
 

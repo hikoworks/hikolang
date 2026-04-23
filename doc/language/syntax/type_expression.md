@@ -1,9 +1,15 @@
 # type-expression
 
-## Syntax
+## Operators
 
-[_expression_](expression.md)
+ * `const T`
+ * `mut T`
+ * `&T`
+ * `?T`
 
+## Functions
+ 
+ * `typeof(a)`
 
 ## Semantics
 
