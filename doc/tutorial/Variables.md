@@ -1,8 +1,7 @@
 Tutorial - Variables
 ====================
 
-var
----
+## var
 
 ```
 // file: var.hkm
@@ -14,11 +13,11 @@ a = a + 2.0
 std.repr(a)                                      // 42.0
 ```
 
-### Copying Values
+The expression's value is copied into the value maintaned by the variable
+declaration.
 
 
-let
----
+## let
 
 ```
 // file: let.hkm

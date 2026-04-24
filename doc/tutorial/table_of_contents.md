@@ -5,7 +5,7 @@ Tutorial - Table of Contents
 1. [Values](Values.md)
 2. [Variables](Variables.md)
 3. [Ranged Integers](Ranged_Integers.md)
-4. Conversions (Make It Usable)
+4. [Conversions](Conversions.md)
 5. Type Annotations & Inference
 6. References and Mutability
 7. Functions (Keep It Simple First)

@@ -1,71 +1,20 @@
 Tutorial - Conversions
 ======================
 
+To be able to use these ranged integers it is required to convert them,
+here is an example:
 
 ```
-// Match-only, keep type from initializer
-var a ~ T = b
-var a ~^ &T = b
-var a ~! T = b
-
-// Match-then-convert
-var a := T = b
-var a : T = b
-var a :^ &T = b
-var a :! T = b
+var sum = 0 : int[0..=100]      // 0 := int[0..=0], sum := int[0..=100]
+for (let a in 0..<10) {         // a := int[0..=9]
+    try sum += a
+}
+repr(sum)
 ```
 
-## Matching
-
-Exact match `:=`
-----------------
-
-```
-var a = 42 : int
-var b = 42.0 : f64
-```
-
-Widening conversions:
- - Type matches exactly
-
-Super class match `:^`
-----------------------
-
-Widening conversions:
- - Type matches exactly
- - Convert reference to a super class
-
-
-Widening Conversion `:`
------------------------
-
-```
-var a = 42 : f64
-var b = 42 : int[0..=100]
-```
-
-Widening conversions:
- - Type matches exactly
- - Convert reference to a super class
- - Conversion functions that do not throw
-
-
-
-Narrowing Conversion `:!`
--------------------------
-
-```
-var a = 2.0 :! int[0..=10]
-var b = a :! int[0..=5]
-```
-
-Widening conversions:
- - Type matches exactly
- - Convert reference to a super class
- - Convert reference from a super class
- - Conversion functions that do not throw
- - Conversion functions that may throw
-
+`0` in this case is a `int[0..=0]`, it would not be possible to add anything
+to this integer. This is why it is converted to a `int[0..=100]` so we can
+add upto a value of 100.
 
 
 

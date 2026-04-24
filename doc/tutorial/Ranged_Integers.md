@@ -6,7 +6,8 @@ There are three type of integers in this language:
  - Long Integers; integers that are dynamically sized.
  - LLVM Integers; low-level integers used for standard library implementation. 
 
-Integer literals and most integers in the standard library are ranged-integers.
+Integer literals and integers in the standard library public API are
+ranged-integers.
 
 By using ranged integers we can fully prevent non-checked overflow conditions.
 This primarily improves safety and correctness without strongly impacting
