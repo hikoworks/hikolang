@@ -1,6 +1,6 @@
 # Expression
 
-## Operators
+## Common Operators
 
  * Assignment operators:
    `a = b`, `a += b`, `a -= b`, `a *= b`, `a /= b`, `a %= b`, `a &= b`, `a |= b`, `a ^= b`
@@ -12,9 +12,27 @@
  * Member Access: `a.<name>`
  * Make Reference `&a`
  * Function call: `a[...]`, `a(...)`
- * Type coercion: `a : T`, `a := T`, `a :^ T`, `a :! T`
+ * Type matching: `a ~ T`, `a ~! T`, `a ~? T`, `a ~^ T`, `a := T`
+ * Type conversion: `a : T`, `a :! T`, `a :? T`, `a :^ T`
 
+## Special Operators
 
+ * `sizeof(a)`, `alignof(a)`
+ * `typeof(a)`
+ * `required(a)`
+
+## Primary expressions
+
+ * Identifier
+ * Compound Expression: `(a)`
+
+## Literals
+
+ * Integer literal: `42`
+ * Floating point literal: `42.0`
+ * String literal `"hello world"`
+ * literal dimension suffix: `42.0 u`
+ * literal dimension expression: `42.0 (u)`
 
 
 
