@@ -2,17 +2,14 @@
 
 ## Syntax
 
-`(` `)` __|__
-
-`(` [_return-declaration_](return_declaration.md) `,`__?__ `)` __|__
-
-`(` [_argument-declaration_](argument_declaration.md)
-__(__ `,` [_argument-declaration_](argument_declaration.md) __)*__ 
-__(__ `,` [_result-declaration_](result_declaration.md) __)?__ `,`__?__
+_argument_declaration_list :=\
+      _none_\
+    __|__ [_return-declaration_](return_declaration.md) `,`__?__\
+    __|__ [_argument-declaration_](argument_declaration.md) __(__ `,` [_argument-declaration_](argument_declaration.md) __)*__ __(__ `,` [_result-declaration_](result_declaration.md) __)?__ `,`__?__
 `)`
 
 ## Semantics
-A list of argument declarations, used for: function, type and lambda declarations.
+A list of argument declarations, used for: function, type, variant-member and lambda declarations.
 
 Inside a function, type or lambdas, the argument declarations are available as
 variables as:

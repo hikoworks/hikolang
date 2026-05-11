@@ -2,13 +2,11 @@
 
 ## Syntax
 
-[_binding_mode_]__?__ [_name_] [_type-annotation_]__?__ __(__ `=` [_expression_] __)?__ __|__\
-
-[_literal_] [_type-annotation_]__?__ __|__\
-
-`(` [_expression_] `)` [_type-annotation_]__?__ __|__\
-
-[_binding_mode_]__?__ [_name_]`...` [_type-annotation_]__?__
+_argument-declaration_ :=\
+      [_binding_mode_]__?__ [_name_]__?__ [_type-annotation_]__?__ __(__ `=` [_expression_] __)?__\
+    __|__ [_literal_] [_type-annotation_]__?__\
+    __|__ `(` [_expression_] `)` [_type-annotation_]__?__\
+    __|__ [_binding_mode_]__?__ [_name_]`...` [_type-annotation_]__?__
 
 [_type-annotation_]: type_annotation.md
 [_binding_mode_]: binding_mode.md
