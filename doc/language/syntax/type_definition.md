@@ -2,15 +2,15 @@
 
 ## Syntax
 
-_meta_type_ _name_ *template_arguments*__?__ *inheritence_list*__?__ \
-    [_attributes_]__*__
-    `{` [_type_members_](type_members.md) `}`
+_type_definition_ :=\
+      `type` _meta_type_ _name_ __(__ `[` [_argument_declaration_list_](argument_declaration_list.md) `]` __)?__ _underlying_**?** [_attributes_]__*__ `{` [_block_](block.md) `}`\
+    __|__ `type` _meta_type_ __(__ `[` [_argument_declaration_list_](argument_declaration_list.md) `]` __)?__ _underlying_**?** [_attributes_]__*__ `{` [_block_](block.md) `}`
 
-_meta_type_ := [_identifier_]
+_underlying_ := `:` [_type_expression_](type_expression.md) __|__ `(` [_type_list_](type_list.md) `)`
 
-_name_ := [_fqname_]
+_name_ := [_identifier_](identifier.md)
 
-_template_arguments_ := `[` [_argument-declaration-list_] `]`
+_meta_type_ := [_identifier_](identifier.md)
 
 ## Semantics
 
