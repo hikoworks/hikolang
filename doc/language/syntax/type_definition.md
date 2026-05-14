@@ -16,6 +16,23 @@ _template_arguments_ := `[` [_argument-declaration-list_] `]`
 
 This type definition calls a _meta-type_ function like:
 
+
+### abi(x)
+
+On a type this will change how the memory layout is for an object.
+
+ - "c": Use the C ABI. (same as aligned)
+ - "c++": Use the C++ ABI. (same as aligned)
+ - "aligned": Keep members in a struct in given order, and align members.
+ - "reorder": Reorder members in a struct, pack while maintaining alignment. (default)
+ - "pack": Keep members in a struct in given order, ignore natural alignment of members. This will
+           cause member access to use possible slower, but valid, unaligned access.
+ - "compress": Use niche-mask to further compress members in a struct. Access to members may
+               require shifts and masks. 
+
+
+
+
 ```
 fn struct(template_arguments, inheritence_list, attributes, members)
 {
