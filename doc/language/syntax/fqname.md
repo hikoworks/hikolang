@@ -17,9 +17,7 @@ more dots `.`; each dot backtracks to the next parent of the current namespace.
 
 With the current namespace `.foo.bar.qux` here are a few examples:
  - `a.b` -> `.foo.bar.qux.a.b`
- - `.` -> `.`
  - `.a.b` -> `.a.b`
- - `..` -> `.foo.bar`
  - `..qux` -> `.foo.bar.qux`
  - `..a.b` -> `.foo.bar.a.b`
  - `...a.b` -> `.foo.a.b`

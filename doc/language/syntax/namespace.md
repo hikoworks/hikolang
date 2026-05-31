@@ -2,9 +2,11 @@
 
 ## Syntax
 
-`namespace` _namespace-name_ `;`
+namespace :=\
+      `namespace` [_fqname_] `;`\
+    __|__ `namespace` `.`__+__ `;`
 
-_namespace-name_ := [_fqname_](fqname.md)
+[_fqname_]: fqname.md
 
 
 ## Semantics
@@ -30,14 +32,15 @@ module com.foo.thud
 // At this point the `.com.foo` namespace is open.
 ```
 
-## Adding objects to the root namespace
 
-If you want object to be part of the root namespace you can use an absolute
-fully qualified path for the object being defined, like:
+### Domains
 
-```
-// Define the function `bar()` in the root namespace.
-fn .bar(x) {
-    return x + 1
-}
-```
+There are distinct identifier domains. Each of those identifier domains are
+managed using this _namespace_ statement. Here are the identifier domains:
+
+ * Variables, including types
+ * Meta-type keywords
+ * Expression operator keywords
+ * Units
+
+ 
