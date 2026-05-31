@@ -2,7 +2,9 @@
 
 ## Syntax
 
-`if` [_build-guard-expression_](build_guard_expression.md)
+_build-guard_ := `if` [_build-guard-expression_]
+
+[_build-guard-expression_]: build_guard_expression.md
 
 ## Semantics
 

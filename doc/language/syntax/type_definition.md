@@ -3,18 +3,31 @@
 ## Syntax
 
 _type_definition_ :=\
-      `type` _meta_type_ _name_ __(__ `[` [_argument_declaration_list_](argument_declaration_list.md) `]` __)?__ _underlying_**?** [_attributes_]__*__ `{` [_block_](block.md) `}`\
-    __|__ `type` _meta_type_ __(__ `[` [_argument_declaration_list_](argument_declaration_list.md) `]` __)?__ _underlying_**?** [_attributes_]__*__ `{` [_block_](block.md) `}`
+      _meta_type_ _name_ __(__ `[` [_argument_declaration_list_](argument_declaration_list.md) `]` __)?__ _underlying_**?** [_attributes_]__*__ `{` [_block_](block.md) `}`\
+    __|__ _meta_type_ __(__ `[` [_argument_declaration_list_](argument_declaration_list.md) `]` __)?__ _underlying_**?** [_attributes_]__*__ `{` [_block_](block.md) `}`
 
 _underlying_ := `:` [_type_expression_](type_expression.md) __|__ `(` [_type_list_](type_list.md) `)`
 
 _name_ := [_identifier_](identifier.md)
 
-_meta_type_ := [_identifier_](identifier.md)
+_meta_type_ := [_fqname_](fqname.md)
 
 ## Semantics
 
-This type definition calls a _meta-type_ function like:
+A function with the `meta_type` attribute will add the name of the function
+as a keyword that can be used to introduce a type definition. The keyword
+in this case is a fully qualified name, which is searched in the same way
+normal functions are searched. See [_function-definition_](function_definition.md)
+about the `meta_type` attribute.
+
+The following meta-types are availble in the language:
+ - `enum`: Creates a type that as a value is one of a set of names. Names can
+   be added to the enum at any point of the program, even when the type
+   becomes frozen.
+ - `variant`: Creates a type that as value is one of a set of name that can also
+   hold payload of a set of values.
+ - `struct`: Creates a type that is a set of value members.
+
 
 
 ### abi(x)

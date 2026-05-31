@@ -2,16 +2,23 @@
 
 ## Syntax
 
-`if` `(` [_condition-expression_](condition_expression.md) `)` `{` [_statement-list_](statement_list.md) `}` [_catch-clauses_](catch_clauses.md)**?**\
-__(__ `else` `if` `(` [_condition-expression_](condition_expression.md) `)` `{` [_statement-list_](statement_list.md) `}` [_catch-clauses_](catch_clauses.md)**?** __)*__\
-__(__ `else` `{` [_statement-list_](statement_list.md) `}` __)?__
+_if-control-expression_ := _if-control-expression-1_ __|__ _if-control-expression-2_
+
+_if-control-expression-1_ :=
+    `if` `(` [_condition-expression_] `)` `{` [_code-block_] `}` [_catch-clauses_]**?**\
+    __(__ `else` `if` `(` [_condition-expression_] `)` `{` [_code-block_] `}` [_catch-clauses_]**?** __)*__\
+    __(__ `else` `{` [_code-block_] `}` __)?__
 
 Alternatively when there are no `elif` clauses, the `catch` clauses may be
 placed after the `else` clause.
 
-`if` `(` [_condition-expression_](condition_expression.md) `)` `{` [_statement-list_](statement_list.md) `}`\
-`else` `{` [_statement-list_](statement_list.md) `}` [_catch-clauses_](catch_clauses.md)**?**
+_if-control-expression-2_ :=
+    `if` `(` [_condition-expression_] `)` `{` [_code-block_] `}`\
+    `else` `{` [_code-block_] `}` [_catch-clauses_]**?**
 
+[_catch-clauses_]: catch_clauses.md
+[_code-block_]: code_black.md
+[_condition-expression_]: condition_expression.md
 
 ## Semantics
 The `if` statement is used to conditionally execute a block of code. Each

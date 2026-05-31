@@ -2,7 +2,7 @@
 
 ## Syntax
 
-[0-9]+
+_decimal-literal_ := [0-9]+
 
 ## Semantics
 A decimal literal is a constant value that is directly represented in the source

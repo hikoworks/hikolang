@@ -2,7 +2,9 @@
 
 ## Syntax
 
-`$` [_name_](name.md)
+_context_argument_ := `$` [_identifier_]
+
+[_identifier_]: identifier.md
 
 ## Semantics
 Context arguments are `ref` variables which are implied and hidden arguments of a function.

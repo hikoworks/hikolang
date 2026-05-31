@@ -2,24 +2,30 @@
 
 ## Syntax
 
-`(` _build-guard-expression_ `)` __|__\
-`not` _build-guard-expression_ __|__\
-_build-guard-expression_ `and` _build-guard-expression_ __|__\
-_build-guard-expression_ `or` _build-guard-expression_ __|__\
-_build-guard-expression_ `in` _build-guard-expression_ __|__\
-_build-guard-expression_ `not` `in` _build-guard-expression_ __|__\
-_build-guard-expression_ `==` _build-guard-expression_ __|__\
-_build-guard-expression_ `!=` _build-guard-expression_ __|__\
-_build-guard-expression_ `<` _build-guard-expression_ __|__\
-_build-guard-expression_ `>` _build-guard-expression_ __|__\
-_build-guard-expression_ `<=` _build-guard-expression_ __|__\
-_build-guard-expression_ `>=` _build-guard-expression_ __|__\
-[_fqname_](fqname.md) __|__\
-[_string-literal_](string_literal.md) __|__\
-[_version-literal_](version_literal.md) __|__\
-[_integer-literal_](integer_literal.md) __|__\
-[_boolean-literal_](boolean_literal.md)
+_build-guard-expression_ :=\
+      `(` _build-guard-expression_ `)`\
+    __|__ `not` _build-guard-expression_\
+    __|__ _build-guard-expression_ `and` _build-guard-expression_\
+    __|__ _build-guard-expression_ `or` _build-guard-expression_\
+    __|__ _build-guard-expression_ `in` _build-guard-expression_\
+    __|__ _build-guard-expression_ `not` `in` _build-guard-expression_\
+    __|__ _build-guard-expression_ `==` _build-guard-expression_\
+    __|__ _build-guard-expression_ `!=` _build-guard-expression_\
+    __|__ _build-guard-expression_ `<` _build-guard-expression_\
+    __|__ _build-guard-expression_ `>` _build-guard-expression_\
+    __|__ _build-guard-expression_ `<=` _build-guard-expression_\
+    __|__ _build-guard-expression_ `>=` _build-guard-expression_\
+    __|__ [_fqname_]\
+    __|__ [_string-literal_]\
+    __|__ [_version-literal_]\
+    __|__ [_integer-literal_]\
+    __|__ [_boolean-literal_]
 
+[_boolean-literal_]: boolean_lite
+[_fqname_]: fqname.md
+[_integer-literal_]: integer_literal.md
+[_string-literal_]: string_literal.md
+[_version-literal_]: version_literal.md
 
 ### Operators
 

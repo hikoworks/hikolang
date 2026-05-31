@@ -1,21 +1,24 @@
-# type-coerce-operators
+# coerce-operator
 
 ## Syntax
 
-[_expression_](expression.md) `:=` [_type-expression_](type_expression.md) __|__\
-[_expression_](expression.md) `:` [_type-expression_](type_expression.md) __|__\
-[_expression_](expression.md) `:!` [_type-expression_](type_expression.md) __|__\
-[_expression_](expression.md) `:?` [_type-expression_](type_expression.md) __|__\
-[_expression_](expression.md) `~` [_type-expression_](type_expression.md) __|__\
-[_expression_](expression.md) `~!` [_type-expression_](type_expression.md) __|__\
-[_expression_](expression.md) `~?` [_type-expression_](type_expression.md)
+_coerce-operator_ :=\
+      [_expression_] `:=` [_expression_]\
+    __|__ [_expression_] `:` [_expression_]\
+    __|__ [_expression_] `:!` [_expression_]\
+    __|__ [_expression_] `:?` [_expression_]\
+    __|__ [_expression_] `~` [_expression_]\
+    __|__ [_expression_] `~!` [_expression_]\
+    __|__ [_expression_] `~?` [_expression_]
+
+[_expression_]: expression.md
 
 ## Semantics
-The _type-coerce-operator_ is used to:
+The _coerce-operator_ is used to:
  - Check if the value of the _expression_ matches the result of the
-   _type-expression_.
+   type _expression_.
  - (optionally) Convert the value of the _expression_ to the result of the
-   _type-expression_.
+   type _expression_.
  
 
 If the left hand side is an expression, then it is as-if the expression is

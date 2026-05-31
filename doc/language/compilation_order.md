@@ -19,8 +19,7 @@ inserted endian swap instruction to match the endianess of the target machine.
 Information about the current and the target machine are separately available
 to the programmer; see: [_guard_expression_](syntax/guard_expression.md).
 
-
-## 1. Prologue Scan
+## Prologue Scan
 
  - Search all files in the current repository.
  - Update the previous prologue scan result for added, removed or updated files.
@@ -35,27 +34,15 @@ to the programmer; see: [_guard_expression_](syntax/guard_expression.md).
    "to be compiled".
  - Compute the default namespace of each module.
 
-## 2. Compilation
 
-Compilation should be done in parralel using a pool of compiler threads.
+## 0. Tokenizer
 
- - Compile every "used" module that is "to be compiled" depth first.
-   - Recursivelly collect the imported symbols in the context for compilation.
-   - Recursivelly collect the imported `syntax` symbols in the context for
-     compilation.
-   - If there are `import eval` statements:
-     - Call the generators, cache the text, read their prologues, update the
-       prologue scan result.
-     - If there are dependencies to be compiled, then cancel the compilation
-       of the current module and continue with the depth-first compilation.
-     - Compile the cached result of the generator, and import the generated
-       module into the current module.
-   - Generate the AST of the current module, using the `syntax` symbols from
-     any imported modules.
-   - Specialize and generate IR-code for the current module.
-   - Execute all code with constant arguments and replace calls and expression
-     with the resulting value.
-   - If the current module is a program or library generate the executable.
-   - Save the compiled repository, once all modules of a repository have been
-     compiled. For incremental compilation.
-   - Remove the "to be compiled" mark.
+ - Inserts missing semicolons
+ - Replace superscript numbers with power operator `**` and normal numbers
+ - Replace documentation-comments with `@doc()` attributes
+
+
+## 2. Parsing
+
+ - Update the current namespace based on the prologue and `namespace` statement
+ - Add operators

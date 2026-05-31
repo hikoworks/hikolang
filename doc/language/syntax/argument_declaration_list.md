@@ -4,9 +4,12 @@
 
 _argument_declaration_list :=\
       _none_\
-    __|__ [_return-declaration_](return_declaration.md) `,`__?__\
-    __|__ [_argument-declaration_](argument_declaration.md) __(__ `,` [_argument-declaration_](argument_declaration.md) __)*__ __(__ `,` [_result-declaration_](result_declaration.md) __)?__ `,`__?__
+    __|__ [_result-declaration_] `,`__?__\
+    __|__ [_argument-declaration_] __(__ `,` [_argument-declaration_] __)*__ __(__ `,` [_result-declaration_] __)?__ `,`__?__
 `)`
+
+[_argument-declaration_]: argument_declaration.md
+[_result-declaration_]: result_declaration.md
 
 ## Semantics
 A list of argument declarations, used for: function, type, variant-member and lambda declarations.

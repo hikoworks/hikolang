@@ -2,18 +2,17 @@
 
 ## Syntax
 
-__(__
-[_module-declaration_](module_declaration.md) __|__
-[_program-declaration_](program_declaration.md) __|__
-[_library-declaration_](library_declaration.md)
-__)__
-__(__
-[_import-module_](import_module.md) __|__
-[_import-git_](import_git.md) __|__
-[_import-lib_](import_lib.md) __|__
-[_import-zip_](import_zip.md)
-__)*__
+prologue :=\
+    __(__ [_import-module_] __|__ [_import-git_] __|__ [_import-lib_] __|__ [_import-zip_] __)*__\
+    __(__ [_module-declaration_] __|__ [_program-declaration_] __|__ [_library-declaration_] __)__
 
+[_import-module_]: import_module.md
+[_import-git_]: import_git.md
+[_import-lib_]: import_lib.md
+[_import-zip_]: import_zip.md
+[_module-declaration_]: module_declaration.md
+[_program-declaration_]: program_declaration.md
+[_library-declaration_]: library_declaration.md
 
 ## Semantic
 

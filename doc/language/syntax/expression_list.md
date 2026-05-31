@@ -2,7 +2,9 @@
 
 ## Syntax
 
-[_expression_](expression.md) __(__ `;` [_expression_](expression.md) __)*__
+_expression-list_ := [_expression_] __(__ `;` [_expression_] __)*__
+
+[_expression_]: expression.md
 
 > [!NOTE]
 > For a discussion on the use of semicolons in expression lists see

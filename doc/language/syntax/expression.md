@@ -1,66 +1,92 @@
 # Expression
 
-## Common Operators
+## Standard Operators
 
- * Assignment operators:
-   `a = b`, `a += b`, `a -= b`, `a *= b`, `a /= b`, `a %= b`, `a &= b`, `a |= b`, `a ^= b`
- * Increment operators: `++a`, `--a`, `a++`, `a--`
- * Arithmatic:
-   `+a`, `-a`, `a + b`, `a - b`, `a * b`, `a / b`, `a % b`, `a & b`, `a | b`, `a ^ b`, `a << b`, `a >> b`
- * Logical: `not a`, `a and b`, `a or b`, `a xor b`
- * Comparison: `a == b`, `a != b`, `a < b`, `a > b`, `a <= b`, `a >= b`, `a <=> b`
- * Member Access: `a.<name>`
- * Make Reference `&a`
- * Function call: `a[...]`, `a(...)`
- * Type matching: `a ~ T`, `a ~! T`, `a ~? T`, `a ~^ T`, `a := T`
- * Type conversion: `a : T`, `a :! T`, `a :? T`, `a :^ T`
+   Operator     | Precedence  | Function
+  :----------   |:----------- |:---------
+   `a++`        |  2000 L     | `__post_increment__(a)`
+   `a--`        |  2000 L     | `__post_decrement__(a)`
+   `a(...)`     |  2000 R     | 
+   `a[...]`     |  2000 R     | 
+   `a.<name>`   |  2000 R     | 
+   `++a`        |  3000 R     | `__increment__(a)`
+   `--a`        |  3000 R     | `__decrement__(a)`
+   `+a`         |  3000 R     | `__positive__(a)`
+   `-a`         |  3000 R     | `__negative__(a)`
+   `~a`         |  3000 R     | `__invert__(a)`
+   `not a`      |  3000 R     | `__not__(a)`
+   `await a`    |  3000 R     |
+   `&T`         |  3000 R     | `__make_reference__(T)`
+   `mut T`      |  3000 R     | `__has_mut__(T)`
+   `const T`    |  3000 R     | `__remove_mut__(T)`
+   `a * b`      |  5000 L     | `__mul__(a, b)`
+   `a / b`      |  5000 L     | `__div__(a, b)`
+   `a % b`      |  5000 L     | `__rem__(a, b)`
+   `a &* b`     |  5000 L     | `__mod_mul__(a, b)`
+   `a &/ b`     |  5000 L     | `__mod_div__(a, b)`
+   `a + b`      |  6000 L     | `__add__(a, b)`
+   `a - b`      |  6000 L     | `__sub__(a, b)`
+   `a &+ b`     |  6000 L     | `__mod_add__(a, b)`
+   `a &- b`     |  6000 L     | `__mod_sub__(a, b)`
+   `a << b`     |  7000 L     | `__sll__(a, b)`
+   `a >> b`     |  7000 L     | `__sar__(a, b)`
+   `a &>> b`    |  7000 L     | `__slr__(a, b)`
+   `a <=> b`    |  8000 L     | `__cmp__(a, b)`
+   `a < b`      |  9000 L     | `__lt__(a, b)`
+   `a > b`      |  9000 L     | `__gt__(a, b)`
+   `a <= b`     |  9000 L     | `__le__(a, b)`
+   `a >= b`     |  9000 L     | `__ge__(a, b)`
+   `a == b`     | 10000 L     | `__eq__(a, b)`
+   `a != b`     | 10000 L     | `__ne__(a, b)`
+   `a in b`     | 10000 L     | `__in__(a, b)`
+   `a not in b` | 10000 L     | `__not_in__(a, b)`
+   `a & b`      | 11000 L     | `__bit_and__(a, b)`
+   `a ^ b`      | 12000 L     | `__bit_xor__(a, b)`
+   `a | b`      | 13000 L     | `__bit_or__(a, b)`
+   `a and b`    | 14000 L     |
+   `a or b`     | 15000 L     |
+   `a := T`     | 15500 L     | `__cast_exact__(a, T)`  
+   `a : T`      | 15500 L     | `__cast_widen__(a, T)`  
+   `a :! T`     | 15500 L     | `__cast_truncate__(a, T)`
+   `a :? T`     | 15500 L     | `__cast_narrow__(a, T)`
+   `a ~ T`      | 15500 L     | `__can_widen__(a, T)`
+   `a ~! T`     | 15500 L     | `__can_truncate__(a, T)`
+   `a ~? T`     | 15500 L     | `__can_narrow__(a, T)`
+   `a = b`      | 16000 R     | `__assign__(a, b)`
+   `a += b`     | 16000 R     | `__inplace_add__(a, b)`
+   `a -= b`     | 16000 R     | `__inplace_sub__(a, b)`
+   `a *= b`     | 16000 R     | `__inplace_mul__(a, b)`
+   `a /= b`     | 16000 R     | `__inplace_div__(a, b)`
+   `a %= b`     | 16000 R     | `__inplace_mod__(a, b)`
+   `a <<= b`    | 16000 R     | `__inplace_sll__(a, b)`
+   `a >>= b`    | 16000 R     | `__inplace_sar__(a, b)`
+   `a &>>= b`   | 16000 R     | `__inplace_slr__(a, b)`
+   `a &= b`     | 16000 R     | `__inplace_and__(a, b)`
+   `a ^= b`     | 16000 R     | `__inplace_xor__(a, b)`
+   `a |= b`     | 16000 R     | `__inplace_or__(a, b)`
 
-## Special Operators
-
- * `sizeof(a)`, `alignof(a)`
- * `typeof(a)`
- * `required(a)`
 
 ## Primary expressions
 
  * Identifier
- * Compound Expression: `(a)`
-
-## Literals
-
  * Integer literal: `42`
  * Floating point literal: `42.0`
  * String literal `"hello world"`
  * literal dimension suffix: `42.0 u`
  * literal dimension expression: `42.0 (u)`
+ * Compound Expression: `(a)`
 
 
 
-[_sub-expression_](sub_expression.md) __|__
-[_literal_](literal.md) __|__
-[_name_](name.md) __|__
-[_tag_](tag.md) __|__
-[_context-argument_](context_argument.md) __|__
-[_positional-argument_](positional_argument.md) __|__
-[_variable-definition_](variable_definition.md) __|__
-[_operator-expression_](operator_expression.md) __|__
-[_if-control-expression_](if_control_expression.md) __|__
-[_while-control-expression_](while_control_expression.md) __|__
-[_for-control-expression_](for_control_expression.md) __|__
-[_try-control-expression_](try_control_expression.md) __|__
-[_switch-control-expression_](switch_control_expression.md) __|__
-[_lambda_](lambda.md) __|__
-[_struct-definition_](struct_definition.md) __|__
 
 ## Semantics
+
 An _expression_ is a sequence of symbols that can be evaluated to produce a
 value. When the result of the expression is not used, the restriction on the
 type of the result is relaxed.
 
 For parsing expressions an algorithm like [Shunting
-Yard](https://en.wikipedia.org/wiki/Shunting-yard_algorithm) is used. All the
-operators their precedence and associativity are documented in
-[_operator-expression_](operator_expression.md). The other expressions listed in
-this document are terminal expressions which are parsed outside of the shunting
-yard.
+Yard](https://en.wikipedia.org/wiki/Shunting-yard_algorithm) is used.
+The other expressions listed in this document are terminal expressions which
+are parsed outside of the shunting yard.
 

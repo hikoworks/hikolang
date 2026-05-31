@@ -2,7 +2,10 @@
 
 ## Syntax
 
-[_fqname_](fqname.md) __(__ `(` [_argument_list_](argument_list.md) `)` __)?__
+_attributes_ := [_fqname_] __(__ `(` [_argument_list_] `)` __)?__
+
+[_argument_list_]: argument_list.md
+[_fqname_]: fqname.md
 
 
 ## Semantics

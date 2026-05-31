@@ -2,7 +2,11 @@
 
 ## Syntax
 
-__(__ `$`__?__ [_name_](name.md) `=` __)?__ [_expression_](expression.md)
+_argument_ := __(__ `$`__?__ [_name_] `=` __)?__ [_expression_]
+
+[_name_]: name.md
+[_expression_]: expression.md
+
 
 ## Semantics
 

@@ -2,9 +2,9 @@
 
 ## Syntax
 
-`fn` [_argument-declaration-list_](argument_declaration_list.md)
-*attribute*__*__ \
-`{` [_statement-list_](statement_list.md) `}`
+_function-definition_ := \
+      `fn` [_fqname_](fqname.md) `(` [_argument-declaration-list_](argument_declaration_list.md) `)` *attribute*__*__ `{` [_code_block_](code_block.md) `}`\
+    __|__ `fn` `(` [_argument-declaration-list_](argument_declaration_list.md) `)` *attribute*__*__ `{` [_code_block_](code_block.md) `}`
 
 
 ## Semantics
@@ -22,8 +22,17 @@ This function will not return.
 An implementation must terminate the application if the function does
 return. Or proof that the function will not return.
 
-### metatype
-This function 
+### meta_type
+
+This function is used to add a type-template to the type overload set.
+
+A function that has the `meta_type` must have a name, as it is needed
+during parsing, before elaboration takes place. Therefor a `meta_type`
+function can't be anonymous.
+
+This function has as arguments:
+`(name: fqname?, arguments: function_arguments, underlying : array[fqname], definition: type_definition)`
+
 
 
 ### pre(expression)

@@ -2,7 +2,9 @@
 
 ## Syntax
 
-[_expression_](expression.md) `catch` [_expression_](expression.md)
+_catch-operator_ := [_expression_] `catch` [_expression_]
+
+[_expression_]: expression.md
 
 ## Semantics
 The `catch` operator is used to catch any error thrown by the left-hand side expression.

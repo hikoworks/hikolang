@@ -2,23 +2,15 @@
 
 ## Syntax
 
-`syntax` `space` _space_name_ `(` _unit_name_ __(__ `,` _unit_name_ __)*__  `)` `;`
+`syntax` `unit` [_identifier_](identifier.md) `=` [_float-literal_](float_literal.md) [_unit-expression_](unit_expression.md)
 
-`syntax` `unit` _unit_name_ `=` 
 
-space_name := [_identifier_](identifier.md)
-
-unit_name := [_identifier_](identifier.md)
-
-## Semantics
-
-## Examples
-
-The standard `space` for "SI International System of Units"
+## Semantic
 
 ```
-syntax space si (s, m, kg, A, K, mol, cd);
-syntax unit km = 1000 * m
-syntax unit m2 = m^2
-syntax unit Hz = 1/s
+syntax unit g = 0.001 kg
+syntax unit mm = 0.001 m
+syntax unit inch = 245 mm
 ```
+
+

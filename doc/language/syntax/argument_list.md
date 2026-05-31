@@ -2,7 +2,10 @@
 
 ## Syntax
 
-[_argument_](argument.md) __(__ `,` [_argument_](argument.md) __)*__
+_argument_list := [_argument_] __(__ `,` [_argument_] __)*__
+
+[_argument_]: argument.md
+
 
 ## Semantics
 

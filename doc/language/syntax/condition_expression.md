@@ -2,7 +2,9 @@
 
 ## Syntax
 
-[_expression-list_](expression_list.md)
+_condition-expression_ := [_expression-list_]
+
+[_expression-list_]: expression_list.md
 
 ### condition-expression
 A _condition-expression_ is an [_expression-list_](expression_list.md) which
