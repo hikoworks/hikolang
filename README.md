@@ -91,27 +91,31 @@ fn qux(x, y) {
 }
 ```
 
-## with / without effect constrain
+## with_effect / without_effect constrain
 Sometimes you want to limit the effects that functions can make,
 for example you may not want to do any: allocations, IO or block.
 
 ```
-// This function and any callers are marked to have effects(io, block)
+// This function's implementation and any callers
+// are marked to have effects(io, block)
 fn read(fd, size) -> string {
-  with(io, block) {
+  if (size == 0) {
     ...
+  } else if (size <= 4096) @effect(io) {
+    ...
+  } else @effect(io, block) {
+    while (...) {...}
   }
 }
 
-fn foo(fd) {
-  without(io) {
-    var t = read(fd, 4096); // ERROR: read() has effect 'io'
+fn foo(fd, n) {
+  without_effect(block) {
+    var t = read(fd, 4096); // OK
+    var u = read(fd, 6000); // ERROR: read() has effect 'block'
+    var v = read(fd, n); // ERROR: read() has effect 'block'
   }
 }
 ```
-
-There is an `@effect()` attribute that can add/remove effects on a
-function, when you manually prove that effects this function can have.
 
 ## Universal call syntax
 Functions and member functions may be called in two different ways:
