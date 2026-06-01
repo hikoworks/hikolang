@@ -91,6 +91,27 @@ fn qux(x, y) {
 }
 ```
 
+## with / without effect constrain
+Sometimes you want to limit the effects that functions can make,
+for example you may not want to do any: allocations, IO or block.
+
+```
+// This function and any callers are marked to have effects(io, block)
+fn read(fd, size) -> string {
+  with(io, block) {
+    ...
+  }
+}
+
+fn foo(fd) {
+  without(io) {
+    var t = read(fd, 4096); // ERROR: read() has effect 'io'
+  }
+}
+```
+
+There is an `@effect()` attribute that can add/remove effects on a
+function, when you manually prove that effects this function can have.
 
 ## Universal call syntax
 Functions and member functions may be called in two different ways:
@@ -156,7 +177,6 @@ an overload-set. Templates may be modified, at compile time, before the template
 used to instantiate a type. Since all functions are templates, any type-template in
 a type decoration on arguments and return types are not instantiated until that
 function is called.
-
 
 A partially instantiated template returns a wrapper template that calls the original
 template with the remaining arguments. This means that a type returned from the

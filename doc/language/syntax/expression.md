@@ -2,8 +2,8 @@
 
 ## Standard Operators
 
-   Operator     | Precedence  | Function
-  :----------   |:----------- |:---------
+   Operator     | Precedence  | Function                       | Description
+  :----------   |:----------- |:------------------------------ |:----------
    `a++`        |  2000 L     | `__post_increment__(a)`
    `a--`        |  2000 L     | `__post_decrement__(a)`
    `a(...)`     |  2000 R     | 
@@ -16,6 +16,7 @@
    `~a`         |  3000 R     | `__invert__(a)`
    `not a`      |  3000 R     | `__not__(a)`
    `await a`    |  3000 R     |
+   `try a`      |  3000 R     |                                | [_try_operator_](try_operator.md)
    `&T`         |  3000 R     | `__make_reference__(T)`
    `mut T`      |  3000 R     | `__has_mut__(T)`
    `const T`    |  3000 R     | `__remove_mut__(T)`
@@ -45,6 +46,7 @@
    `a | b`      | 13000 L     | `__bit_or__(a, b)`
    `a and b`    | 14000 L     |
    `a or b`     | 15000 L     |
+   `a catch b`  | 15100 R     |                            | [_catch_operator_](catch_operator.md)
    `a := T`     | 15500 L     | `__cast_exact__(a, T)`  
    `a : T`      | 15500 L     | `__cast_widen__(a, T)`  
    `a :! T`     | 15500 L     | `__cast_truncate__(a, T)`
