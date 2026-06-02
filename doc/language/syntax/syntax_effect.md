@@ -2,17 +2,16 @@
 
 ## Syntax
 
-`syntax` `effect` [_fqname_]
+_syntax-effect_ := `syntax` `effect` [_identifier_]
 
-[_fqname_]: fqname.md
+[_identifier_]: identifier.md
 
 ## Semantic
 
-This statement will add the given [_fqname_] to the possible identifiers
-that can be used in the [_with_effect_] and [_without_effect_] statements.
+This statement will add the given [_identifier_] to the possible identifiers
+that can be used in the [_with_effect_] and the `@effects()` [_attribute_].
 
-If [_fqname_] is relative, it is relative to the current open namespace. Effects
-are in their own domain and do not collide with names in other domains.
+Effects are in their own domain and do not collide with names in other domains.
 
 ```
 syntax effect io
@@ -20,6 +19,6 @@ syntax effect block
 syntax effect unsafe
 ```
 
+[_attribute_]: attribute.md
 [_with_effect_]: with_effect.md
-[_without_effect_]: without_effect.md
 

@@ -2,17 +2,18 @@
 
 ## Syntax
 
-_function-definition_ := \
-      `fn` [_fqname_]__?__ `(` [_argument-declaration-list_]__?__ `)` _function_return_type_**?** `{` [_code_block_] `}`
+_function-definition_ :=\
+      [_attributes_]__*__
+      `fn` [_fqname_]__?__ `(` [_argument-declaration-list_]__?__ `)`\
+      _function_return_type_**?** `{` [_code_block_] `}`
 
-_function-return-type_ :=\
-      `->` __(__ `yield` __|__ `await` __)*__ [_fqname_]\
-    __|__ `->` __(__ `yield` __|__ `await` __)*__ `(` [_expression_] `)`
+_function-return-type_ := `->` __(__ `yield` __|__ `await` __)*__ [_expression_]
 
 [_argument-declaration-list_]: argument_declaration_list.md
 [_code_block_]: code_block.md
 [_fqname_]: fqname.md
 [_expression_]: expression.md
+[_attributes_]: attributes.md
 
 
 ## Semantics
@@ -36,7 +37,8 @@ The following attributes are supported by function definitions:
   @construct          | This function will be called during start of the program
   @destruct           | This function will be called during exit of the program
   @condition(expr)    | This function is conditionally compiled.
-  @effects(id list)   | Add/Remove/Set effects on this function. 
+  @effects(id list)   | Add/Remove/Set effects on this function.
+  @extern             | This function declaration will link against a function external to the program (in a library)
 
 
 

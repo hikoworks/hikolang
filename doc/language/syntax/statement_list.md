@@ -2,7 +2,7 @@
 
 ## Syntax
 
-__(__ [_label_](label.md)__?__ [_statement_](statement.md) __)*__
+_statement-list_ := __(__ [_label_](label.md)__?__ [_statement_](statement.md) __)*__
 
 > [!NOTE]
 > For a discussion on the use of semicolons in statement lists see

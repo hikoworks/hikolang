@@ -23,7 +23,6 @@ Attributes apear in front of different syntactical constructs:
 
 A function will consume the attributes early on, directly at the `fn` token.
 
-  @no_return          | The function does not return.
   @construct          | This function will be called during start of the program
   @destruct           | This function will be called during exit of the program
 
@@ -36,6 +35,11 @@ Use a specific abi for this function.
  :-------- |:---------------
   `"c"`    | Use the C ABI.
   `"c++"`  | Use the C++ ABI.
+
+
+#### @class
+
+This function is a class memember function, instead of instance member function. 
 
 
 #### @condition(expr)
@@ -63,15 +67,7 @@ An `@doc()` attribute must be the first of a set of attributes.
 
 #### @effects(id...)
 
-_effects_ := _effect_ __(__ `,` _effect_ __)*__
-
-_effect_ := __(__ `+` __|__ `-` __)__ [_identifier_]
-
-Add or remove effects from a function. The [_identifier_]s for effects
-are added using the [_syntax-effect_].
-
-Functions that call a function that has an effect, inherits that effect.
-An effect like this can be removed using the `-` [_identifier_] syntax.
+See [block.effects](#block-effects).
 
 
 #### @metadata
@@ -102,11 +98,57 @@ The code of this function will not be inlined into the caller. This can possibly
 #### @no_return
 
 This function will not return, used for functions like `std.terminate()`.
+Meaning code after this function call will never execute.
+
+### Code Block
+
+
+#### @effects(id...) <a id="block-effects"></a> 
+
+id... := _effect_ __(__ `,` _effect_ __)*__
+
+_effect_ := __(__ `+` __|__ `-` __)__ [_identifier_]
+
+Add or remove effects from this code-block. The [_identifier_]s for effects
+are added using the [_syntax-effect_].
+
+Functions that call a function that has an effect, inherits that effect.
+An effect like this can be removed using the `-` [_identifier_] syntax.
+
+The default set of effects are:
+
+  Effect    | Description
+ :--------  |:--------------
+  io        | May performs I/O.
+  block     | May cause progress to stop on this thread.
+  allocate  | May allocate and free memory.
+  unsafe    | May cause unexpected behavior.
+  terminate | May cause the end of the thread or program.
+
+
+#### @fast_path
+
+Used on a block of a flow-control expression, indicating the path to optimize.
+This will:
+ * Order code to reduce latency for this fast-path.
+ * Prefer calling, instead of inlining, on the slow-path.
+
+
+#### @slow_path
+
+Used on a block of a flow-control expression, indicating the path to not
+optimize. This is the opposite of `@fast_path`.
+
+
+#### @without_effects(id...)
+
+id... := [_identifier_] __(__ `,` [_identifier_] __)*__
+
+Make sure none of the effects listed will be executed in this block.
 
 
 
-### Variable Attributes
-
+### Variable
 
 
 

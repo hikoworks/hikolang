@@ -2,7 +2,7 @@
 
 ## Syntax
 
-`syntax` `domain` [_identifier_](identifier.md) `(` _unit-list_ `)`
+_syntax-domain_ := `syntax` `domain` [_identifier_](identifier.md) `(` _unit-list_ `)`
 
 _unit-list_ := [_identifier_](identifier.md) __(__ `,` [_identifier_](identifier.md) __)*__
 

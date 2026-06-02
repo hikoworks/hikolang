@@ -2,11 +2,12 @@
 
 ## Syntax
 
-`syntax` `unit` [_identifier_] `=` [_float-literal_]__?__ [_unit-expression_]
+_syntax-unit_ := `syntax` `unit` [_identifier_] `=` [_float-literal_]__?__ [_unit-expression_]
 
 [_float-literal_]: float_literal.md
 [_identifier_]: identifier.md
 [_unit-expression_]: unit_expression.md
+
 
 ## Semantic
 
