@@ -9,10 +9,10 @@
 
 ## Functions
 
-   Function                                                 | Description
-  :-------------------------------------------------------- |:----------------
-   `__builtin_alloc(size : __size, align : __size, return (__ptr, __size))` | allocate
-   `__builtin_dealloc(addr : __ptr, size : __size)`         | deallocate
+   Function                                                                 | Description
+  :------------------------------------------------------------------------ |:----------------
+   `__builtin_alloc(size : __size, align : __size) -> (__ptr, __size)`      | allocate
+   `__builtin_dealloc(addr : __ptr, size : __size)`                         | deallocate
 
 
 ### __builtin_alloc()

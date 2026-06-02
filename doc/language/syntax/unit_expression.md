@@ -3,13 +3,13 @@
 ## Syntax
 
 _simple-unit-expression_ :=\
-     `(` _unit-expression_ `)`\
+     `[` _unit-expression_ `]`\
     __|__ [_identifier_](identifier.md)\
     __|__ _unit-expression_ `^` [_integer_literal_](integer_literal.md)\
     __|__ _unit-expression_ `**` [_integer_literal_](integer_literal.md)
 
 _unit-expression_ :=\
-      `(` _unit-expression_ `)`\
+      `[` _unit-expression_ `]`\
     __|__ [_identifier_](identifier.md)\
     __|__ _unit-expression_ `^` [_integer_literal_](integer_literal.md)\
     __|__ _unit-expression_ `**` [_integer_literal_](integer_literal.md)\

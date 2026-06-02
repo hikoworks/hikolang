@@ -5,22 +5,20 @@
    Expression                                        | Description
   :---------------                                   |:-------------------------
    `(` _expression_ `)`                              | Sub expression
-   [_integer_literal_]                               | Integer literal
-   [_float_literal_] [_simple_unit_expression_]__?__ | Floating point literal
-   [_string_literal_]                                | String literal
-   [_tuple_literal_]                                 |
-   [_if_control_expression_]                         |
-   [_for_control_expression_]                        |
-   [_while_control_expression_]                      |
+   [_integer-literal_]                               | Integer literal
+   [_float-literal_] [_simple-unit-expression_]__?__ | Floating point literal
+   [_string-literal_]                                | String literal
+   [_tuple-literal_]                                 |
+   [_if-control-expression_]                         |
+   [_for-control-expression_]                        |
+   [_while-control-expression_]                      |
 
-
-[_float_literal_]: float_literal.md
-[_integer_literal_]: integer_literal.md
-[_string_literal_]: string_literal.md
-[_tuple_literal_]: tuple_literal.md
-[_simple_unit_expression_]: unit_expression.md
 
 ## Standard Operators
+
+ * `a`: Left hand side value.
+ * `b`: Right hand side value.
+ * `T`: [_type-expression_]
 
    Operator     | Precedence  | Function                       | Description
   :----------   |:----------- |:------------------------------ |:----------
@@ -29,17 +27,14 @@
    `a(...)`     |  2000 R     | 
    `a[...]`     |  2000 R     | 
    `a.<name>`   |  2000 R     | 
-   `++a`        |  3000 R     | `__increment__(a)`
-   `--a`        |  3000 R     | `__decrement__(a)`
-   `+a`         |  3000 R     | `__pos__(a)`
-   `-a`         |  3000 R     | `__neg__(a)`
-   `~a`         |  3000 R     | `__inv__(a)`
-   `not a`      |  3000 R     | `__not__(a)`
-   `await a`    |  3000 R     |
-   `try a`      |  3000 R     |                                | [_try_operator_](try_operator.md)
-   `&T`         |  3000 R     | `__make_reference__(T)`
-   `mut T`      |  3000 R     | `__has_mut__(T)`
-   `const T`    |  3000 R     | `__remove_mut__(T)`
+   `++b`        |  3000 R     | `__increment__(a)`
+   `--b`        |  3000 R     | `__decrement__(a)`
+   `+b`         |  3000 R     | `__pos__(a)`
+   `-b`         |  3000 R     | `__neg__(a)`
+   `~b`         |  3000 R     | `__inv__(a)`
+   `not b`      |  3000 R     | `__not__(a)`
+   `await b`    |  3000 R     |
+   `try b`      |  3000 R     |                                | [_try_operator_](try_operator.md)
    `a * b`      |  5000 L     | `__mul__(a, b)`
    `a / b`      |  5000 L     | `__div__(a, b)`
    `a % b`      |  5000 L     | `__rem__(a, b)`
@@ -87,18 +82,11 @@
    `a ^= b`     | 16000 R     | `__inplace_xor__(a, b)`
    `a \|= b`    | 16000 R     | `__inplace_or__(a, b)`
 
+## Type expression
 
-## Primary expressions
+_type-expression_ := *type-modifier*__*__ __(__ `[` [_unit-expression_] `]` __)?__ _expression_**?**
 
- * Identifier
- * Integer literal: `42`
- * Floating point literal: `42.0`
- * String literal `"hello world"`
- * literal dimension suffix: `42.0 u`
- * literal dimension expression: `42.0 (u)`
- * Compound Expression: `(a)`
-
-
+_type-modifier_ := `&` __|__ `?` __|__ `const` __|__ `mut`
 
 
 ## Semantics
@@ -112,3 +100,14 @@ Yard](https://en.wikipedia.org/wiki/Shunting-yard_algorithm) is used.
 The other expressions listed in this document are terminal expressions which
 are parsed outside of the shunting yard.
 
+
+[_float-literal_]: float_literal.md
+[_integer-literal_]: integer_literal.md
+[_string-literal_]: string_literal.md
+[_tuple-literal_]: tuple_literal.md
+[_type-expression_]: type_expression.md
+[_simple-unit-expression_]: unit_expression.md
+[_unit-expression_]: unit_expression.md
+[_if-control-expression_]: if_control_expression.md
+[_for-control-expression_]: for_control_expression.md
+[_while-control-expression_]: while_control_expression.md

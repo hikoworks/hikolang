@@ -11,4 +11,13 @@ _tuple_literal_ :=\
 
 ## Semantics
 
-A tuple literal is a
+A tuple literal creates a tuple of values. The values in a tuple may be of different types.
+
+A tuple may also be used to declare the types of a tuple for type coercion and return type.
+
+```
+fn foo(a : float, b : int) -> (float, int)
+{
+    return (b, a)
+}
+```
