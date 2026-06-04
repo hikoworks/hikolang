@@ -3,14 +3,18 @@
 ## Syntax
 
 _function-definition_ :=\
-      [_attributes_]__*__
-      `fn` [_fqname_]__?__ `(` [_argument-declaration-list_]__?__ `)`\
-      _function_return_type_**?** `{` [_code_block_] `}`
+    [_attributes_]__*__\
+    __(__ `public` __)__\
+    __(__ `static` __)__\
+    `fn` [_fqname_]__?__ `(` [_argument-declaration-list_]__?__ `)` [_function-return-type_]__?__\
+    __(__ `expect` `(` [_expression_] `)` __)*__\
+    __(__ `pre` `(` [_expression_] `)` __)*__\
+    __(__ `post` `(` [_expression_] `)` __)*__\
+    [_code-block_]
 
-_function-return-type_ := `->` __(__ `yield` __|__ `await` __)*__ [_expression_]
 
 [_argument-declaration-list_]: argument_declaration_list.md
-[_code_block_]: code_block.md
+[_code-block_]: code_block.md
 [_fqname_]: fqname.md
 [_expression_]: expression.md
 [_attributes_]: attributes.md
@@ -18,43 +22,112 @@ _function-return-type_ := `->` __(__ `yield` __|__ `await` __)*__ [_expression_]
 
 ## Semantics
 
-### Attributes
+### static
+
+This function is a class memember function, instead of instance member function. 
+
+
+### expect(expression)
+
+Although not part of the signature, the [_expression_] is checked during the
+overload resolution. The overload is dropped without error if the expression
+result is false.
+
+
+### post(expression)
+
+Post-condition is checked after calling the function, inside the caller.
+
+available:
+  * The arguments by name from the argument list
+  * The arguments by index using the `$` [_integer_literal_]
+  * The return variable using `$?`.
+
+
+### pre(expression)
+
+Pre-condition is checked before calling the function, inside the caller.
+
+available:
+  * The arguments by name from the argument list
+  * The arguments by index using the `$` [_integer_literal_]
+
+
+## Attributes
 
 A function definitions moves the list of attributes from the parser context into
 the function's AST, when `fn` is parsed.
 
-The following attributes are supported by function definitions:
-
-  attribute           | description
- :------------------- | :------------------------------------------------------
-  @doc(string)        | Set the documentation of the function (must be the first attribute)
-  @no_inline          | Do not inline the code of the function into the caller.
-  @no_return          | The function does not return.
-  @deprecated(string) | This function is deprectated, argument is a message.
-  @discard            | The return value may be discarded by the caller.
-  @abi(string)        | The ABI to use for this function.
-  @metatype           | The function adds the fqname of the function as a type keyword.
-  @construct          | This function will be called during start of the program
-  @destruct           | This function will be called during exit of the program
-  @condition(expr)    | This function is conditionally compiled.
-  @effects(id list)   | Add/Remove/Set effects on this function.
-  @extern             | This function declaration will link against a function external to the program (in a library)
 
 
+### @condition(expr)
 
-#### pre(expression)
-Pre-condition is checked before calling the function.
-
-
-#### post(expression)
-Post-condition is checked after calling the function.
-
-A post-condition on a type will run after an object is modified.
+Only compile this function when the [_condition-expression_] is true.
 
 
-#### constrain(expression)
-A condition that is checked when matching if the template arguments
-are valid for this specific overload in the overload-set.
+### @deprecated(message: string)
 
-Constrain can also contain guard conditions.
+This function is deprecated. The compiler will emit a warning message
+at the call site, including the `message` passed in the attribute.
+
+
+### @discard
+
+The function's return value maybe discarded.
+
+
+### @doc(string)
+
+Add documentation to this function. 
+
+An `@doc()` attribute must be the first of a set of attributes.
+
+
+### @effects(id...)
+
+See [block.effects](#block-effects).
+
+
+### @export(abi: string)
+
+The function will be available in the executable using the `abi`
+specified.
+
+  abi      | Description
+ :-------- |:---------------
+  `"c"`    | Use the C ABI.
+  `"c++"`  | Use the C++ ABI.
+
+
+### @metadata
+
+This function's [_fqname_] is added to type-definition keyword list.
+
+This function is called when a type-definition is found. The arguments
+to this functions are:
+
+ * The list of type attributes
+ * The template argument list
+ * The type-inheritance list
+ * The [_code-block_]
+
+It returns a function that in-turn returns an actual type, which is
+added to the overload-set as a type template.
+
+
+### @no_inline
+
+The code of this function will not be inlined into the caller. This can possibly:
+
+ * Reduces code size of the caller
+ * Reduces register pressure
+ * In turn improve chance for the caller to be inline into its caller.
+
+
+### @no_return
+
+This function will not return, used for functions like `std.terminate()`.
+Meaning code after this function call will never execute.
+
+
 

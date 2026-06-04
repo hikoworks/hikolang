@@ -82,12 +82,6 @@
    `a ^= b`     | 16000 R     | `__inplace_xor__(a, b)`
    `a \|= b`    | 16000 R     | `__inplace_or__(a, b)`
 
-## Type expression
-
-_type-expression_ := *type-modifier*__*__ __(__ `[` [_unit-expression_] `]` __)?__ _expression_**?**
-
-_type-modifier_ := `&` __|__ `?` __|__ `const` __|__ `mut`
-
 
 ## Semantics
 

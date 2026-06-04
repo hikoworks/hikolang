@@ -2,9 +2,9 @@
 
 ## Syntax
 
-`/**` _text_ `*/`
+_documentation_ := `/**` see below `*/`
 
-_text_ := _see below_
+In reality this is converted by the lexer to a `@doc()`
 
 ## Semantics
 

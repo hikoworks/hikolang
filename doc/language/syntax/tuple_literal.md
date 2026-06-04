@@ -2,7 +2,7 @@
 
 ## Syntax
 
-_tuple_literal_ :=\
+_tuple-literal_ :=\
       `(` `,` `)`\
     __|__ `(` [_expression_] `,` `)`\
     __|__ `(` [_expression_] __(__ `,` [_expression_] __)+__ `,`__?__ `)`
@@ -11,9 +11,7 @@ _tuple_literal_ :=\
 
 ## Semantics
 
-A tuple literal creates a tuple of values. The values in a tuple may be of different types.
-
-A tuple may also be used to declare the types of a tuple for type coercion and return type.
+A _tuple-literal_ creates a tuple of values. The values in a tuple may be of different types.
 
 ```
 fn foo(a : float, b : int) -> (float, int)
