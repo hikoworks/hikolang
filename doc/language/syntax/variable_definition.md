@@ -2,21 +2,21 @@
 
 ## Syntax
 
-[_attributes_](attributes.md)__*__ [_qualifiers_](qualifiers.md)__*__
-[_binding-mode_](binding_mode.md) [_fqname_](fqname.md) _type-declaration_**?**
-[_initializer_](initializer.md)__?__
+_variable-definition_ :=\
+    [_attribute_]__*__ [_qualifier_](qualifier.md)__*__\
+    [_binding-mode_](binding_mode.md) [_fqname_](fqname.md)
+    _type-declaration_**?** [_initializer_](initializer.md)__?__
 
 
-### binding_mode
+[_attribute_]: attribute.md
 
-_attributes_ __:=__ `@doc(` [_expression_](expression.md) `)`
 
-_qualifiers_ __:=__ `thread_local` __|__ `static` __|__
-                    `section(` [_expression_](expression.md) `)` __|__
-                    `alignas(`[_expression_](expression.md) `)` __|__
-                    `string_literal` __|__ `int_literal` __|__ `float_literal`
+_qualifier_ :=\
+      `thread_local`\
+    __|__ `static`\
+    __|__ `section(` [_expression_](expression.md) `)`\
+    __|__ `alignas(`[_expression_](expression.md) `)`
 
-_binding-mode_ __:=__ `var` __|__ `let` __|__ `ref` __|__ `view` 
 
 ### type_declaration
 
@@ -80,22 +80,6 @@ this function.
 
 
 
-### binding modes
 
-All binding modes are syntactic sugar around `var`.
 
-`let a = expr` desugars into:
-```
-var a = expr
-seal a
-```
-
-`ref a = expr` desugars into:
-```
-var a : & = expr
-```
-
-`view a = expr` desugars into:
-```
-var b : &const = expr
-```
+### Attributes

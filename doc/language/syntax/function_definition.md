@@ -3,9 +3,8 @@
 ## Syntax
 
 _function-definition_ :=\
-    [_attributes_]__*__\
-    __(__ `public` __)__\
-    __(__ `static` __)__\
+    [_attribute_]__*__\
+    [_qualifier_]__*__\
     `fn` [_fqname_]__?__ `(` [_argument-declaration-list_]__?__ `)` [_function-return-type_]__?__\
     __(__ `expect` `(` [_expression_] `)` __)*__\
     __(__ `pre` `(` [_expression_] `)` __)*__\
@@ -13,14 +12,50 @@ _function-definition_ :=\
     [_code-block_]
 
 
+_attribute_ :=
+
+_qualifier_ :=\
+      `public`\
+    __|__ `static`\
+    __|__ `export` `(` [_string-literal_] `)`\
+    __|__ `metatype`\
+
+
 [_argument-declaration-list_]: argument_declaration_list.md
 [_code-block_]: code_block.md
 [_fqname_]: fqname.md
 [_expression_]: expression.md
 [_attributes_]: attributes.md
+[_string-literal_]: string_literal.md
 
 
 ## Semantics
+
+### export(abi: string)
+
+The function will be available in the executable using the `abi`
+specified.
+
+  abi      | Description
+ :-------- |:---------------
+  `"c"`    | Use the C ABI.
+  `"c++"`  | Use the C++ ABI.
+
+
+### metatype
+
+This function's [_fqname_] is added to type-definition keyword list.
+
+This function is called when a type-definition is found. The arguments
+to this functions are:
+
+ * The list of type attributes
+ * The template argument list
+ * The type-inheritance list
+ * The [_code-block_]
+
+It returns a function that in-turn returns an actual type, which is
+added to the overload-set as a type template.
 
 ### static
 
@@ -88,31 +123,7 @@ An `@doc()` attribute must be the first of a set of attributes.
 See [block.effects](#block-effects).
 
 
-### @export(abi: string)
 
-The function will be available in the executable using the `abi`
-specified.
-
-  abi      | Description
- :-------- |:---------------
-  `"c"`    | Use the C ABI.
-  `"c++"`  | Use the C++ ABI.
-
-
-### @metadata
-
-This function's [_fqname_] is added to type-definition keyword list.
-
-This function is called when a type-definition is found. The arguments
-to this functions are:
-
- * The list of type attributes
- * The template argument list
- * The type-inheritance list
- * The [_code-block_]
-
-It returns a function that in-turn returns an actual type, which is
-added to the overload-set as a type template.
 
 
 ### @no_inline
