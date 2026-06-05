@@ -280,7 +280,7 @@ public:
      */
     [[nodiscard]] constexpr bool operator==(std::string_view str) const noexcept
     {
-        if (_kind != kind_type::identifier and _kind != kind_type::_operator) {
+        if (_kind != kind_type::identifier and _kind != kind_type::_operator and _kind != kind_type::documentation) {
             return false;
         }
         return string_view() == str;

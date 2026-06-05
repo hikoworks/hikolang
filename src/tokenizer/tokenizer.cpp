@@ -130,7 +130,7 @@ namespace hk {
 {
     auto q = fixed_fifo<token, 8>{};
     auto bracket_stack = std::vector<char>{};
-    auto documentation = std::string{};
+    auto document_fifo = std::vector<token>{};
 
     /** Insert a semicolon before another token when needed.
      *
@@ -142,7 +142,7 @@ namespace hk {
             return {};
         }
 
-        if (q.empty() or q.back() == ';' or q.back() == '{') {
+        if (q.empty() or q.back() == ';' or q.back() == '{' or q.back() == '}') {
             // Don't add semicolon when there is a termination token at the end of the queue.
             return {};
         }
@@ -155,8 +155,9 @@ namespace hk {
             // Drop comments.
 
         } else if (t == token::documentation) {
-            documentation += t.string_view();
-            // Drop documentation.
+            // Documentation is delayed until the next non-document token.
+            // This allows semicolons to be inserted before the document.
+            document_fifo.push_back(std::move(t));
 
         } else if (t == token::line_directive) {
             auto [lineno, file_name] = t.line_value();
@@ -170,9 +171,16 @@ namespace hk {
             } else {
                 lines.add(t.end(), lineno, file_name);
             }
+            // Drop token
 
         } else if (t == '{' or t == '[' or t == '(') {
-            documentation.clear();
+            // Place the documentaion before the bracket.
+            for (auto const &d : document_fifo) {
+                if (auto r = q.push_back_overflow(d)) {
+                    co_yield std::move(r).value();
+                }
+            }
+            document_fifo.clear();
 
             if (auto r = q.push_back_overflow(t)) {
                 co_yield std::move(r).value();
@@ -180,7 +188,13 @@ namespace hk {
             bracket_stack.push_back(t.simple_value());
 
         } else if (t == '}' or t == ']' or t == ')') {
-            documentation.clear();
+            // Place the documentaion before the bracket. This would be an error.
+            for (auto const &d : document_fifo) {
+                if (auto r = q.push_back_overflow(d)) {
+                    co_yield std::move(r).value();
+                }
+            }
+            document_fifo.clear();
 
             auto const open_bracket = mirror_bracket(t.simple_value());
 
@@ -216,8 +230,6 @@ namespace hk {
             // Drop the token.
 
         } else if (t == '\0') {
-            documentation.clear();
-
             while (not bracket_stack.empty()) {
                 auto const unmatched_bracket = bracket_stack.back();
 
@@ -240,6 +252,14 @@ namespace hk {
                 }
             }
 
+            // Place the documentaion before the eof. This would be an error.
+            for (auto const &d : document_fifo) {
+                if (auto r = q.push_back_overflow(d)) {
+                    co_yield std::move(r).value();
+                }
+            }
+            document_fifo.clear();
+
             if (auto r = q.push_back_overflow(std::move(t))) {
                 co_yield std::move(r).value();
             }
@@ -248,16 +268,13 @@ namespace hk {
             // tokens.
 
         } else {
-            if (not documentation.empty()) {
-                auto _ = token{documentation.begin(), token::_operator, "@"};
-                if (auto r = q.push_back_overflow(std::move(_))) {
+            // Place any documentation before the next token.
+            for (auto const &d : document_fifo) {
+                if (auto r = q.push_back_overflow(d)) {
                     co_yield std::move(r).value();
                 }
-
             }
-            // Replace documentation with `@` `doc` `(` string `)` tokens.
-            // Add the collected documentation to the token.
-            t.set_doc(std::exchange(documentation, {}));
+            document_fifo.clear();
 
             // For all other tokens, just add them to the queue.
             if (auto r = q.push_back_overflow(std::move(t))) {

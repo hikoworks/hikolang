@@ -95,7 +95,8 @@ TEST_CASE(id_ld)
     parse_tokens(tokens, "a///foo");
     REQUIRE(tokens[0] == "a");
     REQUIRE(tokens[1] == ';');
-    REQUIRE(tokens[2] == '\0');
+    REQUIRE(tokens[2] == "foo");
+    REQUIRE(tokens[3] == '\0');
 }
 
 TEST_CASE(id_ld_lf)
@@ -103,15 +104,41 @@ TEST_CASE(id_ld_lf)
     parse_tokens(tokens, "a///foo\n");
     REQUIRE(tokens[0] == "a");
     REQUIRE(tokens[1] == ';');
-    REQUIRE(tokens[2] == '\0');
+    REQUIRE(tokens[2] == "foo\n");
+    REQUIRE(tokens[3] == '\0');
 }
 
-TEST_CASE(id_bd)
+TEST_CASE(id_ld_lf_id)
 {
-    parse_tokens(tokens, "a/**foo*/");
+    parse_tokens(tokens, "a///foo\nb");
     REQUIRE(tokens[0] == "a");
     REQUIRE(tokens[1] == ';');
-    REQUIRE(tokens[2] == '\0');
+    REQUIRE(tokens[2] == "foo\n");
+    REQUIRE(tokens[3] == "b");
+    REQUIRE(tokens[4] == ';');
+    REQUIRE(tokens[5] == '\0');
+}
+
+TEST_CASE(id_ld_lf_ld_lf_id)
+{
+    parse_tokens(tokens, "a///foo\n///bar\nb");
+    REQUIRE(tokens[0] == "a");
+    REQUIRE(tokens[1] == ';');
+    REQUIRE(tokens[2] == "foo\n");
+    REQUIRE(tokens[3] == "bar\n");
+    REQUIRE(tokens[4] == "b");
+    REQUIRE(tokens[5] == ';');
+    REQUIRE(tokens[6] == '\0');
+}
+
+TEST_CASE(id_bd_id)
+{
+    parse_tokens(tokens, "a/**foo*/b");
+    REQUIRE(tokens[0] == "a");
+    REQUIRE(tokens[1] == "foo");
+    REQUIRE(tokens[2] == "b");
+    REQUIRE(tokens[3] == ';');
+    REQUIRE(tokens[4] == '\0');
 }
 
 TEST_CASE(id_bd_lf)
@@ -119,7 +146,8 @@ TEST_CASE(id_bd_lf)
     parse_tokens(tokens, "a/**foo*/\n");
     REQUIRE(tokens[0] == "a");
     REQUIRE(tokens[1] == ';');
-    REQUIRE(tokens[2] == '\0');
+    REQUIRE(tokens[2] == "foo");
+    REQUIRE(tokens[3] == '\0');
 }
 
 TEST_CASE(obrace_id_cbrace)
@@ -129,8 +157,7 @@ TEST_CASE(obrace_id_cbrace)
     REQUIRE(tokens[1] == "a");
     REQUIRE(tokens[2] == ';');
     REQUIRE(tokens[3] == '}');
-    REQUIRE(tokens[4] == ';');
-    REQUIRE(tokens[5] == '\0');
+    REQUIRE(tokens[4] == '\0');
 }
 
 TEST_CASE(obrace_id_lf_cbrace)
@@ -140,8 +167,7 @@ TEST_CASE(obrace_id_lf_cbrace)
     REQUIRE(tokens[1] == "a");
     REQUIRE(tokens[2] == ';');
     REQUIRE(tokens[3] == '}');
-    REQUIRE(tokens[4] == ';');
-    REQUIRE(tokens[5] == '\0');
+    REQUIRE(tokens[4] == '\0');
 }
 
 TEST_CASE(obrace_id_lf_cbrace_lf)
@@ -151,8 +177,7 @@ TEST_CASE(obrace_id_lf_cbrace_lf)
     REQUIRE(tokens[1] == "a");
     REQUIRE(tokens[2] == ';');
     REQUIRE(tokens[3] == '}');
-    REQUIRE(tokens[4] == ';');
-    REQUIRE(tokens[5] == '\0');
+    REQUIRE(tokens[4] == '\0');
 }
 
 TEST_CASE(opar_id_cpar)
