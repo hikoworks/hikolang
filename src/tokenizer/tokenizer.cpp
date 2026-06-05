@@ -248,6 +248,14 @@ namespace hk {
             // tokens.
 
         } else {
+            if (not documentation.empty()) {
+                auto _ = token{documentation.begin(), token::_operator, "@"};
+                if (auto r = q.push_back_overflow(std::move(_))) {
+                    co_yield std::move(r).value();
+                }
+
+            }
+            // Replace documentation with `@` `doc` `(` string `)` tokens.
             // Add the collected documentation to the token.
             t.set_doc(std::exchange(documentation, {}));
 

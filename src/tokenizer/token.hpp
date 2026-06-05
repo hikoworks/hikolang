@@ -246,24 +246,6 @@ public:
         }
     }
 
-    /** Set the documentation of this token.
-     * 
-     * @param The documentation found in front of this token.
-     */
-    void set_doc(std::string doc)
-    {
-        _doc = std::move(doc);
-    }
-
-    /** Get the documentation of this token.
-     * 
-     * @return The documentation of this token
-     */
-    [[nodiscard]] std::string const& doc() const noexcept
-    {
-        return _doc;
-    }
-
     /** Compare this token with the kind-of-token.
      * 
      * @param kind The kind of token to compare with.
@@ -396,10 +378,6 @@ private:
     /** The kind of token.
      */
     kind_type _kind = kind_type::nullopt;
-
-    /** Documentation in front of this token.
-     */
-    std::string _doc = {};
 };
 
 } // namespace hk
