@@ -3,29 +3,45 @@
 ## Syntax
 
 _function-definition_ :=\
+    [_documentation_]__*__\
     [_attribute_]__*__\
     [_qualifier_]__*__\
     `fn` [_fqname_]__?__ `(` [_argument-declaration-list_]__?__ `)` [_function-return-type_]__?__\
-    __(__ `expect` `(` [_expression_] `)` __)*__\
-    __(__ `pre` `(` [_expression_] `)` __)*__\
-    __(__ `post` `(` [_expression_] `)` __)*__\
+    [_clause_]__*__\
     [_code-block_]
 
 
-_attribute_ :=
+_attribute_ :=\
+      `@` `condition` `(` [_condition-expression_] `)`\
+    __|__ `@` `deprecated` `(` [_string-literal_] `)`\
+    __|__ `@` `discard`\
+    __|__ `@` `effect` `(` [_effect-list_] `)`\
+    __|__ `@` `no_inline`\
+    __|__ `@` `no_return`
+
+_clause_ :=\
+      `expect` `(` [_expression_] `)` \
+    __|__ `pre` `(` [_expression_] `)`\
+    __|__ `post` `(` [_expression_] `)`
 
 _qualifier_ :=\
       `public`\
     __|__ `static`\
     __|__ `export` `(` [_string-literal_] `)`\
-    __|__ `metatype`\
+    __|__ `metatype`
 
 
 [_argument-declaration-list_]: argument_declaration_list.md
+[_attribute_]: attribute.md
+[_clause_]: clause.md
 [_code-block_]: code_block.md
+[_condition-expression_]: condition_expression.md
+[_documentation_]: documentation.md
+[_effect-list_]: effect_list.md
+[_function-return-type_]: function_return_type.md
 [_fqname_]: fqname.md
 [_expression_]: expression.md
-[_attributes_]: attributes.md
+[_qualifier_]: qualifier.md
 [_string-literal_]: string_literal.md
 
 
@@ -111,19 +127,9 @@ at the call site, including the `message` passed in the attribute.
 The function's return value maybe discarded.
 
 
-### @doc(string)
+### @effects(effect-list)
 
-Add documentation to this function. 
-
-An `@doc()` attribute must be the first of a set of attributes.
-
-
-### @effects(id...)
-
-See [block.effects](#block-effects).
-
-
-
+Add, Remove and Check for effects to be available in the function.
 
 
 ### @no_inline
