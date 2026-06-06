@@ -2,7 +2,7 @@
 #pragma once
 
 #include "parse_result.hpp"
-#include "parse_context.hpp"
+#include "file_parse_context.hpp"
 #include "utility/fqname.hpp"
 #include "error/error_list.hpp"
 #include "tokenizer/token_vector.hpp"
@@ -15,7 +15,7 @@ namespace hk {
  * @param e The list of errors.
  * @return A optional fully qualified name.
  */
-[[nodiscard]] parse_result<fqname> parse_absolute_fqname(token_iterator& it, parse_context &ctx);
+[[nodiscard]] parse_result<fqname> parse_absolute_fqname(token_iterator& it, file_parse_context &ctx);
 
 /** Parse a fully qualified name.
  *
@@ -23,6 +23,6 @@ namespace hk {
  * @param e The list of errors.
  * @return A optional fully qualified name.
  */
-[[nodiscard]] parse_result<fqname> parse_relative_fqname(token_iterator& it, parse_context &ctx);
+[[nodiscard]] parse_result<fqname> parse_relative_fqname(token_iterator& it, file_parse_context &ctx);
 
 }

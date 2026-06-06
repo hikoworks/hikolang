@@ -5,7 +5,7 @@
 
 namespace hk {
 
-[[nodiscard]] parse_result_ptr<ast::program_declaration_node> parse_program_declaration(token_iterator& it, parse_context &ctx)
+[[nodiscard]] parse_result_ptr<ast::program_declaration_node> parse_program_declaration(token_iterator& it, file_parse_context &ctx)
 {
     auto const first = it[0].begin();
 

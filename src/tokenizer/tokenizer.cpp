@@ -195,7 +195,7 @@ namespace hk {
             document_fifo.clear();
 
             if (auto r = q.push_back_overflow(t)) {
-                co_yield *;
+                co_yield *r;
             }
             bracket_stack.push_back(t.simple_value());
 

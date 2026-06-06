@@ -3,7 +3,7 @@
 #include "repository.hpp"
 #include "utility/read_file.hpp"
 #include "parser/parse_top.hpp"
-#include "parser/parse_context.hpp"
+#include "parser/file_parse_context.hpp"
 #include <cassert>
 
 namespace hk {
@@ -100,7 +100,8 @@ std::expected<bool, std::error_code> source::parse_prologue()
     _prologue_ast = nullptr;
 
     auto errors = error_list{};
-    auto ctx = parse_context(errors, _lines);
+    auto prog_ctx = program_parse_context{};
+    auto ctx = file_parse_context(prog_ctx, errors, _lines);
     auto p = const_cast<char const*>(_source_code.data());
     if (auto optional_ast = parse_top(p, ctx, false)) {
         _prologue_ast = std::move(optional_ast).value();
