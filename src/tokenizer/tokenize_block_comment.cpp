@@ -1,5 +1,5 @@
 
-#include "token_parsers.hpp"
+#include "tokenize_block_comment.hpp"
 #include "char_category.hpp"
 #include <format>
 #include <cassert>
@@ -7,7 +7,7 @@
 
 namespace hk {
 
-[[nodiscard]] token parse_block_comment(char const*& p)
+[[nodiscard]] token tokenize_block_comment(char const*& p)
 {
     auto r = token{};
 

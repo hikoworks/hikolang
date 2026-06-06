@@ -1,11 +1,11 @@
 
 
-#include "token_parsers.hpp"
+#include "tokenize_position_arg.hpp"
 #include "char_category.hpp"
 
 namespace hk {
 
-[[nodiscard]] token parse_position_arg(char const*& p)
+[[nodiscard]] token tokenize_position_arg(char const*& p)
 {
     if (p[0] != '$' or not is_digit(p[1])) {
         return {};

@@ -1,5 +1,5 @@
 
-#include "token_parsers.hpp"
+#include "tokenize_operator.hpp"
 #include "char_category.hpp"
 #include <format>
 #include <cassert>
@@ -12,7 +12,7 @@
 
 namespace hk {
 
-[[nodiscard]] token parse_operator(char const*& p)
+[[nodiscard]] token tokenize_operator(char const*& p)
 {
     auto const [cp, n] = get_cp(p);
     if (not is_pattern_syntax(cp)) {

@@ -1,11 +1,11 @@
 
 
-#include "token_parsers.hpp"
+#include "tokenize_identifier.hpp"
 #include "char_category.hpp"
 
 namespace hk {
 
-[[nodiscard]] token parse_identifier(char const*& p)
+[[nodiscard]] token tokenize_identifier(char const*& p)
 {
     auto [cp, n] = get_cp(p);
     if (not is_identifier_start(cp)) {

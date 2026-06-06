@@ -1,17 +1,16 @@
 
 
-#include "token_parsers.hpp"
+#include "tokenize_tag.hpp"
 #include "char_category.hpp"
-#include <iterator>
 
 namespace hk {
 
-[[nodiscard]] token parse_context_arg(char const*& p)
+[[nodiscard]] token tokenize_tag(char const*& p)
 {
-    if (p[0] != '$') {
+    if (p[0] != '#') {
         return {};
     }
-
+    
     auto const [cp, n] = get_cp(p + 1);
     if (not is_identifier_start(cp)) {
         return {};
@@ -29,7 +28,7 @@ namespace hk {
 
         p += n;
     }
-
+    
     r.set_last(p);
     return r;
 }

@@ -3,18 +3,7 @@
 
 #include "token.hpp"
 #include "line_table.hpp"
-#include "char_category.hpp"
 #include "utility/generator.hpp"
-#include <concepts>
-#include <string>
-#include <string_view>
-#include <expected>
-#include <cstdint>
-#include <cstddef>
-#include <array>
-#include <algorithm>
-#include <format>
-#include <cassert>
 
 namespace hk {
 

@@ -1,5 +1,5 @@
 
-#include "token_parsers.hpp"
+#include "tokenize_string.hpp"
 #include <format>
 #include <cassert>
 #include <cstdint>
@@ -12,7 +12,7 @@
 
 namespace hk {
 
-[[nodiscard]] token parse_string(char const*& p)
+[[nodiscard]] token tokenize_string(char const*& p)
 {
     auto const is_raw_string = p[0] == 'r';
     auto const quote_char = is_raw_string ? p[1] : p[0];

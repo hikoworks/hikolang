@@ -1,6 +1,18 @@
 
 #include "tokenizer.hpp"
-#include "token_parsers.hpp"
+#include "tokenize_block_comment.hpp"
+#include "tokenize_bracketed_string.hpp"
+#include "tokenize_context_arg.hpp"
+#include "tokenize_identifier.hpp"
+#include "tokenize_line_comment.hpp"
+#include "tokenize_line_directive.hpp"
+#include "tokenize_number.hpp"
+#include "tokenize_operator.hpp"
+#include "tokenize_position_arg.hpp"
+#include "tokenize_string.hpp"
+#include "tokenize_superscript_integer.hpp"
+#include "tokenize_tag.hpp"
+#include "char_category.hpp"
 #include "utility/fixed_fifo.hpp"
 #include <gsl/gsl>
 #include <cassert>
@@ -22,9 +34,9 @@ namespace hk {
 
     state_type state = state_type::normal;
 
-    auto parse_llvm_string = [&](char const*& _p) {
+    auto tokenize_llvm_string = [&](char const*& _p) {
         if (state == state_type::llvm_assembly) {
-            return parse_bracketed_string(_p, '{', '}');
+            return tokenize_bracketed_string(_p, '{', '}');
         } else {
             return token{};
         }
@@ -43,7 +55,7 @@ namespace hk {
             // Ignore white-space.
             ++p;
 
-        } else if (auto t = parse_llvm_string(p)) {
+        } else if (auto t = tokenize_llvm_string(p)) {
             co_yield t;
             state = state_type::normal;
 
@@ -51,45 +63,45 @@ namespace hk {
             co_yield {p, p[0]};
             ++p;
 
-        } else if (auto t = parse_line_comment(p)) {
+        } else if (auto t = tokenize_line_comment(p)) {
             co_yield t;
 
-        } else if (auto t = parse_block_comment(p)) {
+        } else if (auto t = tokenize_block_comment(p)) {
             co_yield t;
 
         } else if (p[0] == '*' and p[1] == '/') {
             co_yield {p, 2, token::unexpected_end_of_comment_error};
             p += 2;
 
-        } else if (auto t = parse_superscript_integer(p)) {
+        } else if (auto t = tokenize_superscript_integer(p)) {
             co_yield t;
 
-        } else if (auto t = parse_number(p)) {
+        } else if (auto t = tokenize_number(p)) {
             co_yield t;
 
-        } else if (auto t = parse_string(p)) {
+        } else if (auto t = tokenize_string(p)) {
             co_yield t;
 
-        } else if (auto t = parse_line_directive(p)) {
+        } else if (auto t = tokenize_line_directive(p)) {
             co_yield t;
 
-        } else if (auto t = parse_position_arg(p)) {
+        } else if (auto t = tokenize_position_arg(p)) {
             co_yield t;
 
-        } else if (auto t = parse_context_arg(p)) {
+        } else if (auto t = tokenize_context_arg(p)) {
             co_yield t;
 
-        } else if (auto t = parse_tag(p)) {
+        } else if (auto t = tokenize_tag(p)) {
             co_yield t;
 
-        } else if (auto t = parse_identifier(p)) {
+        } else if (auto t = tokenize_identifier(p)) {
             co_yield t;
 
             if (t == "llvm") {
                 state = state_type::llvm_assembly;
             }
 
-        } else if (auto t = parse_operator(p)) {
+        } else if (auto t = tokenize_operator(p)) {
             co_yield t;
 
         } else {

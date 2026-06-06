@@ -1,11 +1,11 @@
 
 
-#include "token_parsers.hpp"
+#include "tokenize_superscript_integer.hpp"
 #include "char_category.hpp"
 
 namespace hk {
 
-[[nodiscard]] token parse_superscript_integer(char const*& p)
+[[nodiscard]] token tokenize_superscript_integer(char const*& p)
 {
     auto const [cp0, n0] = get_cp(p);
     auto const [cp1, n1] = get_cp(p + n0);

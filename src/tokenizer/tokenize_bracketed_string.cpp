@@ -1,12 +1,12 @@
 
-#include "token_parsers.hpp"
+#include "tokenize_bracketed_string.hpp"
 #include "char_category.hpp"
 #include <gsl/gsl>
 #include <cassert>
 
 namespace hk {
 
-[[nodiscard]] token parse_bracketed_string(char const*& p, char open_bracket, char close_bracket)
+[[nodiscard]] token tokenize_bracketed_string(char const*& p, char open_bracket, char close_bracket)
 {
     assert(open_bracket == '{' or open_bracket == '[' or open_bracket == '(');
 

@@ -1,12 +1,12 @@
 
 
-#include "token_parsers.hpp"
+#include "tokenize_number.hpp"
 #include "char_category.hpp"
 
 
 namespace hk {
 
-[[nodiscard]] token parse_number(char const*& p)
+[[nodiscard]] token tokenize_number(char const*& p)
 {
     auto is_number = is_digit(p[0]);
     is_number |= p[0] == '.' and is_digit(p[1]);

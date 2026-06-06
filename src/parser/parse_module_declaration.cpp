@@ -2,7 +2,7 @@
 #include "parse_module_declaration.hpp"
 #include "parse_fqname.hpp"
 #include "parse_build_guard.hpp"
-#include "tokenizer/token_parsers.hpp"
+#include "tokenizer/tokenizer.hpp"
 
 namespace hk {
 

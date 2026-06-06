@@ -1,11 +1,11 @@
 
 
-#include "token_parsers.hpp"
+#include "tokenize_line_directive.hpp"
 #include "char_category.hpp"
 
 namespace hk {
 
-[[nodiscard]] token parse_line_directive(char const*& p)
+[[nodiscard]] token tokenize_line_directive(char const*& p)
 {
     if (p[0] != '#' or p[1] != 'l' or p[2] != 'i' or p[3] != 'n' or p[4] != 'e' or p[5] != ' ' or not is_digit(p[6])) {
         return {};
