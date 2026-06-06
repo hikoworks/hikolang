@@ -169,13 +169,13 @@ namespace hk {
         } else if (t == token::documentation) {
             // Documentation is delayed until the next non-document token.
             // This allows semicolons to be inserted before the document.
-            document_fifo.push_back(std::move(t));
+            document_fifo.push_back(t);
 
         } else if (t == token::line_directive) {
             auto [lineno, file_name] = t.line_value();
             if (lineno == 0) {
                 if (auto r = q.push_back_overflow(t.make_error(token::invalid_line_directive_error))) {
-                    co_yield std::move(r).value();
+                    co_yield *r;
                 }
 
             } else if (file_name.empty()) {
@@ -189,13 +189,13 @@ namespace hk {
             // Place the documentaion before the bracket.
             for (auto const &d : document_fifo) {
                 if (auto r = q.push_back_overflow(d)) {
-                    co_yield std::move(r).value();
+                    co_yield *r;
                 }
             }
             document_fifo.clear();
 
             if (auto r = q.push_back_overflow(t)) {
-                co_yield std::move(r).value();
+                co_yield *;
             }
             bracket_stack.push_back(t.simple_value());
 
@@ -203,7 +203,7 @@ namespace hk {
             // Place the documentaion before the bracket. This would be an error.
             for (auto const &d : document_fifo) {
                 if (auto r = q.push_back_overflow(d)) {
-                    co_yield std::move(r).value();
+                    co_yield *r;
                 }
             }
             document_fifo.clear();
@@ -212,7 +212,7 @@ namespace hk {
 
             if (bracket_stack.empty() or bracket_stack.back() != open_bracket) {
                 if (auto r = q.push_back_overflow(t.make_error(token::missing_open_bracket_error))) {
-                    co_yield std::move(r).value();
+                    co_yield *r;
                 }
 
                 // Non recoverable error.
@@ -223,20 +223,20 @@ namespace hk {
                 // The statement before '}' must be closed.
                 if (auto r = insert_semicolon_before(t)) {
                     if (auto r2 = q.push_back_overflow(r)) {
-                        co_yield std::move(r2).value();
+                        co_yield *r2;
                     }
                 }
             }
 
-            if (auto r = q.push_back_overflow(std::move(t))) {
-                co_yield std::move(r).value();
+            if (auto r = q.push_back_overflow(t)) {
+                co_yield *r;
             }
             bracket_stack.pop_back();
 
         } else if (t == '\n') {
             if (auto r = insert_semicolon_before(t)) {
                 if (auto r2 = q.push_back_overflow(r)) {
-                    co_yield std::move(r2).value();
+                    co_yield *r2;
                 }
             }
             // Drop the token.
@@ -246,34 +246,34 @@ namespace hk {
                 auto const unmatched_bracket = bracket_stack.back();
 
                 if (auto r = q.push_back_overflow(t.make_error(token::unmatched_closing_bracket_error))) {
-                    co_yield std::move(r).value();
+                    co_yield *r;
                 }
 
                 // Insert a matched closing bracket for each unmatched opening bracket.
                 // So that the parser can continue longer during error recovery.
                 auto const closing_bracket = mirror_bracket(unmatched_bracket);
                 if (auto r = q.push_back_overflow({t.data(), gsl::narrow_cast<char>(closing_bracket)})) {
-                    co_yield std::move(r).value();
+                    co_yield *r;
                 }
             }
 
             // Treat end-of-file as a possible line feed.
             if (auto r = insert_semicolon_before(t)) {
                 if (auto r2 = q.push_back_overflow(r)) {
-                    co_yield std::move(r2).value();
+                    co_yield *r2;
                 }
             }
 
             // Place the documentaion before the eof. This would be an error.
             for (auto const &d : document_fifo) {
                 if (auto r = q.push_back_overflow(d)) {
-                    co_yield std::move(r).value();
+                    co_yield *r;
                 }
             }
             document_fifo.clear();
 
-            if (auto r = q.push_back_overflow(std::move(t))) {
-                co_yield std::move(r).value();
+            if (auto r = q.push_back_overflow(t)) {
+                co_yield *r;
             }
             // We treated '\0' as an end of a bracketed section and as a
             // line-feed. If there is text after '\0'; handle this as normal
@@ -283,14 +283,14 @@ namespace hk {
             // Place any documentation before the next token.
             for (auto const &d : document_fifo) {
                 if (auto r = q.push_back_overflow(d)) {
-                    co_yield std::move(r).value();
+                    co_yield *r;
                 }
             }
             document_fifo.clear();
 
             // For all other tokens, just add them to the queue.
-            if (auto r = q.push_back_overflow(std::move(t))) {
-                co_yield std::move(r).value();
+            if (auto r = q.push_back_overflow(t)) {
+                co_yield *r;
             }
         }
     }

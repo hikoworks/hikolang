@@ -45,7 +45,7 @@ namespace hk {
         return ctx.add(first, it->end(), hkc_error::missing_top_declaration);
     }
 
-    while (*it == "import" or *it == "syntax") {
+    while (*it == "import") {
         auto const first = it->begin();
 
         // parse_import_repository_declaration() must be executed before
