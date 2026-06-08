@@ -23,17 +23,37 @@ This is the memory layout of a string:
   6 |               |        6 |               |
   7 |            lsb|        7 |msb            |
     +-+-+-+-+-+-+-+-+          +-+-+-+-+-+-+-+-+
-  8 |msb            |        0 |            lsb|
-  9 |     Size      |        9 |     Size      |
- 10 |               |       10 |               |
- 11 |            lsb|        7 |msb            |
+  0 |msb            |        0 |            lsb|
+  1 |               |        1 |               |
+  2 |               |        2 |               |
+  3 |    Capacity   |        3 |    Capacity   |
+  4 |               |        4 |               |
+  5 |               |        5 |               |
+  6 |               |        6 |               |
+  7 |            lsb|        7 |msb            |
     +-+-+-+-+-+-+-+-+          +-+-+-+-+-+-+-+-+
- 12 |msb            |        0 |            lsb|
- 13 |   Capacity    |       13 |   Capacity    |
- 14 |               |       14 |               |
+  0 |msb            |        0 |            lsb|
+  1 |               |        1 |               |
+  2 |               |        2 |               |
+  3 |      Size     |        3 |      Size     |
+  4 |               |        4 |               |
+  5 |               |        5 |               |
+  6 |               |        6 |               |
  15 |     SSO     |L|       15 |L|    SSO      |
     +-+-+-+-+-+-+-+-+          +-+-+-+-+-+-+-+-+
 ```
+
+### Encoding
+
+The encoding flag is mostly used to optimize validity-checks, normalization and concatenation.
+
+  Value | Name          | Description
+  -----:|:------------- |:--------
+      0 | No encoding   | Used when just storing bytes.
+      1 | WTF-8         | UTF-8-like encoding for storing file names.
+      2 | UTF-8         | Valid UTF-8
+      3 | UTF-8 NFC     | Valid UTF-8 and also normalized into NFC.
+
 
 ### Normal
 
