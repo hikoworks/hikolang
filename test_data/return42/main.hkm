@@ -1,7 +1,7 @@
 
 program "return42"
 
-fn main()
+fn main() -> __i32
 {
     return 42
 }

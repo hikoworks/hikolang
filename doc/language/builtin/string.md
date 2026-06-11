@@ -2,10 +2,27 @@
 
 A string is used for storing text in UTF-8 encoding, it has the following
 features:
- - Type is 16 bytes in size.
+ - Type is 24 bytes in size. (12 bytes on 32-bit CPU)
  - The string is nul-terminated to be compatible with C-ABI.
- - SSO (Short String Optimization) for strings up to 15 characters length.
- - Maximum size is 4GB.
+ - SSO (Short String Optimization) for strings up to 23 (including nul) characters length.
+
+
+## type template
+
+The string type template is `string[encoding : char_encoding]`. `char_encoding`
+is an open enum, allowing more encodings to be added by the program.
+
+  char_encoding  | Description
+ :-------------- |:-----------------------------------------
+  bytes          | Just bytes, no encoding
+  WTF8           | WTF-8 encoding used for file names.
+  UTF8           | Validated correct UTF-8
+  UTF8_NFC       | Validated correct UTF-8 in validated NFC form.
+
+String functions may upgrade or downgrade between the encodings described
+above. Most other encodings like ISO-8859-1 are temporary run-time encodings
+and may not need to be part of the enum.
+
 
 ## Memory layout.
 
@@ -17,63 +34,50 @@ This is the memory layout of a string:
   0 |msb            |        0 |            lsb|
   1 |               |        1 |               |
   2 |               |        2 |               |
-  3 |    Pointer    |        3 |    Pointer    |
+  3 |     _ptr      |        3 |     _ptr      |
   4 |               |        4 |               |
   5 |               |        5 |               |
   6 |               |        6 |               |
   7 |            lsb|        7 |msb            |
     +-+-+-+-+-+-+-+-+          +-+-+-+-+-+-+-+-+
-  0 |msb            |        0 |            lsb|
-  1 |               |        1 |               |
+  8 |msb            |        8 |            lsb|
+  9 |               |        9 |               |
+ 10 |               |       10 |               |
+  1 |     _size     |        1 |     _size     |
   2 |               |        2 |               |
-  3 |    Capacity   |        3 |    Capacity   |
+  3 |               |        3 |               |
   4 |               |        4 |               |
-  5 |               |        5 |               |
-  6 |               |        6 |               |
-  7 |            lsb|        7 |msb            |
+  5 |            lsb|        5 |msb            |
     +-+-+-+-+-+-+-+-+          +-+-+-+-+-+-+-+-+
-  0 |msb            |        0 |            lsb|
+  6 |msb            |        6 |            lsb|
+  7 |               |        7 |               |
+  8 |               |        8 |               |
+  9 |   _capacity   |        9 |   _capacity   |
+ 20 |               |       20 |               |
   1 |               |        1 |               |
-  2 |               |        2 |               |
-  3 |      Size     |        3 |      Size     |
-  4 |               |        4 |               |
-  5 |               |        5 |               |
-  6 |               |        6 |               |
- 15 |     SSO     |L|       15 |L|    SSO      |
+  2 |_______________|        2 |_______________|
+  3 | _short_size |L|        3 |L| _short_size |
     +-+-+-+-+-+-+-+-+          +-+-+-+-+-+-+-+-+
 ```
 
-### Encoding
 
-The encoding flag is mostly used to optimize validity-checks, normalization and concatenation.
+### SSO (Short String Optimization)
 
-  Value | Name          | Description
-  -----:|:------------- |:--------
-      0 | No encoding   | Used when just storing bytes.
-      1 | WTF-8         | UTF-8-like encoding for storing file names.
-      2 | UTF-8         | Valid UTF-8
-      3 | UTF-8 NFC     | Valid UTF-8 and also normalized into NFC.
+A short string is <= 23 bytes long. When the string is 23 bytes, the last byte
+is zero, meaning it is still nul terminated. 
+
+ * L == 0
+ * .capacity() -> 23
+ * .size() -> 23 - short_size
+ * .c_str() -> &self
+ * Bytes beyond the actual string must be zero. This makes it possible to do
+   fast comparison.
 
 
-### Normal
+### Normal String
 
- - The `L` bit is `1`.
- - The allocator always returns a buffer of even size.
- - `Capacity` contains the size of the alloction:
-   - big-endian: clear the least-significant-bit to get the capacity.
-   - little-endian: Shift left by 1 to get the capacity.
- - `Size` contains the length of the string (excluding nul-termination).
- - `Pointer` points to the start of the string.
-   - Bottom 3 bits can be used flags:
-     - Checked: If the string has been checked for UTF-8 validity
-     - UTF-8: The string is valid UTF-8
+ * L == 1
+ * .capacity() -> big_endian ? _capacity - 1 : _capacity << 1
+ * .size() -> _size
+ * .cstr() -> _ptr
 
-### Short String Optimization
-
- - The `L` bit is `0`.
- - The 7 `SSO` bits contains the number of unused characters in the SSO.
-   - 15: string length is zero.
-   - 0: string length is 15 (this value doubles as the nul-termination)
- - The `Pointer`, `Size` and `Capacity` is used for the string bytes
- - The string is padded with zero bytes upto the SSO field so that equality
-   comparison is a 128-bit compare.

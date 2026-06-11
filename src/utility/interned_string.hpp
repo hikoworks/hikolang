@@ -6,10 +6,11 @@
 #include <string_view>
 #include <mutex>
 
-template<typename CharT, typename Tag>
+namespace hk {
+    
+template<typename CharT>
 class basic_interned_string {
 public:
-    using tag = Tag;
     using value_type = std::basic_string<CharT>::value_type;
     using size_type = std::basic_string<CharT>::size_type;
     using difference_type = std::basic_string<CharT>::difference_type;
@@ -132,7 +133,7 @@ public:
 
     [[nodiscard]] friend auto operator<=>(basic_interned_string lhs, basic_interned_string rhs)
     {
-        return lhs._ptr <=> rhs._ptr;
+        return lhs.string_view() <=> rhs.string_view();
     }
 
     [[nodiscard]] friend bool operator==(basic_interned_string lhs, std::basic_string_view<CharT> rhs)
@@ -160,7 +161,7 @@ private:
     static inline std::set<std::basic_string<CharT>> _strings;
     static inline std::mutex _mutex;
 
-    const std::basic_string<CharT>>* _ptr;
+    const std::basic_string<CharT>* _ptr;
 
     static const std::basic_string<CharT>* intern(std::basic_string_view<CharT> sv) {
         auto const _= std::scoped_lock(_mutex);
@@ -170,5 +171,6 @@ private:
     }
 };
 
-template<typename Tag>
-using interned_string = basic_interned_string<char, Tag>;
+using interned_string = basic_interned_string<char>;
+
+}

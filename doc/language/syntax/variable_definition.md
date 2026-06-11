@@ -4,7 +4,8 @@
 
 _variable-definition_ :=\
     [_attribute_]__*__ [_qualifier_](qualifier.md)__*__\
-    [_binding-mode_](binding_mode.md) [_fqname_](fqname.md)
+    [_binding-mode_](binding_mode.md) [_fqname_](fqname.md)\
+    __(__ `[` [_argument_declaration_list_](argument_declaration_list.md) `]` __)?__
     _type-declaration_**?** [_initializer_](initializer.md)__?__
 
 
@@ -14,8 +15,13 @@ _variable-definition_ :=\
 _qualifier_ :=\
       `thread_local`\
     __|__ `static`\
-    __|__ `section(` [_expression_](expression.md) `)`\
-    __|__ `alignas(`[_expression_](expression.md) `)`
+    __|__ `shared` __(__ `(` [_expression_](expression.md) `)` __)__\
+    __|__ `weak`\
+    __|__ `unique` __(__ `(` [_expression_](expression.md) `)` __)__\
+    __|__ `alloc` __(__ `(` [_expression_](expression.md) `)` __)__\
+    __|__ `public`\
+    __|__ `section` `(` [_expression_](expression.md) `)`\
+    __|__ `alignas` `(`[_expression_](expression.md) `)`
 
 
 ### type_declaration
@@ -63,10 +69,22 @@ var a : T = b // Value is converted to type T.
 var a : T = b : U // (b : U) is just a normal expression outside the syntax of
                   // a variable
 thread_local var a : T = b // A thread_local variable
+shared var a : T = b // A variable on the heap managed by ref-counting
 static(.rwdata) var a : T = b // static, in an explicit data segment.
 ```
 
 ### Qualifier
+
+#### shared / weak / unique / alloc
+
+These variables manage values on the heap; they are managed as follows:
+ * `shared`: Reference counted allocation. Assigning a `shared var` to another
+   will assign the underlying address of the reference.
+ * `weak`: A weak copy of a `shared` reference, becomes optionally-none when
+   ref-count is zero.
+ * `unique`: Only one reference can point to the managed allocation. The
+   reference may be moved or swapped.
+ * `alloc`: Memory is allocated, but must be manually deallocated.
 
 #### Literals
 

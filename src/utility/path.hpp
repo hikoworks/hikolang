@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "interned.hpp"
 #include <cstddef>
 #include <limits>
 #include <filesystem>
