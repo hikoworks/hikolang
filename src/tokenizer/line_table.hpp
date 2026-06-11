@@ -7,6 +7,9 @@
 
 namespace hk {
 
+/** A table that links a character pointer to a location in a source file.
+ * 
+ */
 class line_table {
 public:
     constexpr line_table() = default;
@@ -27,6 +30,22 @@ public:
     [[nodiscard]] std::tuple<std::string, size_t, size_t> get_position(char const *p) const; 
 
     [[nodiscard]] std::string_view get_line_text(char const *p) const;
+
+    /** Start a file.
+     * 
+     * @param p Pointer to the first character in the actual source file.
+     * @param file_name The file-name of the file.
+     */
+    void source_first(char const *p, std::string_view file_name);
+
+    /** End a file.
+     * 
+     * @param p Pointer one-past the actual source file.
+     */
+    void source_last(char const *p);
+
+    /** */
+    void sync_line(char const *p, size_t lineno, std::string_view file_name);
 
     /** Set the line number.
      *

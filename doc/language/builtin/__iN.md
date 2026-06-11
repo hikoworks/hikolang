@@ -1,8 +1,8 @@
 # LLVM native integers __i\<N\>
 
-These are the native integers available in LLVM. In LLVM the size of the
+These are the native integer and floats available in LLVM. In LLVM the size of the
 integers can be any bit width from 1 to 8,388,608 bits. For performance reasons
-an builtin LLVM integer type only exists when it is used in the program.
+a builtin LLVM integer type only exists when it is used in the program.
 
    Type          | # bits                     | Description
   :------------- |:-------------------------- |:----------------
