@@ -86,6 +86,9 @@ These variables manage values on the heap; they are managed as follows:
    reference may be moved or swapped.
  * `alloc`: Memory is allocated, but must be manually deallocated.
 
+The optional argument is the allocator to use. Otherwise it is the current
+or default allocator.
+
 #### Literals
 
 For function arguments with a literal qualifier like `string_literal` this
