@@ -51,10 +51,9 @@ namespace hk {
 void line_table::clear()
 {
     _sync_points.clear();
-    _file_names.clear();
 }
 
-std::tuple<std::string, size_t, size_t> line_table::get_position(char const* p) const
+std::tuple<interned_string, size_t, size_t> line_table::get_position(char const* p) const
 {
     if (p == nullptr) {
         return {{}, 0uz, 0uz};
@@ -67,7 +66,7 @@ std::tuple<std::string, size_t, size_t> line_table::get_position(char const* p) 
     });
 
     if (it != _sync_points.end() and it->p == p) {
-        return {_file_names.at(it->fileno), it->fileno, 0};
+        return {it->path, it->line, 0};
     }
 
     // The correct entry is one before the upper-bound. This entry should have
@@ -77,7 +76,7 @@ std::tuple<std::string, size_t, size_t> line_table::get_position(char const* p) 
     assert(it->p < p);
 
     auto [extra_lines, column] = count_position(it->p, p);
-    return {_file_names.at(it->fileno), it->fileno + extra_lines, column};
+    return {it->path, it->line + extra_lines, column};
 }
 
 [[nodiscard]] static char const* rfind_vertical_space(char const *p, char const *begin) noexcept
@@ -131,13 +130,13 @@ std::tuple<std::string, size_t, size_t> line_table::get_position(char const* p) 
     return std::string_view{first, last};
 }
 
-void line_table::add(char const* p, size_t lineno)
+void line_table::add(char const* p, size_t line)
 {
     assert(not _sync_points.empty());
 
     if (p > _sync_points.back().p) {
         // Fast append.
-        _sync_points.emplace_back(p, lineno, _sync_points.back().fileno);
+        _sync_points.emplace_back(p, line, _sync_points.back().path);
         return;
     }
 
@@ -147,22 +146,20 @@ void line_table::add(char const* p, size_t lineno)
 
     if (it != _sync_points.end() and it->p == p) {
         // Entry already exists.
-        assert(it->lineno == lineno);
+        assert(it->line == line);
         return;
     }
 
     // Insert the new entry.
     assert(it != _sync_points.begin());
-    _sync_points.emplace(it, p, lineno, (it - 1)->fileno);
+    _sync_points.emplace(it, p, line, (it - 1)->path);
 }
 
-void line_table::add(char const* p, size_t lineno, std::string_view file_name)
+void line_table::add(char const* p, size_t line, std::string_view path)
 {
-    auto const fileno = get_fileno(file_name);
-
     if (_sync_points.empty() or p > _sync_points.back().p) {
         // Fast append.
-        _sync_points.emplace_back(p, lineno, fileno);
+        _sync_points.emplace_back(p, line, path);
         return;
     }
 
@@ -172,24 +169,13 @@ void line_table::add(char const* p, size_t lineno, std::string_view file_name)
 
     if (it != _sync_points.end() and it->p == p) {
         // Entry already exists.
-        assert(it->lineno == lineno);
-        assert(it->fileno == fileno);
+        assert(it->line == line);
+        assert(it->path == path);
         return;
     }
 
     // Insert the new entry.
-    _sync_points.emplace(it, p, lineno, fileno);
-}
-
-[[nodiscard]] size_t line_table::get_fileno(std::string_view file_name)
-{
-    for (auto i = 0uz; i != _file_names.size(); ++i) {
-        if (file_name == _file_names[i]) {
-            return i;
-        }
-    }
-    _file_names.emplace_back(file_name);
-    return _file_names.size() - 1;
+    _sync_points.emplace(it, p, line, path);
 }
 
 } // namespace hk

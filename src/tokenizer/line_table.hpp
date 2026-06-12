@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include "utility/interned_string.hpp"
 #include <string>
 #include <vector>
 #include <tuple>
@@ -27,67 +28,54 @@ public:
      * @param p The character pointer for which the position is needed.
      * @return source file name, line number, utf-16 column number.
      */
-    [[nodiscard]] std::tuple<std::string, size_t, size_t> get_position(char const *p) const; 
+    [[nodiscard]] std::tuple<interned_string, size_t, size_t> get_position(char const *p) const; 
 
     [[nodiscard]] std::string_view get_line_text(char const *p) const;
 
     /** Start a file.
      * 
      * @param p Pointer to the first character in the actual source file.
-     * @param file_name The file-name of the file.
+     * @param path The file-name of the file.
      */
-    void source_first(char const *p, std::string_view file_name);
+    void add_sof(char const *p, std::string_view path);
 
     /** End a file.
      * 
      * @param p Pointer one-past the actual source file.
      */
-    void source_last(char const *p);
+    void add_eof(char const *p);
 
-    /** */
-    void sync_line(char const *p, size_t lineno, std::string_view file_name);
+    void add_line(char const *p, size_t line);
 
-    /** Set the line number.
-     *
-     * @note It is UB is `add(p, lineno, file_name)` has not been called
-     *       before.
-     * @param p The character pointer to where the line starts.
-     * @param lineno The line number of the current file. 0-based.
-     */
-    void add(char const* p, size_t lineno);
+    void add_line(char const *p, size_t line, std::string_view path);
 
-    /** Set the line number and file_name.
-     * 
-     * @param p The character pointer to where the line starts.
-     * @param lineno The line number of the current file. 0-based.
-     * @param file_name The file name of the current file.
-     */
-    void add(char const* p, size_t lineno, std::string_view file_name);
 
 private:
     struct sync_point {
+        /** The path to the file.
+         */
+        interned_string path;
+
         /** Pointer to the first character on a line.
          */
         char const *p;
 
+        /** Flags
+         * 
+         * 0: start of file
+         * 1: end of file
+         * 2: line sync
+         */
+        size_t flag : 2;
+
         /** Line number (0-based) of the line.
          */
-        size_t lineno;
-
-        /** The file where the line is located.
-         */
-        size_t fileno;
+        size_t line : 62;
     };
-
-    /** The list of source files.
-     */
-    std::vector<std::string> _file_names;
 
     /** The list of line synchronization points.
      */
     std::vector<sync_point> _sync_points;
-
-    [[nodiscard]] size_t get_fileno(std::string_view file_name);
 };
 
 }
