@@ -29,12 +29,24 @@ public:
      * 
      * @note It is UB if @a p is not part of the text
      *       described by the line_table.
-     * @note It is UB if @a p is pointing inside a UTF-8 code-point sequence.
-     * @note It is UB if @a p is pointing in text that is not terminated with nul.  
      * @param p The character pointer for which the position is needed.
      * @return source file name, line number, utf-16 column number, the text of the line where the character is located.
      */
-    [[nodiscard]] std::tuple<interned_string, uint32_t, uint32_t, std::string_view> get_position(char const *p) const; 
+    [[nodiscard]] std::tuple<interned_string, uint32_t, uint32_t, std::string_view> get_position(char const *p) const;
+
+    /** Get the location of an error.
+     * 
+     * The textual location are two lines of text, showing graphically where
+     * the error is located.
+     * 
+     * @note It is UB if @a first or @a last are not part of the text
+     *       described by the line_table.
+     * @param first Pointer to the first character of a the first token.
+     * @param last Pointer beyond the last character of the last token.
+     * @return path to the source, line number, utf-16 column number, textual location.
+     */
+    [[nodiscard]] std::tuple<interned_string, uint32_t, uint32_t, std::string> get_error_location(
+        char const *first, char const *last=nullptr) const;
 
     void add(char const* p, std::string_view path, uint32_t line, sync_type kind);
 
@@ -43,13 +55,7 @@ public:
      * @param p Pointer to the first character in the actual source file.
      * @param path The file-name of the file.
      */
-    void add_sof(char const *p, std::string_view path);
-
-    /** End a file.
-     * 
-     * @param p Pointer one-past the actual source file.
-     */
-    void add_eof(char const *p);
+    void add_file(char const *begin, char const *end, std::string_view path);
 
     void add_sol(char const *p, uint32_t line);
 
@@ -66,13 +72,13 @@ private:
          */
         interned_string path = {};
 
-        /** Flags
-         */
-        sync_type kind = sync_type::eof;
-
         /** Line number (0-based) of the line.
          */
         uint32_t line = 0;
+
+        /** Flags
+         */
+        sync_type kind = sync_type::eof;
     };
 
     /** The list of line synchronization points.

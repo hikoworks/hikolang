@@ -4,6 +4,7 @@
 #include "char_category.hpp"
 #include <cassert>
 #include <algorithm>
+#include <format>
 
 namespace hk {
 
@@ -113,7 +114,7 @@ void line_table::clear()
     return last;
 }
 
-[[nodiscard]] static std::string_view get_line_text(char const *first, char const *last, char const *p) const
+[[nodiscard]] static std::string_view get_line_text(char const *first, char const *last, char const *p)
 {
     auto const first_on_line = rfind_vertical_space(first, p);
     auto const last_on_line = find_vertical_space(last, p);
@@ -122,10 +123,7 @@ void line_table::clear()
 
 [[nodiscard]] std::tuple<interned_string, uint32_t, uint32_t, std::string_view> line_table::get_position(char const* p) const
 {
-    if (p == nullptr) {
-        return {{}, 0uz, 0uz};
-    }
-    
+    assert(p != nullptr);    
     assert(not _sync_points.empty());
 
     auto const it = std::lower_bound(_sync_points.begin(), _sync_points.end(), p, [](auto const& a, char const* x) {
@@ -144,6 +142,29 @@ void line_table::clear()
     return {it->path, it->line + extra_lines, column, line_text};
 }
 
+[[nodiscard]] std::tuple<interned_string, uint32_t, uint32_t, std::string> line_table::get_error_location(
+        char const *first, char const *last) const
+{
+    auto const [first_path, first_lineno, first_column, first_line] = get_position(first);
+
+    auto r = std::format("{:5} | {}\n", first_lineno, first_line);
+
+    r += "      | ";
+    r += std::string(first_column, ' ');
+    r += '^';
+    if (last != nullptr) {
+        auto const [last_path, last_lineno, last_column, last_line] = get_position(last);
+        if (first_path == last_path and first_lineno == last_lineno) {
+            assert(first_column <= last_column);
+
+            r += std::string(last_column - first_column - 1, '~');
+        }
+    }
+    r += '\n';
+
+    return {first_path, first_lineno, first_column, r};
+}
+
 void line_table::add(char const* p, std::string_view path, uint32_t line, sync_type kind)
 {
     if (_sync_points.empty()) {
@@ -151,38 +172,23 @@ void line_table::add(char const* p, std::string_view path, uint32_t line, sync_t
         return;
     }
 
-    if (p > _sync_points.back().p) {
-        if (path.empty() and kind != sync_type::eof) {
-            path = _sync_points.back().path;
-        }
-        _sync_points.emplace_back(p, path, line, kind);
-        return;
-    }
-
-    auto it = std::lower_bound(_sync_points.begin(), _sync_points.end(), p, [](auto const &e, char const* x) {
+    auto const it = std::lower_bound(_sync_points.begin(), _sync_points.end(), p, [](auto const &e, char const* x) {
         return e.p < x;
     });
 
-    if (it != _sync_points.end() and it->p == p) {
-        // Entry already exists.
-        return;
-    }
+    assert(it == _sync_points.end() or it->p != p or kind == sync_type::eof);
 
-    if (path.empty() and kind != sync_type::eof and it != _sync_points.begin()) {
+    if (path.empty() and kind == sync_type::sol and it != _sync_points.begin()) {
         path = (it - 1)->path;
     }
 
     _sync_points.emplace(it, p, path, line, kind);    
 }
 
-void line_table::add_sof(char const* p, std::string_view path)
+void line_table::add_file(char const *begin, char const *end, std::string_view path)
 {
-    return add(p, path, 0, sync_type::sof);
-}
-
-void line_table::add_eof(char const* p)
-{
-    return add(p, "", 0, sync_type::eof);
+    add(begin, path, 0, sync_type::sof);
+    add(end, path, 0, sync_type::eof);
 }
 
 void line_table::add_sol(char const* p, uint32_t line)

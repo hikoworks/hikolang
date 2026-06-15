@@ -84,7 +84,7 @@ source::source(hk::repository &parent, fqname generating_module, size_t lineno) 
         } else {
             _source_code = std::move(optional_text).value();
             _source_code_time = write_time;
-            _lines.add(_source_code.data(), 0, path().string());
+            _lines.add_file(_source_code.data(), _source_code.data() + _source_code.size(), path().string());
         }
     }
 }
@@ -103,6 +103,7 @@ std::expected<bool, std::error_code> source::parse_prologue()
     auto prog_ctx = program_parse_context{};
     auto ctx = file_parse_context(prog_ctx, errors, _lines);
     auto p = const_cast<char const*>(_source_code.data());
+    auto path_ = path().string();
     if (auto optional_ast = parse_top(p, ctx, false)) {
         _prologue_ast = std::move(optional_ast).value();
         _prologue_ast->fixup_top(this);

@@ -9,7 +9,7 @@ TEST_SUITE(tokenizer_suite) {
 #define parse_tokens(output, str) \
     auto text = std::string{str}; \
     auto lines = hk::line_table{}; \
-    lines.add_sof(text.data(), "<text>"); \
+    lines.add_file(text.data(), text.data() + text.size(), "<text>"); \
     auto token_generator = hk::tokenize(text.data(), lines); \
     auto output = hk::lazy_vector{token_generator.cbegin(), token_generator.cend()}
 
@@ -83,7 +83,7 @@ TEST_CASE(short_file_file)
     auto text = hk::read_file(path, 8);
     REQUIRE(text.has_value());
     auto lines = hk::line_table{};
-    lines.add(text->data(), 0, path.filename().string());
+    lines.add_file(text->data(), text->data() + text->size(), path.filename().string());
 
     auto token_generator = hk::tokenize(text->data(), lines);
     auto tokens = hk::lazy_vector{token_generator.cbegin(), token_generator.cend()};

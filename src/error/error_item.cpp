@@ -32,38 +32,15 @@ void error_item::print(line_table const& lines) const
 
 [[nodiscard]] std::string error_item::to_string(line_table const& lines) const
 {
-    auto r = std::string{};
+    auto const [first_file, first_lineno, first_colno, location_string] = lines.get_error_location(_first, _last);
 
-    auto const [first_file, first_lineno, first_colno, first_line] = lines.get_position(_first);
-    //auto const [last_file, last_lineno, last_colno, last_line] = lines.get_position(_last);
-
-    if (_last == nullptr) {
-        r += std::format("{}:{}:{}: {} {}", first_file, first_lineno + 1, first_colno + 1, to_code(code()), code());
-    } else {
-        r += std::format("{}:{}:{}: {} {}", last_file, last_lineno + 1, last_colno + 1, to_code(code()), code());
-    }
+    auto r = std::format("{}:{}:{}: {} {}", first_file, first_lineno + 1, first_colno + 1, to_code(code()), code());
 
     if (auto const& m = message(); not m.empty()) {
         r += std::format(": {}", m);
     }
 
-    if (_last == nullptr) {
-        r += std::format("\n{:6} | {}\n", first_lineno + 1, lines.get_line_text(_first));
-        r += std::format("       | {}\n", make_text_pointer(first_colno, first_colno));
-
-    } else if (first_file == last_file) {
-        r += std::format("\n{:6} | {}\n", last_lineno + 1, lines.get_line_text(_last));
-        if (first_lineno == last_lineno) {
-            r += std::format("       | {}\n", make_text_pointer(first_colno, last_colno));
-        } else {
-            r += std::format("       | {}\n", make_text_pointer(0, last_colno));
-        }
-        
-    } else {
-        r += std::format("\n{:6} | {}\n", last_lineno + 1, lines.get_line_text(_last));
-        r += std::format("       | {}\n", make_text_pointer(0, last_colno));
-    }
-
+    r += location_string;
     return r;
 }
 

@@ -9,7 +9,7 @@ TEST_SUITE(tokenizer_semicolon_suite) {
 #define parse_tokens(output, str) \
     auto text = std::string{str}; \
     auto lines = hk::line_table{}; \
-    lines.add(text.data(), 0, "<text>"); \
+    lines.add_file(text.data(), text.data() + text.size(), "<text>"); \
     auto token_generator = hk::tokenize(text.data(), lines); \
     auto output = hk::lazy_vector \
     { \
