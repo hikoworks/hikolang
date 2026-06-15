@@ -34,8 +34,8 @@ void error_item::print(line_table const& lines) const
 {
     auto r = std::string{};
 
-    auto const [first_file, first_lineno, first_colno] = lines.get_position(_first);
-    auto const [last_file, last_lineno, last_colno] = lines.get_position(_last);
+    auto const [first_file, first_lineno, first_colno, first_line] = lines.get_position(_first);
+    //auto const [last_file, last_lineno, last_colno, last_line] = lines.get_position(_last);
 
     if (_last == nullptr) {
         r += std::format("{}:{}:{}: {} {}", first_file, first_lineno + 1, first_colno + 1, to_code(code()), code());

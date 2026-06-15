@@ -13,6 +13,12 @@ namespace hk {
  */
 class line_table {
 public:
+    enum class sync_type {
+        eof,
+        sof,
+        sol
+    };
+
     constexpr line_table() = default;
 
     /** Clear the line table.
@@ -26,11 +32,11 @@ public:
      * @note It is UB if @a p is pointing inside a UTF-8 code-point sequence.
      * @note It is UB if @a p is pointing in text that is not terminated with nul.  
      * @param p The character pointer for which the position is needed.
-     * @return source file name, line number, utf-16 column number.
+     * @return source file name, line number, utf-16 column number, the text of the line where the character is located.
      */
-    [[nodiscard]] std::tuple<interned_string, size_t, size_t> get_position(char const *p) const; 
+    [[nodiscard]] std::tuple<interned_string, uint32_t, uint32_t, std::string_view> get_position(char const *p) const; 
 
-    [[nodiscard]] std::string_view get_line_text(char const *p) const;
+    void add(char const* p, std::string_view path, uint32_t line, sync_type kind);
 
     /** Start a file.
      * 
@@ -45,37 +51,33 @@ public:
      */
     void add_eof(char const *p);
 
-    void add_line(char const *p, size_t line);
+    void add_sol(char const *p, uint32_t line);
 
-    void add_line(char const *p, size_t line, std::string_view path);
+    void add_sol(char const *p, std::string_view path, uint32_t line);
 
 
 private:
-    struct sync_point {
-        /** The path to the file.
-         */
-        interned_string path;
-
+    struct sync_point_type {
         /** Pointer to the first character on a line.
          */
-        char const *p;
+        char const *p = nullptr;
+
+        /** The path to the file.
+         */
+        interned_string path = {};
 
         /** Flags
-         * 
-         * 0: start of file
-         * 1: end of file
-         * 2: line sync
          */
-        size_t flag : 2;
+        sync_type kind = sync_type::eof;
 
         /** Line number (0-based) of the line.
          */
-        size_t line : 62;
+        uint32_t line = 0;
     };
 
     /** The list of line synchronization points.
      */
-    std::vector<sync_point> _sync_points;
+    std::vector<sync_point_type> _sync_points = {};
 };
 
 }

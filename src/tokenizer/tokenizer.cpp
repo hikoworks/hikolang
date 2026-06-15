@@ -138,7 +138,7 @@ namespace hk {
     co_yield {p, '\0'};
 }
 
-[[nodiscard]] hk::generator<token> tokenize(char const* p, line_table& lines)
+[[nodiscard]] hk::generator<token> tokenize(char const* p, std::string_view path, line_table& lines)
 {
     auto q = fixed_fifo<token, 8>{};
     auto bracket_stack = std::vector<char>{};
@@ -162,6 +162,7 @@ namespace hk {
         return token{t.data(), ';'};
     };
 
+    lines.add_sof(p, path);
     for (auto t : simple_tokenize(p)) {
         if (t == token::comment) {
             // Drop comments.
@@ -179,9 +180,9 @@ namespace hk {
                 }
 
             } else if (file_name.empty()) {
-                lines.add(t.end(), lineno);
+                lines.add_sol(t.end(), lineno);
             } else {
-                lines.add(t.end(), lineno, file_name);
+                lines.add_sol(t.end(), lineno, file_name);
             }
             // Drop token
 
@@ -298,6 +299,8 @@ namespace hk {
     while (not q.empty()) {
         co_yield q.pop_front();
     }
+
+    lines.add_eof(p, path);
 }
 
 } // namespace hk

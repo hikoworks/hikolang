@@ -9,7 +9,7 @@ TEST_SUITE(tokenizer_suite) {
 #define parse_tokens(output, str) \
     auto text = std::string{str}; \
     auto lines = hk::line_table{}; \
-    lines.add(text.data(), 0, "<text>"); \
+    lines.add_sof(text.data(), "<text>"); \
     auto token_generator = hk::tokenize(text.data(), lines); \
     auto output = hk::lazy_vector{token_generator.cbegin(), token_generator.cend()}
 
