@@ -16,7 +16,7 @@
 namespace hk {
 
 
-[[nodiscard]] parse_result_ptr<ast::top_node> parse_top(token_iterator& it, file_parse_context &ctx, bool only_prologue)
+[[nodiscard]] parse_result_ptr<ast::top_node> parse_top(token_iterator& it, parse_context &ctx, bool only_prologue)
 {
     auto const first = it->begin();
     auto r = std::unique_ptr<ast::top_node>{};
@@ -80,7 +80,7 @@ namespace hk {
     return r;
 }
 
-[[nodiscard]] parse_result_ptr<ast::top_node> parse_top(char const *p, file_parse_context &ctx, bool only_prologue)
+[[nodiscard]] parse_result_ptr<ast::top_node> parse_top(char const *p, parse_context &ctx, bool only_prologue)
 {
     auto token_generator = hk::tokenize(p, ctx.lines());
     auto lazy_tokens = lazy_vector{token_generator.cbegin(), token_generator.cend()};

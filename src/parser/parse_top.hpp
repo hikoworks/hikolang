@@ -2,7 +2,7 @@
 #pragma once
 
 #include "parse_result.hpp"
-#include "file_parse_context.hpp"
+#include "parse_context.hpp"
 #include "tokenizer/token_vector.hpp"
 #include "tokenizer/token.hpp"
 #include "ast/top_node.hpp"
@@ -19,7 +19,7 @@ namespace hk {
  * @param only_prologue When true only parses the prologue of a module.
  * @return A module node if successful. 
  */
-[[nodiscard]] parse_result_ptr<ast::top_node> parse_top(token_iterator& it, file_parse_context &ctx, bool only_prologue);
+[[nodiscard]] parse_result_ptr<ast::top_node> parse_top(token_iterator& it, parse_context &ctx, bool only_prologue);
 
 /** Parse a module.
  *
@@ -29,6 +29,6 @@ namespace hk {
  * @param only_prologue When true only parses the prologue of a module.
  * @return A module node if successful. 
  */
-[[nodiscard]] parse_result_ptr<ast::top_node> parse_top(char const* p, file_parse_context &ctx, bool only_prologue);
+[[nodiscard]] parse_result_ptr<ast::top_node> parse_top(char const* p, parse_context &ctx, bool only_prologue);
 
 }

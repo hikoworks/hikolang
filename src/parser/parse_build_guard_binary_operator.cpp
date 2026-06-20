@@ -4,7 +4,7 @@
 namespace hk {
 
 [[nodiscard]] parse_result_ptr<ast::build_guard_binary_operator_node>
-parse_build_guard_binary_operator(token_iterator& it, file_parse_context& ctx)
+parse_build_guard_binary_operator(token_iterator& it, parse_context& ctx)
 {
     using enum ast::build_guard_binary_operator_node::op_type;
 

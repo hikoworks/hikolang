@@ -1,7 +1,6 @@
 
 #pragma once
 
-#include "program_parse_context.hpp"
 #include "error/error_list.hpp"
 #include "tokenizer/line_table.hpp"
 #include <filesystem>
@@ -9,21 +8,18 @@
 
 namespace hk {
 
-class file_parse_context {
+class parse_context {
 public:
-    file_parse_context(program_parse_context &program_context, error_list &errors, line_table &lines) :
-        _program_context(&program_context), _errors(std::addressof(errors)), _lines(std::addressof(lines)) {}
+    parse_context(line_table lines) : _lines(std::move(lines)) {}
 
     error_list& errors()
     {
-        assert(_errors != nullptr);
-        return *_errors;
+        return _errors;
     }
 
     line_table& lines()
     {
-        assert(_lines != nullptr);
-        return *_lines;
+        return _lines;
     }
 
     std::unexpected<hkc_error> add(char const* first, char const* last, hkc_error error, std::string message = std::string{})
@@ -78,9 +74,8 @@ public:
     }
 
 private:
-    error_list *_errors = nullptr;
-    line_table *_lines = nullptr;
-    program_parse_context *_program_context = nullptr;
+    error_list _errors;
+    line_table _lines;
 };
 
 

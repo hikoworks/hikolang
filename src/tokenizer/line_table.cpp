@@ -15,7 +15,7 @@ namespace hk {
 
     auto p = first;
     while (p < last) {
-        auto next = p + 1;
+        auto const next = p + 1;
 
         if (match<char, '\n', '\v', '\f'>(p[0]) or (p[0] == '\r' and p[1] != '\n')) {
             ++line;
@@ -27,7 +27,7 @@ namespace hk {
             ++p;
 
         } else {
-            auto [cp, n] = get_cp(first);
+            auto const [cp, n] = get_cp(first);
 
             if (match<char32_t, U'\u0085', U'\u2028', U'\u2029'>(cp)) {
                 ++line;
@@ -74,7 +74,7 @@ void line_table::clear()
             return p + 1;
 
         } else if (c >= 0x80) {
-            auto [cp, n] = get_cp(p);
+            auto const [cp, n] = get_cp(p);
 
             if (match<char32_t, U'\u0085', U'\u2028', U'\u2029'>(cp)) {
                 return p + n;
@@ -176,10 +176,14 @@ void line_table::add(char const* p, std::string_view path, uint32_t line, sync_t
         return e.p < x;
     });
 
-    assert(it == _sync_points.end() or it->p != p or kind == sync_type::eof);
-
     if (path.empty() and kind == sync_type::sol and it != _sync_points.begin()) {
         path = (it - 1)->path;
+    }
+
+    if (it->p == p) {
+        // Duplicates are ignored, so that a file may be parsed twice.
+        assert(it->path == path and it->line == line and it->kind == kind);
+        return;
     }
 
     _sync_points.emplace(it, p, path, line, kind);    

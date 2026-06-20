@@ -6,7 +6,7 @@
 #include "utility/generator.hpp"
 #include "error/error_list.hpp"
 #include "tokenizer/line_table.hpp"
-#include "parser/program_parse_context.hpp"
+#include "parser/parse_context.hpp"
 #include <gsl/gsl>
 #include <expected>
 #include <system_error>
@@ -152,7 +152,7 @@ public:
      * @param context The context carried between source file compilations.
      * @return If prologue of the source file was modified, or an error.
      */
-    std::expected<bool, std::error_code> parse(program_parse_context& context);
+    std::expected<bool, std::error_code> parse(parse_context& context);
 
 
     [[nodiscard]] error_list& errors() noexcept

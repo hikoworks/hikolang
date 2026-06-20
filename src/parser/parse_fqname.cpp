@@ -4,7 +4,7 @@
 
 namespace hk {
 
-[[nodiscard]] static parse_result<fqname> parse_fqname(token_iterator& it, file_parse_context& ctx, bool absolute)
+[[nodiscard]] static parse_result<fqname> parse_fqname(token_iterator& it, parse_context& ctx, bool absolute)
 {
     using namespace std::literals;
 
@@ -63,12 +63,12 @@ namespace hk {
     return fqname{std::move(r)};
 }
 
-[[nodiscard]] parse_result<fqname> parse_absolute_fqname(token_iterator& it, file_parse_context &ctx)
+[[nodiscard]] parse_result<fqname> parse_absolute_fqname(token_iterator& it, parse_context &ctx)
 {
     return parse_fqname(it, ctx, true);
 }
 
-[[nodiscard]] parse_result<fqname> parse_relative_fqname(token_iterator& it, file_parse_context &ctx)
+[[nodiscard]] parse_result<fqname> parse_relative_fqname(token_iterator& it, parse_context &ctx)
 {
     return parse_fqname(it, ctx, false);
 }
