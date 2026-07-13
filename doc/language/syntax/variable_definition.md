@@ -89,12 +89,6 @@ These variables manage values on the heap; they are managed as follows:
 The optional argument is the allocator to use. Otherwise it is the current
 or default allocator.
 
-#### Literals
-
-For function arguments with a literal qualifier like `string_literal` this
-function will be favoured in a overload set when a string literal is passed to
-this function. 
-
 
 
 ### initializer

@@ -1,0 +1,85 @@
+module std.string
+namespace std
+
+class string {
+    ref _ptr : __i8
+    var _size : __size
+    var _capacity : __size
+
+    fn short_string() -> bool
+    {
+        if (std.config.endian == "little") {
+            return _capacity < 0
+        } else {
+            return capacity & 1 == 1
+        }
+    }
+
+    fn capacity() -> __size
+    {
+        if (short_string()) {
+            if (std.config.cpu_bits == 64) {
+                return 23
+            } else {
+                return 11
+            }
+
+        } else if (std.config.endian == "little") {
+            return _capacity << 1
+
+        } else {
+            return _capacity - 1
+        }
+    }
+
+    fn size() -> __size
+    {
+        if (not short_string()) {
+            return _size;
+
+        } else if (std.config.endian == "little") {
+            if (std.config.cpu_bits == 64) {
+                return 23 - (_capacity >> 56)
+            } else {
+                return 11 - (_capacity >> 24)
+            }
+
+        } else {
+            if (std.config.cpu_bits == 64) {
+                return 23 - ((_capacity & 0xff) >> 1)
+            } else {
+                return 11 - ((_capacity & 0xff) >> 1)
+            }
+        }
+    }
+
+    fn _ptr(ref self : string, return ?&__i8[])
+    {
+
+    }
+
+    fn _sso() -> __builtin_i1
+    {
+        return __builtin_eq_i32(__builtin_and_i32(_flags, 0x80), 0);
+    }
+
+    pub fn size() -> __builtin_i32
+    {
+        if (_sso()) {
+            return __builtin_sub_i32(0x0f, __builtin_and_i32(_flags, 0x0f));
+        } else {
+            return _size;
+        }
+    }
+
+    pub fn data() -> ref? __builtin_i8
+    {
+        if (__sso()) {
+            return _sso.data();
+        } else {
+            return _ptr;
+        }
+    }
+
+}
+
