@@ -3,6 +3,8 @@
 
 #include "error/error_list.hpp"
 #include "tokenizer/line_table.hpp"
+#include "ast/documentation_node.hpp"
+#include "ast/attribute_node.hpp"
 #include <filesystem>
 #include <cassert>
 
@@ -74,6 +76,8 @@ public:
     }
 
 private:
+    std::unique_ptr<ast::documentation_node> _documentation;
+    std::vector<std::unique_ptr<ast::attribute_node>> _attributes;
     error_list _errors;
     line_table _lines;
 };

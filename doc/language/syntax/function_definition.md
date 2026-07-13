@@ -6,7 +6,8 @@ _function-definition_ :=\
     [_documentation_]__*__\
     [_attribute_]__*__\
     [_qualifier_]__*__\
-    `fn` [_fqname_]__?__ `(` [_argument-declaration-list_]__?__ `)` [_function-return-type_]__?__\
+    `fn` [_fqname_]__?__ `(` [_argument-declaration-list_]__?__ `)`
+    [_function-return-type_]__?__\
     [_clause_]__*__\
     [_code-block_]
 

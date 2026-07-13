@@ -12,22 +12,27 @@ features:
 The string type template is `string[encoding : char_encoding]`. `char_encoding`
 is an open enum, allowing more encodings to be added by the program.
 
-  char_encoding    | Description
- :---------------- |:-----------------------------------------
-  `int_literal`    | A language native integer literal
-  `float_literal`  | A language native floating point literal
-  `string_literal` | A language native string literal
-  `bytes`          | Just bytes, no encoding
-  `WTF8`           | WTF-8 encoding used for file names.
-  `UTF8`           | Validated correct UTF-8
-  `UTF8_NFC`       | Validated correct UTF-8 in validated NFC form.
+  char_encoding     | Description
+ :----------------- |:-----------------------------------------
+  `string_literal`  | A string literal in the source code
+  `integer_literal` | A integer literal in the source code
+  `float_literal`   | A float literal in the source code
+  `bytes`           | Just bytes, no encoding
+  `WTF8`            | WTF-8 encoding used for file names.
+  `UTF8`            | Validated correct UTF-8
+  `UTF8_NFC`        | Validated correct UTF-8 in validated NFC form.
 
-String functions may upgrade or downgrade between the encodings described
-above. Most other encodings like ISO-8859-1 are temporary run-time encodings
-and may not need to be part of the enum.
+String functions may upgrade or downgrade between the encodings described above.
+Most other encodings like ISO-8859-1 are temporary run-time encodings and may
+not need to be part of the enum.
 
-The `\*_literal` encodings allow function to accept literals, this way
-conversion functions can be created.
+The `*_literal` encodings are for literals in the source code, so that it is
+possible to make overloaded functions, including conversion functions, that
+specifically accept literals.
+
+A `string_literal` includes the escape sequences, which the conversion function
+needs to parse. Since a `string_literal` may be used to express any
+byte-sequence the implicit conversion is to a `string[bytes]`.
 
 
 ## Memory layout.
