@@ -11,7 +11,7 @@ class string {
         if (std.config.endian == "little") {
             return _capacity < 0
         } else {
-            return capacity & 1 == 1
+            return _capacity & 1 == 1
         }
     }
 
