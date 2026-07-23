@@ -18,70 +18,77 @@
 
  * `a`: Left hand side value.
  * `b`: Right hand side value.
+ * `r`: Right hand side reference
  * `T`: [_type-expression_]
 
-   Operator     | Precedence  | Function                       | Description
-  :----------   |:----------- |:------------------------------ |:----------
-   `a++`        |  2000 L     | `__post_increment__(a)`
-   `a--`        |  2000 L     | `__post_decrement__(a)`
-   `a(...)`     |  2000 R     | 
-   `a[...]`     |  2000 R     | 
-   `a.<name>`   |  2000 R     | 
-   `++b`        |  3000 R     | `__increment__(a)`
-   `--b`        |  3000 R     | `__decrement__(a)`
-   `+b`         |  3000 R     | `__pos__(a)`
-   `-b`         |  3000 R     | `__neg__(a)`
-   `~b`         |  3000 R     | `__inv__(a)`
-   `not b`      |  3000 R     | `__not__(a)`
-   `await b`    |  3000 R     |
-   `try b`      |  3000 R     |                                | [_try_operator_](try_operator.md)
-   `a * b`      |  5000 L     | `__mul__(a, b)`
-   `a / b`      |  5000 L     | `__div__(a, b)`
-   `a % b`      |  5000 L     | `__rem__(a, b)`
-   `a &* b`     |  5000 L     | `__mod_mul__(a, b)`
-   `a &/ b`     |  5000 L     | `__mod_div__(a, b)`
-   `a + b`      |  6000 L     | `__add__(a, b)`
-   `a - b`      |  6000 L     | `__sub__(a, b)`
-   `a &+ b`     |  6000 L     | `__mod_add__(a, b)`
-   `a &- b`     |  6000 L     | `__mod_sub__(a, b)`
-   `a << b`     |  7000 L     | `__sal__(a, b)`
-   `a >> b`     |  7000 L     | `__sar__(a, b)`
-   `a &>> b`    |  7000 L     | `__slr__(a, b)`
-   `a <=> b`    |  8000 L     | `__cmp__(a, b)`
-   `a < b`      |  9000 L     | `__lt__(a, b)`
-   `a > b`      |  9000 L     | `__gt__(a, b)`
-   `a <= b`     |  9000 L     | `__le__(a, b)`
-   `a >= b`     |  9000 L     | `__ge__(a, b)`
-   `a == b`     | 10000 L     | `__eq__(a, b)`
-   `a != b`     | 10000 L     | `__ne__(a, b)`
-   `a in b`     | 10000 L     | `__in__(a, b)`
-   `a not in b` | 10000 L     | `__not_in__(a, b)`
-   `a & b`      | 11000 L     | `__bit_and__(a, b)`
-   `a ^ b`      | 12000 L     | `__bit_xor__(a, b)`
-   `a \| b`     | 13000 L     | `__bit_or__(a, b)`
-   `a and b`    | 14000 L     |
-   `a or b`     | 15000 L     |
-   `a catch b`  | 15100 R     |                            | [_catch_operator_](catch_operator.md)
-   `a := T`     | 15500 L     | `__cast_exact__(a, T)`  
-   `a : T`      | 15500 L     | `__cast_widen__(a, T)`  
-   `a :! T`     | 15500 L     | `__cast_truncate__(a, T)`
-   `a :? T`     | 15500 L     | `__cast_narrow__(a, T)`
-   `a ~ T`      | 15500 L     |                            | Checks if `a : T` is valid
-   `a ~! T`     | 15500 L     |                            | Checks if `a :! T` is valid
-   `a ~? T`     | 15500 L     |                            | Checks if `a :? T` is valid
-   `a = b`      | 16000 R     | `__assign__(a, b)`
-   `a += b`     | 16000 R     | `__inplace_add__(a, b)`
-   `a -= b`     | 16000 R     | `__inplace_sub__(a, b)`
-   `a *= b`     | 16000 R     | `__inplace_mul__(a, b)`
-   `a /= b`     | 16000 R     | `__inplace_div__(a, b)`
-   `a %= b`     | 16000 R     | `__inplace_mod__(a, b)`
-   `a <<= b`    | 16000 R     | `__inplace_sll__(a, b)`
-   `a >>= b`    | 16000 R     | `__inplace_sar__(a, b)`
-   `a &>>= b`   | 16000 R     | `__inplace_slr__(a, b)`
-   `a &= b`     | 16000 R     | `__inplace_and__(a, b)`
-   `a ^= b`     | 16000 R     | `__inplace_xor__(a, b)`
-   `a \|= b`    | 16000 R     | `__inplace_or__(a, b)`
 
+  Operator     | Precedence | Function                       | Description
+ :------------ |:------- |:------------------------------ |:----------
+  `a++`        |  2000 L | `__post_increment__(a)`        |
+  `a--`        |  2000 L | `__post_decrement__(a)`        |
+  `a(...)`     |  2000 L |                                | [_function-call_]
+  `a[...]`     |  2000 L |                                | [_index-operator_]
+  `a.<name>`   |  2000 L |                                | [_member-access_]
+  `++b`        |  3000 R | `__increment__(a)`             |
+  `--b`        |  3000 R | `__decrement__(a)`             |
+  `+b`         |  3000 R | `__pos__(a)`                   |
+  `-b`         |  3000 R | `__neg__(a)`                   |
+  `~b`         |  3000 R | `__inv__(a)`                   |
+  `not b`      |  3000 R | `__not__(a)`                   |
+  `await b`    |  3000 R |                                | [_await-operator_]
+  `try b`      |  3000 R |                                | [_try-operator_]
+  `&b`         |  3000 R |                                | [_reference_operator_]
+  `mut r`      |  3000 R |                                | [_make-mutable-operator_]
+  `?b`         |  3000 R |                                | [_make-optional-operator_]
+  `a * b`      |  5000 L | `__mul__(a, b)`                |
+  `a / b`      |  5000 L | `__div__(a, b)`                |
+  `a % b`      |  5000 L | `__rem__(a, b)`                |
+  `a &* b`     |  5000 L | `__mod_mul__(a, b)`            |
+  `a &/ b`     |  5000 L | `__mod_div__(a, b)`            |
+  `a + b`      |  6000 L | `__add__(a, b)`                |
+  `a - b`      |  6000 L | `__sub__(a, b)`                |
+  `a &+ b`     |  6000 L | `__mod_add__(a, b)`            |
+  `a &- b`     |  6000 L | `__mod_sub__(a, b)`            |
+  `a << b`     |  7000 L | `__sal__(a, b)`                |
+  `a >> b`     |  7000 L | `__sar__(a, b)`                |
+  `a &>> b`    |  7000 L | `__slr__(a, b)`                |
+  `a <=> b`    |  8000 L | `__cmp__(a, b)`                |
+  `a < b`      |  9000 L | `__lt__(a, b)`                 |
+  `a > b`      |  9000 L | `__gt__(a, b)`                 |
+  `a <= b`     |  9000 L | `__le__(a, b)`                 |
+  `a >= b`     |  9000 L | `__ge__(a, b)`                 |
+  `a == b`     | 10000 L | `__eq__(a, b)`                 |
+  `a != b`     | 10000 L | `__ne__(a, b)`                 |
+  `a in b`     | 10000 L | `__in__(a, b)`                 |
+  `a not in b` | 10000 L | `__not_in__(a, b)`             |
+  `a & b`      | 11000 L | `__bit_and__(a, b)`            |
+  `a ^ b`      | 12000 L | `__bit_xor__(a, b)`            |
+  `a \| b`     | 13000 L | `__bit_or__(a, b)`             |
+  `a and b`    | 14000 L |                                | [_shortcut-operator_]
+  `a or b`     | 15000 L |                                | [_shortcut-operator_]
+  `a catch b`  | 15100 R |                                | [_catch-operator_]
+  `a := T`     | 15500 L | `__cast_exact__(a, T)`         | 
+  `a : T`      | 15500 L | `__cast_widen__(a, T)`         |
+  `a :! T`     | 15500 L | `__cast_truncate__(a, T)`      |
+  `a :? T`     | 15500 L | `__cast_narrow__(a, T)`        |
+  `a ~ T`      | 15500 L |                                | Checks if `a : ` is valid    
+  `a ~! T`     | 15500 L |                                | Checks if `a :! ` is valid    
+  `a ~? T`     | 15500 L |                                | Checks if `a :? ` is valid
+  `a = b`      | 16000 R | `__assign__(a, b)`             |
+  `a += b`     | 16000 R | `__inplace_add__(a, b)`        |
+  `a -= b`     | 16000 R | `__inplace_sub__(a, b)`        |
+  `a *= b`     | 16000 R | `__inplace_mul__(a, b)`        |
+  `a /= b`     | 16000 R | `__inplace_div__(a, b)`        |
+  `a %= b`     | 16000 R | `__inplace_mod__(a, b)`        |
+  `a <<= b`    | 16000 R | `__inplace_sll__(a, b)`        |
+  `a >>= b`    | 16000 R | `__inplace_sar__(a, b)`        |
+  `a &>>= b`   | 16000 R | `__inplace_slr__(a, b)`        |
+  `a &= b`     | 16000 R | `__inplace_and__(a, b)`        |
+  `a ^= b`     | 16000 R | `__inplace_xor__(a, b)`        |
+  `a \|= b`    | 16000 R | `__inplace_or__(a, b)`         |
+
+[_try-operator_]: try_operator.md
+[_catch-operator_]: catch_operator.md
 
 ## Semantics
 
