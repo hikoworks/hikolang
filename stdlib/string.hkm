@@ -1,7 +1,8 @@
-module std.string
-namespace std
 
-class string {
+import std.string_encoding
+module std.string
+
+class string[encoding : string_encoding] {
     ref _ptr : __i8
     var _size : __size
     var _capacity : __size

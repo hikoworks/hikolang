@@ -1,0 +1,49 @@
+
+module std.string_encoding
+
+enum string_encoding {
+    /** Unencoded string of bytes.
+     */
+    raw
+
+    /** String literal
+     *
+     * String literals are unencoded and may be implicitly converted to:
+     *  - `string[raw]`
+     */
+    string_literal
+    
+    /** Integer literal
+     *
+     * A valid integer number containing the following characters:
+     *  [+-bBoOdDxX0-9a-fA-F'_]
+     */
+    integer_literal
+    
+    /** Floating point literal
+     *
+     * A valid floating point number containing the following characters:
+     *  [+-bBoOdDxX0-9a-fA-F'_.gG]
+     */
+    float_literal
+
+    /** Well formed WTF-8
+     *
+     * UTF-8, but with the following exclusion to ill-formness:
+     *  - Surrogate code-points may be encoded.
+     *  - Surrogates do not need to apear in proper pairs.
+     *
+     * Strings like these are used for filenames and other strings. used to
+     * communicate with Operating Systems that use WTF-16 string accross the API.
+     */
+    wtf8
+
+    /** Well formed UTF-8.
+     */
+    utf8
+
+    /** Well formed UTF-8, encoding unicode string in NFC normalization form.
+     */
+    utf8_nfc
+
+}
