@@ -1,25 +1,25 @@
 
-class ptr_type[T : type] {
-    let value_type = T
-    var _p : __builtin_ptr
+class raw_ptr[T : type] {
+    value_type = T
+    _p = 0 : __builtin_ptr
 
-    fn __index__(self := ptr_type[T])
-    {
-        return __builtin_dereference(valuetypeof(self), T, p)
+    fn __init__(self : &&raw_ptr[T]) = default
+
+    fn __init__(self : &&raw_ptr[T], p : __builtin_ptr) {
+        self._p = p
     }
 
-    fn __index__(self := ptr_type[T], i : __builtin_size)
-    {
-        return __builtin_dereference(valuetypeof(self), T, p + i * sizeof(T))
+    fn __index__(self := ptr_type[T], i : int) {
+        return __builtin_dereference(type(self), self._p, i)
     }
 
     fn __dereference__(self := ptr_type[T])
     {
-        return __builtin_dereference(valuetypeof(self), T, p)        
+        return __builtin_dereference(type(self), self._p)        
     }
 
     fn raw() -> __builtin_ptr
     {
-        return _p
+        return self._p
     }
 }
