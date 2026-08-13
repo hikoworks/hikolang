@@ -4,50 +4,49 @@ Tutorial - Functions
 
 
 ```
-fn foo(a, b) {
+foo = fn(a, b) {
     return fn(c, d) {
         return a + b + c + d
     }
 }
 
-fn foo(a) {
+foo = foo(a) {
     return fn(b, c, d) {
         return a + b + c + d
     }
 }
 
-foo(1, 2; 3, 4)
 foo(1, 2)(3, 4)
-
-foo(1; 2, 3, 4)
 foo(1)(2, 3, 4)
 ```
 
 
 ```
-class vector[T : type] {
-    fn __init__(size : int) {}
+vector = class[T : type] {
+    __init__ = fn(size : int) {}
 };
 
-var b = vector[int](5)
+b := vector[int[0..<100]]
+b.append(1)
 ```
 
 ```
-class foo_t[] {
-    fn __init__(size : int) {}
+foo_t class[] {
+    __init__ = fn(size : int) {}
 }
 
-struct bar_t[] {
-    fn __init__(size : int) {}
+bar_t struct {
+    __init__(size : int) {}
 }
 
 var c = foo_t[](5)
-var d = foo_t(5)
+var d = bar_t(5)
 ```
 
 ```
-fn class(d : definition) {
-    for (ref mf in d.member_functions()) {
+@metatype
+class = fn(p : parameters, d : definition) {
+    for (mf :& in d.member_functions()) {
         if (not (mf.is_public() or mf.is_private())) {
             mf.set_private()
         }
@@ -56,26 +55,19 @@ fn class(d : definition) {
     return d
 }
 
-fn struct(d : definition) {
-    for (ref mf in d.member_functions()) {
+@metatype
+struct = fn(p : parameters, d : definition) {
+    for (mf :& in d.member_functions()) {
         if (not (mf.is_public() or mf.is_private())) {
             mf.set_public()
         }
     }
 
-    for (view em in d.enum_members()) {
+    for (em :& in d.enum_members()) {
         syntax_error(view.source_location(), "Enum member {} not valid in a struct", em.name())
     }
 
     return d
 }
 
-fn foo_t[] {
-    return class {
-        fn __init__(size : int) {}
-    }
-}
-
-var c = foo_t[](5)
-var d = foo_t(5)
 ```

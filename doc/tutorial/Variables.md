@@ -1,15 +1,15 @@
 Tutorial - Variables
 ====================
 
-## var
+## variables
 
 ```
-// file: var.hkm
+// file: variable.hkm
 import std
-program "var"
+program "variable"
 
-var a = 40.0
-a = a + 2.0
+a := 40.0
+a := a + 2.0
 std.repr(a)                                      // 42.0
 ```
 
@@ -17,14 +17,14 @@ The expression's value is copied into the value maintaned by the variable
 declaration.
 
 
-## let
+## immutables
 
 ```
-// file: let.hkm
+// file: immutable.hkm
 import std
 program "let"
 
-let a = 40.0
-let b = a + 2.0
+a = 40.0
+b = a + 2.0
 std.repr(b)                                      // 42.0
 ```
