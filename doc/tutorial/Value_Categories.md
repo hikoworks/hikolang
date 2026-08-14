@@ -34,6 +34,17 @@ The following value categories exist:
 
 The type of a value is `T`.
 
+```
+// Argument 'a' will make a copy of the value passed into it.
+foo = fn(a) {
+    return a
+}
+
+x = 42      // x is bound and manages the storage of the value 42.
+y = foo(x)  // The value 42 is passed into the function foo(),
+            // then y is initialized with the returned value.
+```
+
 ## Reference
 
 The type of a reference is `&T`. References can't be nested, which means `&&T`

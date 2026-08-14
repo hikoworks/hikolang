@@ -6,6 +6,7 @@ Tutorial - Table of Contents
 2. [Variables](Variables.md)
 3. [Ranged Integers](Ranged_Integers.md)
 4. [Conversions](Conversions.md)
+5. [Value Categories](Calue_Categories.md)
 5. Type Annotations & Inference
 6. References and Mutability
 7. Functions (Keep It Simple First)
