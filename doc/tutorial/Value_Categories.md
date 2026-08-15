@@ -4,42 +4,41 @@ The following value categories exist:
  - __value__: A literal value, or a variable bound to a storage
    location it is managing.
  - __reference__: A reference object, or a variable holding a reference
-   to a storage location it does not itself manage. Operations on a
-   reference are proxies to the value it points to.
- - __pointer__: Like a reference object, but it does not proxy operations.
- - __alias__: A variable that can hold a value, reference or pointer. Used
-   for templates to perfectly forward objects of any of the value categories.
+   to a storage location it does not itself manage.
+ - __move-reference__: A reference object which allows movement from the
+   referenced object.
+ - __automatic-binding__: A variable that can hold a value, reference or
+   move-reference. Used for templates to perfectly forward objects of any of the
+   value categories.
 
-Although an alias is listed as a value category, it is not an actual value
-category itself. Rather, it is a binding mechanism that preserves the value
-category of the object it refers to.
-
-```
- +-------+     preserves  +-----------+
- | alias |---+----------->|  pointer  |
- +-------+   |            +-----------+
-             |                  |
-             |                  | decays
-             |                  V
-             | preserves  +-----------+
-             +----------->| reference |-------+
-             |            +-----------+       |
-             |                  |             |
-             |                  | decays      | proxies
-             |                  V             |
-             | preserves  +-----------+       |
-             +----------->|   value   |<------+
-                          +-----------+
+Although an automatic-binding is listed as a value category, it is not an actual
+value category itself. Rather, it is a binding mechanism that preserves the
+value category of the object it refers to.
 
 ```
+ +-------------------+     preserves  +----------------+
+ | automatic binding |---+----------->| move reference |
+ +-------------------+   |            +----------------+
+                         |                  |
+                         |                  | decays
+                         |                  V
+                         | preserves  +-----------+
+                         +----------->| reference |-------+
+                         |            +-----------+       |
+                         |                  |             |
+                         |                  | decays      | proxies
+                         |                  V             |
+                         | preserves  +-----------+       |
+                         +----------->|   value   |<------+
+                                      +-----------+
 
-A decay removes one level of indirection: a pointer decays to a reference, and a
-reference decays to a value, a value remains a value.
+```
 
-- A value remains a value.
-- A reference decays to a value when used outside a reference context.
-- A pointer decays to a reference when used in a reference context.
-- An alias suppresses these decays and preserves the original value category.
+  select:  | `a`   | `*a` | `&a` | `&&a`
+ :-------- |:----- |:---- |:---- |:-----
+  `a: T`   | `T`   | `T`  | `&T` | `&&T`
+  `a: &T`  | `&T`  | `T`  | `&T` | `&&T`
+  `a: &&T` | `&&T` | `T`  | `&T` | `&&T`
 
 ## Value
 
@@ -124,41 +123,32 @@ a := x    // 'y' now has the value '3.0'.
 ```
 
 
-## Alias
+## automatic binding
 
-An alias is a binding mechanism that preserves the value category of the object
+Automatic binding preserves the value and value-category of the object
 passed to it. This is useful when creating template functions that accepts
 objects of different value categories.
 
-An alias is a variable or function argument with a `&&T` type. An alias binding
-preserves both the underlying type and the value category of its initializer.
+Automatic binding is a variable or function argument which is prefixed with
+`=>`.
 
 ```
-foo = fn(&&a) {
-    b = a // One step of decay.
-    return b
+foo = fn(=>a) {
+    repr(&a) // pass a reference or value to repr(). 
+    print(a) // a perfectly forwards itself to print().
 }
 
 x := 42.0
 &y := x
 
-foo(x)  // a = 42.0, b = 42.0, return 42.0
-foo(y)  // a->x,     b = 42.0, return 42.0
-foo(&x) // a = &x,   b->x,     return 42.0
+foo(x)   // a : f64
+foo(y)   // a : &f64
+foo(*y)  // a : f64
+foo(&x)  // a : &f64
+foo(&y)  // a : &f64
+foo(&&x) // a : &&f64
+x := 3.0 // x was moved from, set to a proper value again.
+foo(&&y) // a : &&f64
 ```
 
-An alias can even preserve a pointer, which would normally decay into
-a reference.
-
-```
-foo = struct {
-  a = 0.0
-  b = 0.0
-}
-
-x = foo(42.0, 5.0)
-y :&& = &x.a        // 'y' preserves the pointer to 'x.a'
-z :& = y + 1        // pointer arithmetic, 'z' is a reference to 'x.b'
-w = z               // reference 'z' decays to the value '5.0'.
-```
 
