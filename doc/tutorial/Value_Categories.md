@@ -34,11 +34,68 @@ value category of the object it refers to.
 
 ```
 
-  selector: | `a`   | `*a` | `&a` | `&&a`
- :--------- |:----- |:---- |:---- |:-----
-  `a: T`    | `T`   | `T`  | `&T` | `&&T`
-  `a: &T`   | `&T`  | `T`  | `&T` | -
-  `a: &&T`  | `&&T` | `T`  | `&T` | `&&T`
+
+## Type and Binding Specification
+
+```
+x = 42.0
+
+a = x               // is a copy
+b <- = x            // is a copy
+c <- * = x          // is a copy
+d <- & = x          // is a reference to x
+e <- &const = x     // is a reference to const x
+f <- && = x         // is a move-reference to x
+g <- &&const = x    // what even is a move-reference to a const x?
+```
+
+```
+y = &x              // is reference to x
+
+h = y               // is a copy
+i <- = y            // is a reference to x
+j <- * = y          // is a copy
+k <- & = y          // is a reference to x
+l <- &const = y     // is a reference to const x
+//m <- && = y       // ERROR: can't convert reference to move-reference.
+//n <- &&const = y  // ERROR: can't convert reference to move-reference.
+```
+
+```
+foo = fn(a)            { return 1 }
+bar = fn(a <-)         { return 2 }
+foo = fn(a <- *)       { return 3 }
+foo = fn(a <- &)       { return 4 }
+foo = fn(a <- &const)  { return 5 }
+foo = fn(a <- &&)      { return 6 }
+foo = fn(a <- &&const) { return 7 }
+```
+
+## Binding Selector
+
+
+  selector:      | `a`         | `*a`      | `&a`       | `&const a` | `&&a`
+ :-------------- |:----------- |:--------- |:---------- |:--------   |:-----
+  `a: T`         | `T`         | `T`       | `&T`       | `&const T` | `&&T`
+  `a: const T`   | `const T`   | `const T` | `&const T` | `&const T` | `&&const T`
+  `a: &T`        | `&T`        | `T`       | `&T`       | `&const T` | -
+  `a: &const T`  | `&const T`  | `const T` | `&const T` | `&const T` | -
+  `a: &&T`       | `&&T`       | `T`       | `&T`       | `&const T` | `&&T`
+  `a: &&const T` | `&&const T` | `const T` | `&const T` | `&const T` | `&&const T`
+
+```
+x = 42.0
+
+a = x
+//b : & = x
+b = &x
+//c : &const = x
+c = &const x
+//d : && = x
+d = && x
+//e : &&const = x
+e = &&const x
+```
 
 ## Value
 

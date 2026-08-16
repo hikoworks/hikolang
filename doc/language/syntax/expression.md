@@ -37,8 +37,10 @@
   `not b`      |  3000 R | `__not__(a)`                   |
   `await b`    |  3000 R |                                | [_await-operator_]
   `try b`      |  3000 R |                                | [_try-operator_]
-  `&b`         |  3000 R |                                | [_reference_operator_]
-  `mut r`      |  3000 R |                                | [_make-mutable-operator_]
+  `&b`         |  3000 R |                                | [_binding-selector_]
+  `&&b`        |  3000 R |                                | [_binding-selector_]
+  `*b`         |  3000 R |                                | [_binding-selector_]
+  `const r`    |  3000 R |                                | [_make-const-operator_]
   `?b`         |  3000 R |                                | [_make-optional-operator_]
   `a * b`      |  5000 L | `__mul__(a, b)`                |
   `a / b`      |  5000 L | `__div__(a, b)`                |
@@ -67,13 +69,13 @@
   `a and b`    | 14000 L |                                | [_shortcut-operator_]
   `a or b`     | 15000 L |                                | [_shortcut-operator_]
   `a catch b`  | 15100 R |                                | [_catch-operator_]
-  `a := T`     | 15500 L | `__cast_exact__(a, T)`         | 
-  `a : T`      | 15500 L | `__cast_widen__(a, T)`         |
-  `a :! T`     | 15500 L | `__cast_truncate__(a, T)`      |
-  `a :? T`     | 15500 L | `__cast_narrow__(a, T)`        |
-  `a ~ T`      | 15500 L |                                | Checks if `a : ` is valid    
-  `a ~! T`     | 15500 L |                                | Checks if `a :! ` is valid    
-  `a ~? T`     | 15500 L |                                | Checks if `a :? ` is valid
+  `a : T`      | 15500 L | `__cast_widen__(a, T)`         | [_coerce-operator_]
+  `a :! T`     | 15500 L | `__cast_truncate__(a, T)`      | [_coerce-operator_]
+  `a :? T`     | 15500 L | `__cast_narrow__(a, T)`        | [_coerce-operator_]
+  `a <- T`     | 15500 L |                                | [_coerce-operator_]
+  `a <-! T`    | 15500 L |                                | [_coerce-operator_]
+  `a <-? T`    | 15500 L |                                | [_coerce-operator_]
+  `a <-= T`    | 15500 L |                                | [_coerce-operator_]
   `a = b`      | 16000 R | `__assign__(a, b)`             |
   `a += b`     | 16000 R | `__inplace_add__(a, b)`        |
   `a -= b`     | 16000 R | `__inplace_sub__(a, b)`        |
@@ -87,8 +89,11 @@
   `a ^= b`     | 16000 R | `__inplace_xor__(a, b)`        |
   `a \|= b`    | 16000 R | `__inplace_or__(a, b)`         |
 
-[_try-operator_]: try_operator.md
+[_binding-selector_]: binding_selector.md
 [_catch-operator_]: catch_operator.md
+[_coerce-operator_]: coerce_operator.md
+[_shortcut-operator_]: shortcut_operator.md
+[_try-operator_]: try_operator.md
 
 ## Semantics
 
