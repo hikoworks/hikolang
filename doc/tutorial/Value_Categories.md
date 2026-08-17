@@ -37,6 +37,25 @@ value category of the object it refers to.
 
 ## Type and Binding Specification
 
+
+  variable spec:      | `x: T`         | `x: const T`   | `x: &T`       | `x: &const T` | `x: &&T`       | `x: &&const T`
+ :------------------- |:-------------- |:-------------- |:------------- |:------------- |:-------------- |:-------------
+  `a := x`            | `a: T`         | `a: T`         | `a: T`        | `a: T`        | `a: T`         | `a: T`
+  `a <- := x`         | `a: T`         | `a: const T`   | `a: &T`       | `a: &const T` | `a: &&T`       | `a: &&const T`
+  `a <- * := x`       | `a: T`         | `a: const T`   | `a: T`        | `a: const T`  | `a: T`         | `a: const T` 
+  `a <- & := x`       | `a: &T`        | `a: &const T`  | `a: &T`       | `a: &const T` | `a: &T`        | `a: &const T`
+  `a <- &const := x`  | `a: &const T`  | `a: &const T`  | `a: &const T` | `a: &const T` | `a: &const T`  | `a: &const T`
+  `a <- && := x`      | `a: &&T`       | `a: &&const T` | error         | error         | `a: &&T`       | `a: &&const T`
+  `a <- &&const := x` | `a: &&const T` | `a: &&const T` | error         | error         | `a: &&const T` | `a: &&const T`
+  `a = x`             | `a: const T`   | `a: const T`   | `a: const T`  | `a: const T`  | `a: const T`   | `a: const T`
+  `a <- = x`          | `a: const T`   | `a: const T`   | `a: &T`       | `a: &const T` | `a: &&const`   | `a: &&const T`
+  `a <- * = x`        | `a: const T`   | `a: const T`   | `a: const T`  | `a: const T`  | `a: const T`   | `a: const T` 
+  `a <- & = x`        | `a: &T`        | `a: &const T`  | `a: &T`       | `a: &const T` | `a: &T`        | `a: &const T`
+  `a <- &const = x`   | `a: &const T`  | `a: &const T`  | `a: &const T` | `a: &const T` | `a: &const T`  | `a: &const T`
+  `a <- && = x`       | `a: &&const T` | `a: &&const T` | error         | error         | `a: &&const T` | `a: &&const T`
+  `a <- &&const = x`  | `a: &&const T` | `a: &&const T` | error         | error         | `a: &&const T` | `a: &&const T`
+
+
 ```
 x = 42.0
 
