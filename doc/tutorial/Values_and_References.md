@@ -1,25 +1,29 @@
-# Values and References
-
-When working with data in Hikolang, it is important to distinguish
-between **values** and **references**.
-
-The key question is:
-
-> **Who manages the storage containing this object?**
-
-A **value** manages its own storage. A **reference** does not manage the storage
-it refers to; it only provides access to storage managed somewhere else.
+# Value, References and Movables
 
 Hikolang has three value categories:
- * **value** - a literal value, an expression result, or a variable that manages
-   the storage of a value.
+ * **value** - a value located in managed storage, or the temporary result of an
+   expression.
  * **reference** - a reference to storage managed by something else.
- * **move-reference** - a reference that permits the internals of the referenced
+ * **movable** - a reference that permits the internals of the referenced
    object to be consumed.
 
 This distinction affects how variables are initialized, how function arguments
 are passed, and whether modifying an object modifies the original object or a
 copy.
+
+Here are the possible bindings, including constness, and which conversions
+can take place:
+
+```
+    const T ←────── T
+       │            │
+       │       ┌────┴────┐
+       │       ↓         ↓
+       │      &T ←────  &&T
+       │       │
+       │       ↓
+       └──→ &const T
+```
 
 ## Values
 
@@ -81,18 +85,20 @@ x ──manages──> [42.0]
 y ──refers──────┘
 ```
 
-Changing the value through `y` changes the value stored by `x`, because both access the same storage.
+Changing the value through `y` changes the value stored by `x`, because both
+access the same storage.
 
 
 ### References are not nested
 
 References cannot be nested. Consequently, `&&T` does **not** mean "a reference
-to a reference". Instead, `&&T` is the type of a **move-reference**. This
+to a reference". Instead, `&&T` is the type of a **movable**. This
 distinction is important when reading declarations:
  * `&T` - reference
- * `&&T` - move-reference
+ * `&&T` - movable
 
-Taking the reference of a reference therefore still produces a reference to the underlying storage:
+Taking the reference of a reference therefore still produces a reference to the
+underlying storage:
 
 ```
 // x is a value.
@@ -117,7 +123,13 @@ y ──refers──────┘ │
 z ──refers────────┘
 ```
 
-### Binding selector vs. Binding specification 
+## Movable
+
+A movable is like a reference that revers to a value, with the added permission
+to consume the internals of the referenced value. The original value must
+remain in a valid-but-indeterminate state.
+
+## Binding selector vs. Binding specification 
 
 Up to this point we have seen how to use a binding selector. A selector is an
 operator which adds a preferred binding-method to an expression. This preferred
@@ -126,7 +138,7 @@ binding-method is then consumed by the:
  - immutable initializer, or the
  - function parameter of a function call.
 
-In this example we see `&x` be passed as an initializer and as afunction
+In this example we see `&x` be passed as an initializer and as a function
 argument, setting the preferred binding method to a reference:
 
 ```
@@ -159,12 +171,12 @@ The binding specification is evaluated after the binding selector:
 x = 42.0
 y = &x
 
-a = y           // y:   reference                  a: value (no selector: default)
-b <- = y        // y:   reference                  b: reference (no selector: inferred)
-c <- & = &x     // &x:  reference (selector)       c: reference (selector overridden)
-d <- & = &&x    // &&x: move-reference (selector)  d: reference (selector overridden)
+a = y           // y:   reference            a: value (no selector: default)
+b <- = y        // y:   reference            b: reference (no selector: inferred)
+c <- & = &x     // &x:  reference (selector) c: reference (selector overridden)
+d <- & = &&x    // &&x: movable (selector)   d: reference (selector overridden)
 
-//e <- && = &x  // ERROR cannot make move-reference from reference
+//e <- && = &x  // ERROR cannot make movable from reference
 ```
 
 The binding-method attached to the explicit return type specification on a
@@ -185,6 +197,12 @@ d = &foo(x)      // d: reference to x
 ```
 
 ### Materialization
+
+When a reference or movable is taken from the temporary result of an
+expression, the result is being materialized. The materialization is as-if a
+anonymous variable is created in the same block as the expression. As such these
+anonymous variables are treated in the same way as normal variables in regard
+to life-time rules.
 
 Consider:
 
@@ -239,38 +257,24 @@ a <- := x
 
 means that the binding of `a` is inferred from `x`.
 
-The binding specification can explicitly select whether the result is bound as a value, reference, const value, or move-reference.
-
-### The basic forms
-
-The most common binding specifications are:
+The binding specification can explicitly select whether the result is bound as a
+value, reference, const value, or movable. The most common binding
+specifications are:
 
 ```
-a := x
-a <- := x
-a <- * := x
-a <- & := x
-a <- &const := x
-a <- && := x
+a := x              // By default: bind as value,
+                    // otherwise preserve the explicit binding selector of 'x'.
+a <- := x           // Bind by preserving the value-category of the expression.
+a <- * := x         // Bind as a value
+a <- & := x         // Bind as a reference
+a <- &const := x    // Bind as a const reference
+a <- && := foo()    // Bind as a movable (only explicit moves, or temporaries)
 ```
 
-The difference between them is easiest to understand as a set of binding operations:
-
- Binding        | Meaning
- :------------- |:-------------------------------------
- `:=`           | No binding specified. By default bind as value. Or use the binding selector expression.
- `<- :=`        | Infer the binding from the expression
- `<- * :=`      | Bind as a value
- `<- & :=`      | Bind as a reference
- `<- &const :=` | Bind as a const reference
- `<- && :=`     | Bind as a move-reference
-
-The distinction between `:=` and `<- :=` is particularly important: `:=` by
-default chooses a value binding, whereas `<- :=` uses the source expression's
-binding information to participate in inference.
-
-
-### Binding to variables and function parameters
+`a := x` does not have a binding specification, and will therefore by default
+make a copy of the result of the expression and bind that as a value. In
+previous chapters we have used `a := &x` to add an explicit binding selector to
+`x` in that case `a` will conform to that explicit binding.
 
 The following table shows the resulting type of a variable initialized with each
 binding specification. The type of `x` or function-argument is in the horizontal
@@ -283,15 +287,43 @@ header:
  `a <- * := x`      | `foo(a <- *)`      | `T`        | `T`         | `T`        | `T`        | `T`        |
  `a <- & := x`      | `foo(a <- &)`      | `&T`       | `&const T`  | `&T`       | `&const T` | `&T`       |
  `a <- &const := x` | `foo(a <- &const)` | `&const T` | `&const T`  | `&const T` | `&const T` | `&const T` |
- `a <- && := x`     | `foo(a <- &&)`     | `&&T`      | `&&const T` | -          | -          | `&&T`      |
+ `a <- && := x`     | `foo(a <- &&)`     | `&&T`      | -           | -          | -          | `&&T`      |
 
-There are two useful ways to remember this table:
+### Overload resolution
 
- 1. a plain `:=` means by default **make a value binding**; but this may be
-    selector overridden using one off the binding expressions: `*x`, `&x`,
-    `&const x` or `&&x`.
- 2. an explicit binding specification such as `*`, `&`, `&const` or `&&`
-    requests that kind of binding.
+When passing a value, reference or movable to an overloaded function there are
+priorities.
+
+  rhs expression            | exact       | priority                          
+ :------------------------- |:------------|:----------------------------------
+ `x : T`, `*x`              | `<- *`      | `<-`, `<- &const`, `<- &`         
+ `x : &T`, `&x`             | `<- &`      | `<-`, `<- &const`, `<- *`         
+ `x : &const T`, `&const x` | `<- &const` | `<-`, `<- *`                      
+ `&&x`, temporary           | `<- &&`     | `<-`, `<- &const`, `<- &`, `<- *` 
+
+A movable is not implicitly passed as a movable. Instead:
+ - `x : &&T` is treated as `&T` for overload resolutions,
+ - therefore, it uses the `x : &T` overload priorities, and
+ - priorities, and a bare `<-` resolves as a reference.
+
+Temporary results of expressions (not a name by itself) may be implicitly passed
+as a movable. You may also explicitly pass a movable using the `&&x` syntax.
+
+This shows passing of movables to functions:
+
+```
+foo = fn(a <- &) { }
+foo = fn(a <- &&) { }
+
+x = 42.0
+y : &&x            // y has the possession of move capability
+foo(y)             // fn(a <- &): don't exercise that capability
+foo(&&y)           // fn(a <- &&): explicitly exercise/select moveable overload
+foo(make_value())  // fn(a <- &&): temporary → implicitly movable
+```
+
+
+### Examples
 
 For example:
 
@@ -396,11 +428,11 @@ header:
  Immutable binding | `T`         | `const T`   | `&T`       | `&const T` | `&&T`
  :---------------- |:----------- |:----------- |:---------- |:---------- |:-----------
  `a = x`           | `const T`   | `const T`   | `const T`  | `const T`  | `const T`
- `a <- = x`        | `const T`   | `const T`   | `&const T` | `&const T` | `&&const T`
+ `a <- = x`        | `const T`   | `const T`   | `&const T` | `&const T` | -
  `a <- * = x`      | `const T`   | `const T`   | `const T`  | `const T`  | `const T`
  `a <- & = x`      | `&const T`  | `&const T`  | `&const T` | `&const T` | `&const T`
  `a <- &const = x` | `&const T`  | `&const T`  | `&const T` | `&const T` | `&const T`
- `a <- && = x`     | `&&const T` | `&&const T` | -          | -          | `&&const T`
+ `a <- && = x`     | -           | -           | -          | -          | -
 
 
 An immutable binding is created with `=` rather than `:=`.
@@ -573,19 +605,22 @@ a := &const x
 
 This prevents modification of the referenced object through `a`.
 
-## Move-reference selectors
+## movable selectors
 
-The `&&` selector requests a move-reference:
+The `&&` selector requests a movable:
 
 ```
 a := &&x
 ```
 
-A move-reference is different from an ordinary reference because it allows the internals of the referenced object to be **consumed**.
+A movable is different from an ordinary reference because it allows the
+internals of the referenced object to be **consumed**.
 
-The object from which the contents are moved remains valid, but its state is **indeterminate**.
+The object from which the contents are moved remains valid, but its state is
+**indeterminate**.
 
-This is useful when an operation needs to take ownership of an object's internal resources without requiring the object itself to become invalid.
+This is useful when an operation needs to take ownership of an object's internal
+resources without requiring the object itself to become invalid.
 
 Conceptually:
 
@@ -593,7 +628,7 @@ Conceptually:
 x ──manages──> [object]
                  ▲
                  │
-a ──move-ref─────┘
+a ──movable──────┘
 ```
 
 After consuming the internals through `a`, `x` still denotes a valid object, but its contents should no longer be assumed to have their previous state.
@@ -627,9 +662,9 @@ c ──refers────> [42.0]    // const reference
 
 The selector makes the programmer's intent explicit.
 
-# Move-References
+# movables
 
-A move-reference has the type:
+A movable has the type:
 
 ```
 &&T
@@ -637,7 +672,7 @@ A move-reference has the type:
 
 It should not be confused with a reference to a reference. References cannot be nested, so `&&T` has its own meaning.
 
-A move-reference permits the referenced object's internals to be consumed.
+A movable permits the referenced object's internals to be consumed.
 
 The important consequence is that moving does **not** make the source object invalid.
 
@@ -649,9 +684,12 @@ Instead:
 
 This is particularly useful for types that manage resources internally.
 
-For example, a container might own a dynamically allocated buffer. A move-reference could allow an operation to consume that buffer rather than copying every element.
+For example, a container might own a dynamically allocated buffer. A movable
+could allow an operation to consume that buffer rather than copying every
+element.
 
-Afterward, the original container still exists, but its contents should not be assumed to be the same as before the move.
+Afterward, the original container still exists, but its contents should not be
+assumed to be the same as before the move.
 
 # Putting It All Together
 
@@ -677,7 +715,7 @@ The binding specification determines how the variable, immutable, or parameter i
 <- * :=        value
 <- & :=        reference
 <- &const :=   const reference
-<- && :=       move-reference
+<- && :=       movable
 ```
 
 Binding selectors perform the corresponding operation on expressions:
@@ -687,7 +725,7 @@ Binding selectors perform the corresponding operation on expressions:
 *const x      const value
 &x            reference
 &const x      const reference
-&&x           move-reference
+&&x           movable
 ```
 
 Consider the following example:
@@ -723,19 +761,19 @@ Once this distinction is understood, the binding tables become much easier to re
 | `*const x`            | bind a const value                |
 | `&x`                  | bind a reference                  |
 | `&const x`            | bind a const reference            |
-| `&&x`                 | bind a move-reference             |
+| `&&x`                 | bind a movable             |
 | `x: T`                | explicitly typed value            |
 | `x: &T`               | explicitly typed reference        |
-| `x: &&T`              | explicitly typed move-reference   |
+| `x: &&T`              | explicitly typed movable   |
 | `x := expr`           | create a value binding            |
 | `x <- := expr`        | infer the binding from `expr`     |
 | `x <- * := expr`      | explicitly bind a value           |
 | `x <- & := expr`      | explicitly bind a reference       |
 | `x <- &const := expr` | explicitly bind a const reference |
-| `x <- && := expr`     | explicitly bind a move-reference  |
+| `x <- && := expr`     | explicitly bind a movable  |
 
 The central rule to remember is simple:
 
-> **Values manage storage; references access storage managed elsewhere; move-references allow that storage's contents to be consumed.**
+> **Values manage storage; references access storage managed elsewhere; movables allow that storage's contents to be consumed.**
 
 Everything else in the binding system exists to precisely control which of these relationships is established.
