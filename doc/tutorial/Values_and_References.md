@@ -1,6 +1,6 @@
 # Values and References
 
-When working with data in [language name], it is important to distinguish
+When working with data in Hikolang, it is important to distinguish
 between **values** and **references**.
 
 The key question is:
@@ -62,9 +62,7 @@ The important point is that `x`, `a` and `y` manage separate storage locations.
 ## References
 
 A reference provides access to storage managed by something else. The type of a
-reference is written as `&T`, where `T` is the referenced type.
-
-For example:
+reference is written as `&T`, where `T` is the referenced type. For example:
 
 ```
 // x manages the storage containing 42.0.
@@ -187,8 +185,6 @@ d = &foo(x)      // d: reference to x
 ```
 
 ### Materialization
-
-
 
 Consider:
 
