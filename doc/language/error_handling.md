@@ -1,8 +1,18 @@
 # Error handling
 
-For ease of use, errors are thrown and caught, but they are not exceptions,
-within this language we call them errors. Errors automatically convert a return
-value of a function into a `__result__[T]`
+For ease of use, errors are thrown and caught, but they are not like traditional
+exceptions, within this language we call them errors. Errors are returned from
+a function, as a value.
+
+The return type of a function may be inferred by if a function may or may not return
+a value or if it throws. A function therfor tracks which errors are thrown, if it or
+called function throw fatal errors, if it returns values, if it returns nothing.
+
+  return type       | when
+ :----------------- |:-------------------------
+ `std.error_code`   | A function doesn't return a value.
+ `T`                | A function always returns a value, and may throw an error or fatal-error.
+ `std.expected[T]`  | Any other case.
 
 A caller is responsible for catching all errors that can be thrown by an
 expression. The compiler will check if all errors that can be thrown are caught.
@@ -11,25 +21,19 @@ Therefor all control flow is local, making it easier to reason about the code.
 
 Features:
  - Although errors are thrown, they are not exceptions. 
- - No non-local control flow.
+ - non-local control flow only for fatal errors.
  - Compiler checks if all errors that can be thrown are caught directly by
-   the caller.
+   the caller. The compiler sythesizes rethrows for fatal-errors.
  - Declaring a new error is easy; by simply throwing, trapping or catching it.
  - Very fast throw and catch recoverable errors.
    - No setup or teardown on catch or call.
-   - Throwing is done by setting the return registers to an error code, and
-     instruction pointer and setting the carry flag.
-   - Initial check for an error is by checking the carry flag.
+   - Throwing is done by setting the return registers to an error code.
    - Catching specific errors is done by comparing the error code returned
      in a register by known constant values.
-   - Rethrowing is the same as throwing, but keeping the register with the
-     instruction pointer intact.
- - Separate from recoverable errors, you can trap fatal errors.
+   - Rethrowing is the same as throwing.
+ - Fatal errors:
    - Normally terminates the application.
-   - Possible to catch a trap for unit-testing and isolating programming bugs
-     by terminating the connection to a client.
-   - Slower than throwing an error.
-
+   - Possible to catch for unit-testing and isolating programming bugs.
 
 ## std.error_code
 
@@ -38,32 +42,27 @@ is automatically added to the `std.error_code` enum.
 
 ```
 enum std.error_code {
-    none,   // No error.
+    empty,   // No value was returned
     ...
 }
 ```
 
-## __result__
-
-Any function which throws or rethrows *errors* or *fatal-errors* will
-implicitly convert a function's return type from `T` to `__result__[T]`.
+## std.result
 
 ```
-enum __result__[T : type] {
+enum std.result[T : type] {
     value(T)
+    empty
     error(std.error_code)
     fatal_error(std.error_code)
 }
 ```
 
-Any expression that results in a `__result__[T]` will:
- * On `error()` or `fatal_error()` directly jump to the matching `catch`-clause
+Any expression that results in a `std.result[T]` will:
+ * On `error()` directly jump to the matching `catch`-clause
    or return from the function.
- * On `value()` unpack `__result__[T]` to `T`.
+ * On `value()` unpack `std.result[T]` to `T`.
 
-> [!CAUTION]
-> This is a builtin-type. It should not be explicitly constructed as it will
-> cause it to jump to the matching `catch`-clause or be unpacked.
 
 ## Throwing an error
 
@@ -87,15 +86,15 @@ tracked as well.
 
 ## Throwing a fatal-error
 
-When the error-name is suffixed with a exclamation mark `!` then a *fatal-error*
+When the error-name is prefixxed with the `fatal` keyword then a *fatal-error*
 is thrown. A *fatal-error* does not need to be caught by the calling function. A
 *fatal-error* unwinds the stack until caught; unless the *fatal-error* is never
-caught, then the `throw` is converted to a `trap`.
+caught, then the `throw` is converted to a `trap` as early as possible.
 
 ```
 if (a < 0) {
-    throw! out_of_bounds_error, "a should be larger or equal to 0"
-    //   ^ this makes it a fatal-error.
+    throw fatal out_of_bounds_error, "a should be larger or equal to 0"
+    //    ^ this makes it a fatal-error.
 }
 ```
 
@@ -122,7 +121,7 @@ The `trap` handler will do the following:
 
 ## Assertions
 
-The following assert and contract statements throw `assertion_failure!`:
+The following assert and contract statements `throw fatal assertion_failure`:
  * `assert()`, `debug_assert()`,
  * `pre()`, `debug_pre()`, `post()`, `debug_post()`,
  * `invariant()`, `debug_invariant()`.

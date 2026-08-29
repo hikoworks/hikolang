@@ -1,6 +1,6 @@
 # Value, References and Movables
 
-Hikolang has three value categories:
+Hikolang has three expression categories:
  * **value** - a value located in managed storage, or the temporary result of an
    expression.
  * **reference** - a reference to storage managed by something else.

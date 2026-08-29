@@ -2,9 +2,16 @@
 
 ## Syntax
 
-__(__ `do` `{` [_statement-list_](statement_list.md) `}` __)?__\
-`while` `(` [_condition-expression_](condition_expression.md) `)` __(__ `{` [_statement-list_](statement_list.md) `}` __)?__ [_catch-clauses_](catch_clauses.md)**?**\
-__(__ `else` `{` [_statement-list_](statement_list.md) `}` __)?__
+_while-control-expression_ :=\
+    [_do-clause_]__?__\
+    `while` `(` [_condition-expression_] `)` __(__ `{` [_code-block_] `}` __)?__\
+    [_alternate-clauses_]
+
+
+[_alternate-clauses_]: alternate_clauses.md
+[_code-block_]: code_block.md
+[_condition-expression_]: condition_expression.md
+[_do-clause_]: do_clause.md
 
 ## Semantics
 The `while` control-expression is a loop that executes the body of the

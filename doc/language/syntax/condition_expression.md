@@ -19,6 +19,7 @@ assignment expression. This is to prevent a common bug; confusing `=` with `==`.
 > [_sub-expression_](sub_expression.md).
 
 If an expression results in a `__result__[T]` then:
- * On *error* or *fatal-error* directly go to the `catch`-clauses of the current
-   control-expression.
- * On *value* peel the `__result__[T]` to `T`.
+ * If the result is *empty* then the `empty`-clause will be executed
+ * If the result is *error* then the matching `catch`-clause will be executed.
+ * If the result is *fatal-error* then the matching `catch fatal`-clause will be executed.
+ * On *value* unwrap the `__result__[T]` to `T`.
