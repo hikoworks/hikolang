@@ -18,12 +18,12 @@ a value. For example:
 ```
 a = do {
     if (x) {
-        result 1
+        break with 1
     }
 } if (c) {
-    result 2
+    break with 2
 } else {
-    result 3
+    break with 3
 }
 ```
 
