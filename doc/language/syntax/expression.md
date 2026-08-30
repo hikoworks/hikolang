@@ -29,6 +29,7 @@
   `a(...)`     |  2000 L |                                | [_function-call_]
   `a[...]`     |  2000 L |                                | [_index-operator_]
   `a.<name>`   |  2000 L |                                | [_member-access_]
+  `a::<name>`  |  2000 L |                                | [_type-member-access_]
   `++b`        |  3000 R | `__increment__(a)`             |
   `--b`        |  3000 R | `__decrement__(a)`             |
   `+b`         |  3000 R | `__pos__(a)`                   |

@@ -2,9 +2,10 @@
 
 ## Syntax
 
-_attribute_ := `@` [_identifier_] __(__ `(` ... `)` __)?__
+_attribute_ := `[[` [_fqname_] __(__ `(` [_argument-list_] `)` __)?__ `]]`
 
-[_identifier_]: identifier.md
+[_argument-list_]: argument_list.md
+[_fqname_]: fqname.md
 
 
 ## Semantics
