@@ -3,19 +3,19 @@
 ## Syntax
 
 _argument-declaration_ :=\
-      [_binding_mode_]__?__ [_name_]__?__ [_type-annotation_]__?__ __(__ `=` [_expression_] __)?__\
+      [_name_]__?__ [_type-annotation_]__?__ __(__ `=` [_expression_] __)?__\
+    __|__ [_name_] `...` [_type-annotation_]__?__
     __|__ [_literal_] [_type-annotation_]__?__\
     __|__ `(` [_expression_] `)` [_type-annotation_]__?__\
-    __|__ [_binding_mode_]__?__ [_name_]`...` [_type-annotation_]__?__
 
 [_type-annotation_]: type_annotation.md
-[_binding_mode_]: binding_mode.md
 [_expression_]: expression.md
 [_literal_]: literal.md
 [_name_]: name.md
 
 
 ## Semantics
+
 Declares an argument for a function or lambda with a [_name_](name.md)
 which can be used as a variable inside the function's or lambda's code-block.
 

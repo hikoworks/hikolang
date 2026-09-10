@@ -1,0 +1,12 @@
+module std.hkm
+
+cpu_time = struct {
+    count : u64
+    cpu_id : cpu_id
+    thread_id : thread_id
+}
+
+/**
+ */
+get_cpu_time = fn() -> cpu_time
+

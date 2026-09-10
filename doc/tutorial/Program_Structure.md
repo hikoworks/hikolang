@@ -73,11 +73,11 @@ There are three kinds:
  * @param x The value to add the "answer" to.
  * @return The sum of the given value and the "answer"
  */
-fn add_answer(x) {
-    // Add 42, which is the answer to the question of:
+add_answer = fn(x) {
+    // Add 42.0, which is the answer to the question of:
     //     Life, the Universe, and the rest.
     // See: The Hitch Hikers Guide to the Galaxy.
-    return x + 42
+    return x + 42.0
 }
 ```
 

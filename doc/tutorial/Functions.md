@@ -10,7 +10,7 @@ foo = fn(a, b) {
     }
 }
 
-foo = foo(a) {
+foo = fn(a) {
     return fn(b, c, d) {
         return a + b + c + d
     }
@@ -44,8 +44,7 @@ var d = bar_t(5)
 ```
 
 ```
-@metatype
-class = fn(p : parameters, d : definition) {
+class = fn(p : parameters, d : definition) metatype {
     for (mf :& in d.member_functions()) {
         if (not (mf.is_public() or mf.is_private())) {
             mf.set_private()
@@ -55,8 +54,7 @@ class = fn(p : parameters, d : definition) {
     return d
 }
 
-@metatype
-struct = fn(p : parameters, d : definition) {
+struct = fn(p : parameters, d : definition) metatype {
     for (mf :& in d.member_functions()) {
         if (not (mf.is_public() or mf.is_private())) {
             mf.set_public()

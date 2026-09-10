@@ -4,7 +4,7 @@
 
 _if-control-expression_ :=\
     [_do-clause_]__?__\
-    `if` `(` [_condition-expression_] `)` __(__ `{` [_code-block_] `}` __)?__\
+    `if` `(` [_init_expression_]__?__ [_condition-expression_] `)` __(__ `{` [_code-block_] `}` __)?__\
     [_alternate-clauses_]
 
 
@@ -12,6 +12,7 @@ _if-control-expression_ :=\
 [_code-block_]: code_black.md
 [_condition-expression_]: condition_expression.md
 [_do-clause_]: do_clause.md
+[_init_expression_]: init_expression.md
 
 ## Semantics
 The `if` statement is used to conditionally execute a block of code. When

@@ -2,8 +2,11 @@
 
 ## Syntax
 
-_catch-operator_ := [_expression_] `catch` [_expression_]
+_catch-operator_ :=\
+      [_expression_] `catch` [_expression_]\
+    __|__ [_expression_] `catch` `(` [_error-list_] `)` [_expression_]
 
+[_error-list_]: error_list.md
 [_expression_]: expression.md
 
 ## Semantics

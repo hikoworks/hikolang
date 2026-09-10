@@ -7,7 +7,7 @@
   `::size()`       | The number of bytes for holding a value of the type.
   `::alignment()`  | Alignment of the member to allocate this type.
   `::stride()`     | The distance between elements in memory.
-  `__add__(x, y)`  | 
+
 
 
 ### ::size(), ::alignment(), ::stride()

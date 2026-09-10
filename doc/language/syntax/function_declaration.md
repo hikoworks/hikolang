@@ -4,7 +4,7 @@
 
 _function-definition_ :=\
     [_attributes_]__*__\
-    `fn` [_fqname_]__?__ `(` [_argument-declaration-list_]__?__ `)` [_function-return-type_]__?__\
+    `fn` `(` [_argument-declaration-list_]__?__ `)` [_function-return-type_]__?__\
     __(__ `expect` `(` [_expression_] `)` __)*__\
     __(__ `pre` `(` [_expression_] `)` __)*__\
     __(__ `post` `(` [_expression_] `)` __)*__ `;`

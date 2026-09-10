@@ -4,7 +4,6 @@ Tutorial - Ranged Integers
 There are three type of integers in this language:
  - Ranged Integers; integers that fall within a lower and upper bound.
  - Long Integers; integers that are dynamically sized.
- - LLVM Integers; low-level integers used for standard library implementation. 
 
 Integer literals and integers in the standard library public API are
 ranged-integers.
@@ -26,6 +25,16 @@ is an integer that may have the values: `4`, `5`, `6`, `7`, `8`, `9` or `10`.
 
 The operator `..=` creates a closed-range, while the `..<` operator creates a
 half-open-range. The range must be a compile time constant.
+
+
+Internal Format
+---------------
+
+There are three represenations
+ - Single value, like `int[42..=42]`, this uses no bits at all.
+ - 
+
+
 
 
 Integer Literal
