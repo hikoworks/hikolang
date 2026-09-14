@@ -1,8 +1,8 @@
-# syntax-operator
+# syntax-operator-directive
 
 ## Syntax
 
-_syntax-operator_ :=\
+_syntax-operator-directive_ :=\
       `syntax` _associativity_ 
     __(__ [_operator_](operator.md) __|__ [_identifier_](identifier.md) __)__
     _precedence_ _function_name_ `;`

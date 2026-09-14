@@ -1,8 +1,8 @@
-# syntax-effect
+# syntax-effect-directive
 
 ## Syntax
 
-_syntax-effect_ := `syntax` `effect` [_identifier_]
+_syntax-effect-directive_ := `syntax` `effect` [_identifier_]
 
 [_identifier_]: identifier.md
 

@@ -1,8 +1,8 @@
-# syntax-unit
+# syntax-unit-directive
 
 ## Syntax
 
-_syntax-unit_ := `syntax` `unit` [_identifier_] `=` [_float-literal_]__?__ [_unit-expression_]
+_syntax-unit-directive_ := `syntax` `unit` [_identifier_] `=` [_float-literal_]__?__ [_unit-expression_]
 
 [_float-literal_]: float_literal.md
 [_identifier_]: identifier.md

@@ -1,8 +1,8 @@
-# namespace
+# namespace-directive
 
 ## Syntax
 
-namespace :=\
+namespace-directive :=\
       `namespace` [_fqname_] `;`\
     __|__ `namespace` `.`__+__ `;`
 

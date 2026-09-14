@@ -6,12 +6,12 @@ _coerce-operator_ :=\
       [_expression_] `:` [_type-expression_]\
     __|__ [_expression_] `:!` [_type-expression_]\
     __|__ [_expression_] `:?` [_type-expression_]\
-    __|__ [_expression_] `<-`\
-    __|__ [_expression_] `<-` __(__ `&` __|__ `&&` __|__ `*`  __)__\
-    __|__ [_expression_] `<-` [_type-expression_]\
-    __|__ [_expression_] `<-!` [_type-expression_]\
-    __|__ [_expression_] `<-?` [_type-expression_]\
-    __|__ [_expression_] `<-=` [_type-expression_]
+    __|__ [_expression_] `<:`\
+    __|__ [_expression_] `<:` __(__ `&` __|__ `&&` __|__ `*`  __)__\
+    __|__ [_expression_] `<:` [_type-expression_]\
+    __|__ [_expression_] `<:!` [_type-expression_]\
+    __|__ [_expression_] `<:?` [_type-expression_]\
+    __|__ [_expression_] `<:=` [_type-expression_]
 
 [_expression_]: expression.md
 [_type-expression_]: type_expression.md
@@ -44,10 +44,10 @@ applied.
  - `a : T`: Widen `a` to `T`.
  - `a :! T`: Truncate `a` to `T`.
  - `a :? T`: Narrow `a` to `T`.
- - `a <- T`: Check if `a` could be widened to `T`. Result is `a`
- - `a <-! T`: Check if `a` could be truncated to `T`. Result is `a`
- - `a <-? T`: Check if `a` could be narrowed to `T`. Result is `a`
- - `a <-= T`: Check if type of `a` is exactly `T`. Result is `a`
+ - `a <: T`: Check if `a` could be widened to `T`. Result is `a`
+ - `a <:! T`: Check if `a` could be truncated to `T`. Result is `a`
+ - `a <:? T`: Check if `a` could be narrowed to `T`. Result is `a`
+ - `a <:= T`: Check if type of `a` is exactly `T`. Result is `a`
 
 ### Type Constraints `<-`, `<-!`, `<-?`, `<-=`
 

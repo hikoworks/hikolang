@@ -10,7 +10,7 @@
    [_string-literal_]                                | String literal
    [_tuple-literal_]                                 |
    [_if-control-expression_]                         |
-   [_for-control-expression_]                        |
+   [_ranged_for-control-expression_]                 |
    [_while-control-expression_]                      |
 
 
@@ -21,6 +21,7 @@
  * `r`: Right hand side reference
  * `T`: [_type-expression_]
  * `E`: [_error-list_]
+ * `U`: [_unit-expression_]
 
 
   Operator       | Precedence | Function                       | Description
@@ -56,6 +57,7 @@
   `a << b`       |  7000 L | `__sal__(a, b)`                |
   `a >> b`       |  7000 L | `__sar__(a, b)`                |
   `a &>> b`      |  7000 L | `__slr__(a, b)`                |
+  `T #U`         |  7500 L |                                |
   `a <=> b`      |  8000 L | `__cmp__(a, b)`                |
   `a < b`        |  9000 L | `__lt__(a, b)`                 |
   `a > b`        |  9000 L | `__gt__(a, b)`                 |
@@ -76,10 +78,10 @@
   `a : T`        | 15500 L | `__cast_widen__(a, T)`         | [_coerce-operator_]
   `a :! T`       | 15500 L | `__cast_truncate__(a, T)`      | [_coerce-operator_]
   `a :? T`       | 15500 L | `__cast_narrow__(a, T)`        | [_coerce-operator_]
-  `a <- T`       | 15500 L |                                | [_coerce-operator_]
-  `a <-! T`      | 15500 L |                                | [_coerce-operator_]
-  `a <-? T`      | 15500 L |                                | [_coerce-operator_]
-  `a <-= T`      | 15500 L |                                | [_coerce-operator_]
+  `a <: T`       | 15500 L |                                | [_coerce-operator_]
+  `a <:! T`      | 15500 L |                                | [_coerce-operator_]
+  `a <:? T`      | 15500 L |                                | [_coerce-operator_]
+  `a <:= T`      | 15500 L |                                | [_coerce-operator_]
   `a = b`        | 16000 R | `__assign__(a, b)`             |
   `a += b`       | 16000 R | `__inplace_add__(a, b)`        |
   `a -= b`       | 16000 R | `__inplace_sub__(a, b)`        |

@@ -8,16 +8,15 @@
 
  * Safe Integers
  * Unit System
+ * Contracts and invariants
+ * Fast errors, caught by caller
  * Hidden Context Arguments
- * Universal Call Syntax.
-
- * elaboration phase
- * language syntax is extendable
- * inline assembler
- * compile time reflection, types are values.
- * hidden dependency injection, both functions and structs.
- * enum only has named-values, it is not an integer.
- * function overloading, on both arguments (type and non-type) and return type.
+ * Universal Call Syntax
+ * Elaboration phase
+ * Extendable syntax: operators, metatypes, units
+ * Compile time reflection, types are values
+ * Function overloading, on both arguments (type and non-type) and return type
+ * Modern C++ Memory Model
 
 
 ## Safe integers
@@ -36,7 +35,7 @@ The `int` template type automatically scales to fit the full
 result of an operation: 
 
 ```
-fn foo(x : int[10..=20], y : int[2..=4]) {
+foo = fn(x : int[10..=20], y : int[2..=4]) {
     // return type is infered as int[20..=80]
     return x * y
 }
@@ -45,6 +44,9 @@ fn foo(x : int[10..=20], y : int[2..=4]) {
 `int` is the basic integer type and the result of integer literals.
 The `int` with proper ranges are compatible with both signed and
 unsigned integers with C and C++.
+
+The range of an `int` is arbitrarilly long, but static. The memory size
+of an `int` is based on the range.
 
 The second integer type is `long`, this integer dynamically scales in size
 and is allocated on the heap, and includes SIO (Short Integer Optimization).
@@ -57,12 +59,12 @@ Conversions between unit-systems like using a resolution value
 like `72.0 (px/in)` works as expected.
 
 ```
-let duration = 15.0 min
-let speed = 100.0 (km/h)
-let distance = speed * duration
-let distance_in_km = distance / 1km
+duration = 15.0 min
+speed = 100.0 (km/h)
+distance = speed * duration
+distance_in_km = distance / 1km
 
-fn convert(length : real #m, ppi : real #(px/in)) -> real #px
+convert = fn(length : real #m, ppi : real #(px/in)) -> real #px
 {
     return length * ppi
 }
@@ -73,18 +75,18 @@ Context arguments reduces the need for global variables in many uses. It makes i
 to inject context in unit-tests as well.
 
 ```
-fn foo(x) {
+foo = fn(x) {
     // $y is used, which makes foo() require $y to be passed in.
     return x + $y
 }
 
-fn bar(x) {
+bar = fn(x) {
     // $y is required by foo(), so bar requiress $y passed in.
     // $y is automatically and invisibly passed into foo()
     return foo(x)
 }
 
-fn qux(x, y) {
+qux = fn(x, y) {
     // qux() does not allow $y to be passed in.
     // Pass in $y explicitly into bar.
     return bar(x, $y=y)
@@ -98,7 +100,7 @@ for example you may not want to do any: allocations, IO or block.
 ```
 // This function's implementation and any callers
 // are marked to have effects(io, block)
-fn read(fd, size) -> string {
+read = fn(fd, size) -> string {
   if (size == 0) {
     ...
   } else if (size <= 4096) @effect(io) {
@@ -108,11 +110,11 @@ fn read(fd, size) -> string {
   }
 }
 
-fn foo(fd, n) {
+foo = fn(fd, n) {
   without_effect(block) {
-    var t = read(fd, 4096); // OK
-    var u = read(fd, 6000); // ERROR: read() has effect 'block'
-    var v = read(fd, n); // ERROR: read() has effect 'block'
+    t = read(fd, 4096); // OK
+    u = read(fd, 6000); // ERROR: read() has effect 'block'
+    v = read(fd, n); // ERROR: read() has effect 'block'
   }
 }
 ```
@@ -157,7 +159,7 @@ optional type, which is a template. Template arguments use the bracketed
 argument syntax.
 
 ```
-enum optional[T : type] {
+optional = enum[T : type] {
   none
   some(T)
 }
@@ -214,6 +216,18 @@ The language allows you to define custom operators. This is done by registering 
 a keyword or pattern-syntax, precedence and associativity, and a function that
 will be called when the operator is used.
 
+### Custom units and domains
+New units can be added, including full system of units (domains).
+
+### Adding errors
+Errors-codes can be added anywhere in the program, multiple definition merge.
+
+### Adding effects
+Effects can be added anywhere in the program, multiple definition merge.
+
+### Adding members to open-enums.
+Even after an enum is frozen you may add new members anywhere in the program.
+
 ### Custom literals
 The language allows you to define custom literals. This is done by registering a
 suffix-keyword and a function that will be called when the suffix is used with a literal.
@@ -222,23 +236,17 @@ The literal is passed to the function as a string, and the function determines t
 returned value and type. Since the function is called at compile time, it can
 dynamically create both the value and the type.
 
-## Inline assembly
-Inline assembly is supported through the `llvm` directive. This allows you to write low-level
-LLVM assembly code directly in your source code. The inline assembly may even be executed during
-the elaboration phase.
+### Metatypes
+A function marked with `metatype` becomes a keyword that returns a type.
 
 ```
-function foo(a : __i32__, b : __i32__) -> __i32__
-{
-    var c = a &+ b
-    var r = 0 : __i32__
+class = fn(definition, arguments) metatype {
+  ...
+  return new_type
+}
 
-    llvm {
-        %tmp = mul i32 %c, %a
-        store i32 %tmp, i32* %r.addr
-    }
-
-    return r
+T = class[template_argument: type] {
+  ...
 }
 ```
 
@@ -253,8 +261,4 @@ create new types at compile time.
 Meta-types are defined as built-in, by the standard library, and can be extended
 by the user.
 
-
-
-## Extending syntax
-There is macro system that allows you to match with tokens and replace it with a different expression.
 

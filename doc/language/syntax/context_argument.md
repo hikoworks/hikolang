@@ -7,7 +7,7 @@ _context_argument_ := `$` [_identifier_]
 [_identifier_]: identifier.md
 
 ## Semantics
-Context arguments are `ref` variables which are implied and hidden arguments of a function.
+Context arguments are reference variables which are implied and hidden arguments of a function.
 If a variable 
 
 ## Example
@@ -16,21 +16,22 @@ In the following example `main()` will inject an instance of `logger` into
 `foo()` with the name `$log`. Notice that neither `foo()` or `bar()` have `$log`
 in the argument declaration. `$log` is automatically passed to `bar()` simply
 because `bar()` is using `$log` in its body.
+
 ```
-function bar(x)
+bar = fn(x)
 {
     $log("bar called with {}" % x)
     return x + 1
 }
 
-function foo(x : int)
+foo = fn(x : int)
 {
     return bar(x) + 1
 }
 
-function main() -> int
+main = fn() -> int
 {
-    var log = logger("logfile.txt")
+    log = logger("logfile.txt")
     log("Hello world")
 
     return foo(5, $log=log)
