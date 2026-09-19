@@ -3,7 +3,7 @@
 ## Syntax
 
 _variable-definition_ :=\
-    [_attribute_]__*__ [_qualifier_](qualifier.md)__*__\
+    [_qualifier_](qualifier.md)__*__\
     [_fqname_](fqname.md)\
     __(__ `[` [_argument_declaration_list_](argument_declaration_list.md) `]` __)?__
     _type-declaration_**?** [_initializer_](initializer.md)__?__

@@ -2,7 +2,7 @@
 
 ## Syntax
 
-_let-assignment_ := [_left-expression_] `:=` [_expression_]
+_variable-assignment_ := [_left-expression_] `:=` [_expression_]
 
 [_left-expression_]: left_expression.md
 [_expression_]: expression.md

@@ -4,15 +4,17 @@
 
 _long-form-lambda_ __|__ _short-form-lambda_
 
-### long-form-lambda
-`{` *argument-declarations*__?__ [_result-type-declaration_](result_type_declaration.md)__?__\
-[_attribute_](attribute.md)__*__
-`in` [_statement-list_](statement_list.md) `}`
+_long-form-lambda_ :=\
+    `{`
+        *argument-declarations*__?__ [_result-type-declaration_](result_type_declaration.md)__?__\
+        [_attribute_](attribute.md)__*__
+        `in` [_statement-list_](statement_list.md)
+    `}`
 
 _argument-declarations_ := `(` [_argument-declaration-list_](argument_declaration_list.md) `)`
 
-### short-form-lambda
-`{` [_statement-list_](statement_list.md) `}`
+
+_short-form-lambda_ := `{` [_statement-list_](statement_list.md) `}`
 
 
 ## Semantics

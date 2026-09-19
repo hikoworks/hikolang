@@ -10,8 +10,11 @@
    [_string-literal_]                                | String literal
    [_tuple-literal_]                                 |
    [_if-control-expression_]                         |
-   [_ranged_for-control-expression_]                 |
+   [_iterative-for-control-expression_]              |
+   [_ranged-for-control-expression_]                 |
    [_while-control-expression_]                      |
+   [_attribute_]                                     | Attribute
+   [_attribute_] [_attribute_]                       | Merge attributes
 
 
 ## Standard Operators
@@ -22,13 +25,14 @@
  * `T`: [_type-expression_]
  * `E`: [_error-list_]
  * `U`: [_unit-expression_]
+ * `[[A]]`: [_attribute_]
 
 
-  Operator       | Precedence | Function                       | Description
+  Operator       | Precedence | Function                    | Description
  :------------   |:------- |:------------------------------ |:----------
   `a++`          |  2000 L | `__post_increment__(a)`        |
   `a--`          |  2000 L | `__post_decrement__(a)`        |
-  `a(...)`       |  2000 L |                                | [_function-call_]
+  `a(...)`       |  2000 L |                                | [_call-operator_]
   `a[...]`       |  2000 L |                                | [_index-operator_]
   `a.<name>`     |  2000 L |                                | [_member-access_]
   `a::<name>`    |  2000 L |                                | [_type-member-access_]
@@ -45,6 +49,7 @@
   `*b`           |  3000 R |                                | [_binding-selector_]
   `const r`      |  3000 R |                                | [_make-const-operator_]
   `?b`           |  3000 R |                                | [_make-optional-operator_]
+  `[[A]] b`      |  3000 R |                                | Add attribute to expression
   `a * b`        |  5000 L | `__mul__(a, b)`                |
   `a / b`        |  5000 L | `__div__(a, b)`                |
   `a % b`        |  5000 L | `__rem__(a, b)`                |
@@ -75,13 +80,13 @@
   `a catch b`    | 15100 R |                                | [_catch-operator_]
   `a catch(E) b` | 15100 R |                                | [_catch-operator_]
   `a empty b`    | 15100 R |                                | [_empty-operator_]
-  `a : T`        | 15500 L | `__cast_widen__(a, T)`         | [_coerce-operator_]
-  `a :! T`       | 15500 L | `__cast_truncate__(a, T)`      | [_coerce-operator_]
-  `a :? T`       | 15500 L | `__cast_narrow__(a, T)`        | [_coerce-operator_]
-  `a <: T`       | 15500 L |                                | [_coerce-operator_]
-  `a <:! T`      | 15500 L |                                | [_coerce-operator_]
-  `a <:? T`      | 15500 L |                                | [_coerce-operator_]
-  `a <:= T`      | 15500 L |                                | [_coerce-operator_]
+  `a :~+ T`      | 15500 L | `__convert_widen__(a, T)`      | [_coerce-operator_]
+  `a :~! T`      | 15500 L | `__convert_truncate__(a, T)`   | [_coerce-operator_]
+  `a :~? T`      | 15500 L | `__convert_narrow__(a, T)`     | [_coerce-operator_]
+  `a :+ T`       | 15500 L |                                | [_coerce-operator_]
+  `a :! T`       | 15500 L |                                | [_coerce-operator_]
+  `a :? T`       | 15500 L |                                | [_coerce-operator_]
+  `a : T`        | 15500 L |                                | [_coerce-operator_]
   `a = b`        | 16000 R | `__assign__(a, b)`             |
   `a += b`       | 16000 R | `__inplace_add__(a, b)`        |
   `a -= b`       | 16000 R | `__inplace_sub__(a, b)`        |
@@ -97,6 +102,7 @@
 
 [_binding-selector_]: binding_selector.md
 [_catch-operator_]: catch_operator.md
+[_empty-operator_]: empty_operator.md
 [_coerce-operator_]: coerce_operator.md
 [_shortcut-operator_]: shortcut_operator.md
 [_try-operator_]: try_operator.md
@@ -112,7 +118,7 @@ Yard](https://en.wikipedia.org/wiki/Shunting-yard_algorithm) is used.
 The other expressions listed in this document are terminal expressions which
 are parsed outside of the shunting yard.
 
-
+[_attribute_]: attribute.md
 [_float-literal_]: float_literal.md
 [_integer-literal_]: integer_literal.md
 [_string-literal_]: string_literal.md

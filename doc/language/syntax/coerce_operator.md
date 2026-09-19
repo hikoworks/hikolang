@@ -3,15 +3,14 @@
 ## Syntax
 
 _coerce-operator_ :=\
-      [_expression_] `:` [_type-expression_]\
+      [_expression_] `:~+` [_type-expression_]\
+    __|__ [_expression_] `:~!` [_type-expression_]\
+    __|__ [_expression_] `:~?` [_type-expression_]\
+    __|__ [_expression_] `:+` [_type-expression_]\
     __|__ [_expression_] `:!` [_type-expression_]\
-    __|__ [_expression_] `:?` [_type-expression_]\
-    __|__ [_expression_] `<:`\
-    __|__ [_expression_] `<:` __(__ `&` __|__ `&&` __|__ `*`  __)__\
-    __|__ [_expression_] `<:` [_type-expression_]\
-    __|__ [_expression_] `<:!` [_type-expression_]\
-    __|__ [_expression_] `<:?` [_type-expression_]\
-    __|__ [_expression_] `<:=` [_type-expression_]
+    __|__ [_expression_] `:?` [_type-expression_]
+    __|__ [_expression_] `:` __(__ `&` __|__ `&&` __|__ `*`  __)__\
+    __|__ [_expression_] `:` [_type-expression_]\
 
 [_expression_]: expression.md
 [_type-expression_]: type_expression.md
@@ -41,15 +40,15 @@ The type is generally used to select the correct overload of a function or
 operator in the expression. After this the rules for each coerce-method are
 applied.
 
- - `a : T`: Widen `a` to `T`.
- - `a :! T`: Truncate `a` to `T`.
- - `a :? T`: Narrow `a` to `T`.
- - `a <: T`: Check if `a` could be widened to `T`. Result is `a`
- - `a <:! T`: Check if `a` could be truncated to `T`. Result is `a`
- - `a <:? T`: Check if `a` could be narrowed to `T`. Result is `a`
- - `a <:= T`: Check if type of `a` is exactly `T`. Result is `a`
+ - `a :~+ T`: Widen `a` to `T`.
+ - `a :~! T`: Truncate `a` to `T`.
+ - `a :~? T`: Narrow `a` to `T`.
+ - `a :+ T`: Check if `a` could be widened to `T`. Result is `a`
+ - `a :! T`: Check if `a` could be truncated to `T`. Result is `a`
+ - `a :? T`: Check if `a` could be narrowed to `T`. Result is `a`
+ - `a : T`: Check if type of `a` is exactly `T`. Result is `a`
 
-### Type Constraints `<-`, `<-!`, `<-?`, `<-=`
+### Type Constraints `:+`, `:!`, `:?`, `:`
 
 Type constraints check the type of the value on the LHS, matches the type
 on the RHS. The RHS may include a binding selector:
@@ -61,12 +60,8 @@ on the RHS. The RHS may include a binding selector:
 
 The type may include a `const`.
 
-### Type Specification
 
-In type specification `<-` may omit the type which
-can be inferred from the expression passed in.
-
-### Widen `<-`, `:`
+### Widen `:+`, `:~+`
 
 Widen is an (implicit) conversion of a value to a different type, where
 information is never lost.
@@ -82,7 +77,7 @@ Examples:
  - Convert the value to a different value without loss of information.
 
 
-### Truncate `<-!`, `:!`
+### Truncate `:!`, `:~!`
 
 Truncate is an explicit conversion of a value to a different type where
 information may be lost.
@@ -97,7 +92,7 @@ Examples (includes all Widen examples):
  - Convert the value to a different value with possible loss of information. 
 
 
-### Narrow `<-?`, `:?`
+### Narrow `:?`, `:~?`
 
 Narrow is an explicit conversion of a value to a different type where
 precision may be lost and which may fail with an error.
@@ -112,19 +107,18 @@ Examples (includes all Truncate examples):
  - Convert a reference of a super-class to a reference of a sub-class, this
    requires run-time checking of the vtable-pointer.
 
-### Equal `<-=`
+### Equal `:`
 
 The type of `a` is exactly `T`. This is used for argument in a
 function-definition to match exactly with a specific type.
 
 ```
 struct T {
-  foo = fn(self <-= T) { ... }         // Preserves the binding of T.
-  foo = fn(self <-= *T) { ... }        // 
-  foo = fn(self <-= &T) { ... }        // 
-  foo = fn(self <-= &const T) { ... }  // 
-  foo = fn(self <-= && T) { ... }      // 
-  foo = fn(self <-= &&const T) { ... } // 
+  foo = fn(self : T) { ... }         // Preserves the binding of T.
+  foo = fn(self : *T) { ... }        // 
+  foo = fn(self : &T) { ... }        // 
+  foo = fn(self : &const T) { ... }  // 
+  foo = fn(self : && T) { ... }      // 
+  foo = fn(self : &&const T) { ... } // 
 }
-
 ```

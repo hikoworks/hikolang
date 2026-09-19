@@ -103,9 +103,9 @@ for example you may not want to do any: allocations, IO or block.
 read = fn(fd, size) -> string {
   if (size == 0) {
     ...
-  } else if (size <= 4096) @effect(io) {
+  } else if (size <= 4096) effect(io) {
     ...
-  } else @effect(io, block) {
+  } else effect(io, block) {
     while (...) {...}
   }
 }
