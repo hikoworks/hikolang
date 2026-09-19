@@ -2,15 +2,21 @@
 
 ## Syntax
 
-_type_definition_ :=\
-      _meta_type_ _name_ __(__ `[` [_argument_declaration_list_](argument_declaration_list.md) `]` __)?__ _underlying_**?** [_attributes_]__*__ `{` [_block_](block.md) `}`\
-    __|__ _meta_type_ __(__ `[` [_argument_declaration_list_](argument_declaration_list.md) `]` __)?__ _underlying_**?** [_attributes_]__*__ `{` [_block_](block.md) `}`
+_type_definition_ :=
+    _meta_type_ _underlying_**?** [_code-block_]
 
-_underlying_ := `:` [_type_expression_](type_expression.md) __|__ `(` [_type_list_](type_list.md) `)`
-
-_name_ := [_identifier_](identifier.md)
+_underlying_ :=\
+      `:` [_type_expression_](type_expression.md)\
+    __|__ `(` [_type_list_](type_list.md) `)`
 
 _meta_type_ := [_fqname_](fqname.md)
+
+[_code-block_]: code_block.md
+
+[_fqname_]: fqname.md
+[_identifier_]: identifier.md
+[_attributes_]: attributes.md
+[_argument-declaration-list_]: argument_declaration_list.md
 
 ## Semantics
 
@@ -27,21 +33,6 @@ The following meta-types are availble in the language:
  - `variant`: Creates a type that as value is one of a set of name that can also
    hold payload of a set of values.
  - `struct`: Creates a type that is a set of value members.
-
-
-
-### abi(x)
-
-On a type this will change how the memory layout is for an object.
-
- - "c": Use the C ABI. (same as aligned)
- - "c++": Use the C++ ABI. (same as aligned)
- - "aligned": Keep members in a struct in given order, and align members.
- - "reorder": Reorder members in a struct, pack while maintaining alignment. (default)
- - "pack": Keep members in a struct in given order, ignore natural alignment of members. This will
-           cause member access to use possible slower, but valid, unaligned access.
- - "compress": Use niche-mask to further compress members in a struct. Access to members may
-               require shifts and masks. 
 
 
 
@@ -82,7 +73,3 @@ fn struct(template_arguments, inheritence_list, attributes, members)
 }
 ```
 
-[_fqname_]: fqname.md
-[_identifier_]: identifier.md
-[_attributes_]: attributes.md
-[_argument-declaration-list_]: argument_declaration_list.md

@@ -3,12 +3,12 @@
 ## Syntax
 
 _argument-declaration_ :=\
-      [_name_]__?__ [_type-annotation_]__?__ __(__ `=` [_expression_] __)?__\
-    __|__ [_name_] `...` [_type-annotation_]__?__
-    __|__ [_literal_] [_type-annotation_]__?__\
-    __|__ `(` [_expression_] `)` [_type-annotation_]__?__\
+      [_name_]__?__ [_type-specifier_]__?__ __(__ `=` [_expression_] __)?__\
+    __|__ [_name_] `...` [_type-specifier_]__?__
+    __|__ [_literal_] [_type-specifier_]__?__\
+    __|__ `(` [_expression_] `)` [_type-specifier_]__?__\
 
-[_type-annotation_]: type_annotation.md
+[_type-specifier_]: type_specifier.md
 [_expression_]: expression.md
 [_literal_]: literal.md
 [_name_]: name.md

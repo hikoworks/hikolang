@@ -19,9 +19,10 @@ _unit-expression_ :=\
 
 
 ## Semantic
+
 A _simple-unit-expression_ follows:
  - a literal: Adds the _unit-expression_ to a type.
- - a type coercion: Checks using domain analysis if the source type has a
+ - a type specifier: Checks using domain analysis if the source type has a
    compatible _unit-expression_.
 
 In the example below you see how _unit-expression_ can be used together
@@ -42,11 +43,11 @@ on the type coercions are unimportant as the _unit-expression_ is reduced
 to the domain's base units:
 
 ```
-fn distance(speed : f64 (m/s), duration : f64 s) {
+fn distance(speed : f64 #(m/s), duration : f64 #s) {
     return speed * duration
 }
 
-var distance_in_miles = distance(20.0 km/h, 5 h) / 1.0 mi
+var distance_in_miles = distance(20.0 (km/h), 5 h) / 1.0 mi
 ```
 
 The [_identifier_](identifier.md)s in a _unit-expression_ are from the namespace

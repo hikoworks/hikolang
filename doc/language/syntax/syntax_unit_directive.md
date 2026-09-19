@@ -11,7 +11,7 @@ _syntax-unit-directive_ := `syntax` `unit` [_identifier_] `=` [_float-literal_]_
 
 ## Semantic
 
-Add a new [_identifier_] for a unit based on a [_unit_expression_].
+Add a new [_identifier_] for a unit based on a [_unit-expression_].
 
 ```
 syntax unit g = 0.001 kg

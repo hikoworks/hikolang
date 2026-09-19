@@ -1,8 +1,9 @@
-# try
+# try-control-expression
 
 ## Syntax
 
-`try` `{` [_statement-list_](statement_list.md) `}` [_catch_clauses_](catch_clauses.md)__?__
+_try-controld_expression :=
+   `try` `{` [_statement-list_](statement_list.md) `}` [_catch_clauses_](catch_clauses.md)__?__
 
 ## Semantics
 The `try` control-expression is used to introduce a code-block, with its own

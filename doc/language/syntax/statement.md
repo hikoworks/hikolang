@@ -9,8 +9,7 @@ _statement_ :=\
     __|__ [_break_statement_] \
     __|__ [_continue_statement_]\
     __|__ [_goto_statement_]\
-    __|__ [_throw_statement_]\
-    __|__ [_namespace_](namespace.md)\
+    __|__ [_throw_statement_]
 
 
 ## Semantics

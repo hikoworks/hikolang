@@ -51,7 +51,9 @@ of an `int` is based on the range.
 The second integer type is `long`, this integer dynamically scales in size
 and is allocated on the heap, and includes SIO (Short Integer Optimization).
 
+
 ## Units system
+
 Real, rational and decimal types can be tagged with a unit, which is used
 for dimensional analysis.
 
@@ -70,7 +72,9 @@ convert = fn(length : real #m, ppi : real #(px/in)) -> real #px
 }
 ```
 
+
 ## Hidden Context Arguments
+
 Context arguments reduces the need for global variables in many uses. It makes it easy
 to inject context in unit-tests as well.
 
@@ -119,12 +123,16 @@ foo = fn(fd, n) {
 }
 ```
 
+
 ## Universal call syntax
+
 Functions and member functions may be called in two different ways:
  * `foo(a, b)`
  * `a.foo(b)`
 
+
 ## Builtin Package Manager
+
 The compiler will automatically clone and update git repositories that
 are imported with the `import git` statement. Repositories are
 cloned into the `_hkdeps` directory, by recursively scanning the
@@ -134,7 +142,9 @@ Directory structure within a repository is free-form; the compilation
 order and conditional compilation is determined after scanning the
 prologue of each module (a file).
 
+
 ## Compile-time allocations survive into runtime.
+
 Since a lot of code will be executed at compile-time it is likely that
 a lot of allocations will be executed. Especially since `int` type contains
 two `long` values for the range which may allocate. And all `int` literals
@@ -153,7 +163,9 @@ So allocations during compilation must survive into the executable.
  * The read-write `.alloc` section is part of the normal allocation,
    allowing deallocation and reusing.
 
+
 ## Enum with associated values
+
 Enums members have zero or more associated values, like the following
 optional type, which is a template. Template arguments use the bracketed
 argument syntax.
@@ -170,11 +182,15 @@ occupy the same space as the associated value. For example the address of a refe
 can never be zero, so this niche-value can be used for `none` with an
 optional reference.
 
+
 ## Capturing string literals
+
 String literals with the `t` prefix like the following `t"Hello {foo()}"`
 are converted to a tuple of the following form: `("Hello {1:}", foo())`.
 
+
 ## Types are values
+
 All types are constructed from templates. Returned types are interned; two types
 returned from the same template with same arguments are identical.
 
@@ -191,7 +207,9 @@ wrapper template still is identified as comming from the original template.
 For ease of use when a zero argument template is used where a type is needed it is
 automatically instantiated there.
 
+
 ## Elaboration Phase
+
 Certain languages have a separate elaboration phase during compilation.
 
 In this phase the compiler will fill in all:
@@ -210,25 +228,38 @@ Note: full constant folding allows generic/templated functions without a special
 Note: since low level functions are written as inline-assembly, inline-assembly must be
       executable during compile time, possibly using an interpreter/JIT.
 
+
 ## Extensible syntax
+
 ### Custom operators
+
 The language allows you to define custom operators. This is done by registering a
 a keyword or pattern-syntax, precedence and associativity, and a function that
 will be called when the operator is used.
 
+
 ### Custom units and domains
+
 New units can be added, including full system of units (domains).
 
+
 ### Adding errors
+
 Errors-codes can be added anywhere in the program, multiple definition merge.
 
+
 ### Adding effects
+
 Effects can be added anywhere in the program, multiple definition merge.
 
+
 ### Adding members to open-enums.
+
 Even after an enum is frozen you may add new members anywhere in the program.
 
+
 ### Custom literals
+
 The language allows you to define custom literals. This is done by registering a
 suffix-keyword and a function that will be called when the suffix is used with a literal.
 
@@ -236,7 +267,9 @@ The literal is passed to the function as a string, and the function determines t
 returned value and type. Since the function is called at compile time, it can
 dynamically create both the value and the type.
 
+
 ### Metatypes
+
 A function marked with `metatype` becomes a keyword that returns a type.
 
 ```
@@ -245,12 +278,14 @@ class = fn(definition, arguments) metatype {
   return new_type
 }
 
-T = class[template_argument: type] {
+T[template_argument: type] = class {
   ...
 }
 ```
 
+
 ## Compile time reflection
+
 The language treats types as if they are first-class values.
 This means types themselves are of a meta-type, recursively.
 

@@ -70,7 +70,40 @@ id... := [_identifier_] __(__ `,` [_identifier_] __)*__
 Make sure none of the effects listed will be executed in this block.
 
 
+### type definition code-block: [[abi(x)]]
+
+On a type this will change how the memory layout is for an object.
+ 
+ abi         | Description
+ :---------- | :---------
+ `c`         | Use the C ABI, keeping members aligned and in original order.
+ `reorder`   | Reorder members from large to small struct, maintaining alignment. (default)
+ `pack`      | Keep members in original order, but ignore alignment. Access to members is valid.
+ `compress`  | Use niche-mask to further compress members in a struct. Access to members may require shifts and masks. 
+
+
 ### definition: [[doc(str)]]
 
-Documentation
+See : [_documentation_](documentation.md)
 
+
+### function: [[deprecated(message: string)]]
+
+This function is deprecated. The compiler will emit a warning message
+at the call site, including the `message` passed in the attribute.
+
+
+### function: [[discard]]
+
+The function's return value maybe discarded.
+
+
+### function: [[effects(effect-list)]]
+
+Add, Remove and Check for effects to be available in the function.
+
+
+### function: [[no_return]]
+
+This function will not return, used for functions like `std.terminate()`.
+Meaning code after this function call will never execute.

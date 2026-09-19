@@ -2,25 +2,17 @@
 
 ## Syntax
 
+
 _function-definition_ :=\
-    [_documentation_]__*__\
     [_qualifier_]__*__\
-    `fn` `(` [_argument-declaration-list_]__?__ `)`
-    [_function-return-type_]__?__\
+    `fn` __(__ `(` [_argument-declaration-list_]__?__ `)` __)?__
+      [_function-return-type_]__?__\
     *constraint*__*__\
     _specifier_
 
-
-_attribute_ :=\
-      `[[` `condition` `(` [_condition-expression_] `)` `]]`\
-    __|__ `[[` `deprecated` `(` [_string-literal_] `)` `]]`\
-    __|__ `[[` `discard` `]]`\
-    __|__ `[[` `effect` `(` [_effect-list_] `)` `]]`\
-    __|__ `[[` `no_inline` `]]`\
-    __|__ `[[` `no_return` `]]`
-
 _constraint_ :=\
       `expect` `(` [_expression_] `)` \
+    __|__ `build_guard` `(` [_build-guard-expression_] `)`\
     __|__ `pre` `(` [_expression_] `)`\
     __|__ `post` `(` [_expression_] `)`
 
@@ -40,6 +32,7 @@ _specifier_ :=\
 
 [_argument-declaration-list_]: argument_declaration_list.md
 [_attribute_]: attribute.md
+[_build-guard-expression_]: build_guard_expression.md
 [_clause_]: clause.md
 [_code-block_]: code_block.md
 [_condition-expression_]: condition_expression.md
@@ -50,9 +43,24 @@ _specifier_ :=\
 [_expression_]: expression.md
 [_qualifier_]: qualifier.md
 [_string-literal_]: string_literal.md
-
+[_positional-argument_]: positional_argument.md
 
 ## Semantics
+
+### argument declaration
+
+#### lambda
+
+A lambda is just a function definition; most of a function definition is
+optional, including the argument declaration and return type declaration. The
+function simply becomes a templated function with variable number of arguments.
+
+Inside the function you have access to the [_positional-argument_]s.
+
+```
+a = foo(fn { $0 + $1 })
+```
+
 
 ### export(abi: string)
 
@@ -85,6 +93,11 @@ added to the overload-set as a type template.
 This function is a class memember function, instead of instance member function. 
 
 
+### build_guard(expression)
+
+Conditional compilation of the function.
+
+
 ### expect(expression)
 
 Although not part of the signature, the [_expression_] is checked during the
@@ -111,47 +124,7 @@ available:
   * The arguments by index using the `$` [_integer_literal_]
 
 
-## Attributes
 
-A function definitions moves the list of attributes from the parser context into
-the function's AST, when `fn` is parsed.
-
-
-
-### [[condition(expr)]]
-
-Only compile this function when the [_condition-expression_] is true.
-
-
-### [[deprecated(message: string)]]
-
-This function is deprecated. The compiler will emit a warning message
-at the call site, including the `message` passed in the attribute.
-
-
-### [[discard]]
-
-The function's return value maybe discarded.
-
-
-### [[effects(effect-list)]]
-
-Add, Remove and Check for effects to be available in the function.
-
-
-### [[no_inline]]
-
-The code of this function will not be inlined into the caller. This can possibly:
-
- * Reduces code size of the caller
- * Reduces register pressure
- * In turn improve chance for the caller to be inline into its caller.
-
-
-### [[no_return]]
-
-This function will not return, used for functions like `std.terminate()`.
-Meaning code after this function call will never execute.
 
 
 
