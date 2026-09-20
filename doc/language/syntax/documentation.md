@@ -4,7 +4,6 @@
 
 _documentation_ := `/**` see below `*/`
 
-In reality this is converted by the lexer to a `[[doc(...)]]` attribute.
 
 ## Semantics
 

@@ -2,16 +2,17 @@
 
 ## Syntax
 
-_syntax-unit-directive_ := `syntax` `unit` [_identifier_] `=` [_float-literal_]__?__ [_unit-expression_]
+_syntax-unit-directive_ :=
+    `syntax` `unit` [_identifier_] `=` [_float-literal_]__?__ [_complex-unit-expression_] `;`
 
 [_float-literal_]: float_literal.md
 [_identifier_]: identifier.md
-[_unit-expression_]: unit_expression.md
-
+[_complex-unit-expression_]: unit_expression.md
+[_syntax-domain-directive_]: syntax-domain_directive.md
 
 ## Semantic
 
-Add a new [_identifier_] for a unit based on a [_unit-expression_].
+Add a new [_identifier_] for a unit based on a [_complex-unit-expression_].
 
 ```
 syntax unit g = 0.001 kg
@@ -21,4 +22,5 @@ syntax unit Hz = s⁻¹
 syntax unit N = kg m s⁻²
 ```
 
+The base units are specified with the [_syntax-domain-directive_]
 

@@ -2,7 +2,7 @@
 
 ## Syntax
 
-_syntax-effect-directive_ := `syntax` `effect` [_identifier_]
+_syntax-effect-directive_ := `syntax` `effect` [_identifier_] `;`
 
 [_identifier_]: identifier.md
 

@@ -2,39 +2,36 @@
 
 ## Syntax
 
-_simple-unit-expression_ :=\
-     `[` _unit-expression_ `]`\
-    __|__ [_identifier_](identifier.md)\
-    __|__ _unit-expression_ `^` [_integer_literal_](integer_literal.md)\
-    __|__ _unit-expression_ `**` [_integer_literal_](integer_literal.md)
-
 _unit-expression_ :=\
-      `[` _unit-expression_ `]`\
-    __|__ [_identifier_](identifier.md)\
-    __|__ _unit-expression_ `^` [_integer_literal_](integer_literal.md)\
-    __|__ _unit-expression_ `**` [_integer_literal_](integer_literal.md)\
-    __|__ _unit-expression_ `/` _unit-expression_\
-    __|__ _unit-expression_ `*` _unit-expression_\
-    __|__ _unit-expression_ _unit-expression_
+      `(` _complex-unit-expression_ `)`\
+    __|__ [_identifier_]\
+    __|__ _unit-expression_ `^` [_integer_literal_]\
+    __|__ _unit-expression_ `**` [_integer_literal_]
 
+_complex-unit-expression_ :=\
+      `(` _complex-unit-expression_ `)`\
+    __|__ [_identifier_]\
+    __|__ _complex-unit-expression_ `^` [_integer_literal_]\
+    __|__ _complex-unit-expression_ `**` [_integer_literal_]\
+    __|__ _complex-unit-expression_ `/` _complex-unit-expression_\
+    __|__ _complex-unit-expression_ `*` _complex-unit-expression_\
+    __|__ _complex-unit-expression_ _complex-unit-expression_
+
+[_identifier_]: identifier.md
+[_integer-literal_]: integer_literal.md
 
 ## Semantic
 
-A _simple-unit-expression_ follows:
- - a literal: Adds the _unit-expression_ to a type.
- - a type specifier: Checks using domain analysis if the source type has a
-   compatible _unit-expression_.
-
-In the example below you see how _unit-expression_ can be used together
+In the example below you see how a _unit-expression_ can be used together
 with literals; and add `*` and remove `/` units from types. The actual values
 are scaled to the base units of the domain they belong to.
 
 ```
-let speed = 10.0 (km/h)                     // f64 m/s
+let speed = 10.0 #(km/h)                    // f64 m/s
 let duration_in_hours = 2.0                 // f64
-let duration = duration_in_hours * 1h       // f64 s
+let duration = duration_in_hours * 1#h      // f64 s
 let distance = speed * duration             // f64 m
-let distance_in_km = distance / 1.0 km      // f64
+let distance_in_km = distance / 1.0 #km     // f64
 ```
 
 In the next example we show how _unit-expression_ can be used on a type to
@@ -47,7 +44,7 @@ fn distance(speed : f64 #(m/s), duration : f64 #s) {
     return speed * duration
 }
 
-var distance_in_miles = distance(20.0 (km/h), 5 h) / 1.0 mi
+var distance_in_miles = distance(20.0 #(km/h), 5 #h) / 1.0 mi
 ```
 
 The [_identifier_](identifier.md)s in a _unit-expression_ are from the namespace
