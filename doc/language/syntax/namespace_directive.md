@@ -4,7 +4,7 @@
 
 namespace-directive :=\
       `namespace` [_fqname_] `;`\
-    __|__ `namespace` `.`__+__ `;`
+    __|__ `namespace` `;`
 
 [_fqname_]: fqname.md
 
@@ -12,9 +12,10 @@ namespace-directive :=\
 ## Semantics
 
 Set the current namespace. Either relative to the current namespace, or when
-the _namespace-name_ starts with `.` a namespace relative to root.
+the [_fqname_] starts with a single `.` a namespace relative to root.
 
-It is not possible to set the current namespace to the root itself.
+A bare `namespace` without a [_fqname_] will reset the namespace back to the default
+namespace of the file.
 
 ```
 module com.foo 1.0.0

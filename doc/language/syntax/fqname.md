@@ -2,7 +2,7 @@
 
 ## Syntax
 
-`.`__*__ [_identifier_](identifier.md) __(__ `.` [_identifier_](identifier.md) __)*__
+_fqname_ := `.`__*__ [_identifier_](identifier.md) __(__ `.` [_identifier_](identifier.md) __)*__
 
 
 ## Semantics

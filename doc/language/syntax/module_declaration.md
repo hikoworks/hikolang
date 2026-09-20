@@ -32,6 +32,15 @@ repository-directory that is alphabetically first is selected.
 If the module is part of the compiler's include-path, such as `std`, then the
 version number is treated as-if it is higher than any other.
 
+#### Nested anchors
+
+Achors may be nested, a child anchor will own all its sub-modules. If the
+child anchor is in a different repository, then the parent anchor may not
+have a sub-module that matches the path of a child-anchor.
+
+This will allow multiple repositories to each contribute part of a whole
+project.
+
 
 ### Build guard (optional)
 
