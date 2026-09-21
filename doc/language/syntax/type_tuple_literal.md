@@ -2,7 +2,7 @@
 
 ## Syntax
 
-_tuple_literal_ :=\
+_type-tuple_literal_ :=\
       `(` `,` `)`\
     __|__ `(` [_type-expression_] `,` `)`\
     __|__ `(` [_type-expression_] __(__ `,` [_type-expression_] __)+__ `,`__?__ `)`

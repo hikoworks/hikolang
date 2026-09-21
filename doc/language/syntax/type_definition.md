@@ -1,22 +1,20 @@
 # type-definition
 
+[_attributes_]: attributes.md
+[_argument-declaration-list_]: argument_declaration_list.md
+[_code-block_]: code_block.md
+[_fqname_]: fqname.md
+[_identifier_]: identifier.md
+[_underlying_]: underlying.md
+
 ## Syntax
 
 _type_definition_ :=
-    _meta_type_ _underlying_**?** [_code-block_]
+    _meta_type_ [_underlying_]__?__ [_code-block_]
 
-_underlying_ :=\
-      `:` [_type_expression_](type_expression.md)\
-    __|__ `(` [_type_list_](type_list.md) `)`
 
 _meta_type_ := [_fqname_](fqname.md)
 
-[_code-block_]: code_block.md
-
-[_fqname_]: fqname.md
-[_identifier_]: identifier.md
-[_attributes_]: attributes.md
-[_argument-declaration-list_]: argument_declaration_list.md
 
 ## Semantics
 

@@ -22,6 +22,6 @@ The `try` control-expression should be used in the following situations:
  2. When you want to catch errors that occur inside the `try` code-block.
  3. When you want to use the `try` code-block as an expression, calculating a
     value from the code-block.
- 4. Add additional flow control, where you can use `result`, `return`, `yield`
+ 4. Add additional flow control, where you can use `return`, `yield`
     `break` and `continue` statements inside the `try` code-block, to either
     return a value, or to exit a loop or a function early. 
