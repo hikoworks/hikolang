@@ -3,22 +3,10 @@
 ## Syntax
 
 _variable-definition_ :=\
-    *qualifier*__*__\
     [_fqname_]\
     __(__ `[` [_argument_declaration_list_](argument_declaration_list.md) `]` __)?__
     [_type-specifier_]__?__ _initializer_
 
-
-_qualifier_ :=\
-      `thread_local`\
-    __|__ `static`\
-    __|__ `shared` __(__ `(` [_expression_](expression.md) `)` __)?__\
-    __|__ `weak`\
-    __|__ `unique` __(__ `(` [_expression_](expression.md) `)` __)?__\
-    __|__ `alloc` __(__ `(` [_expression_](expression.md) `)` __)?__\
-    __|__ `public`\
-    __|__ `section` `(` [_expression_](expression.md) `)`\
-    __|__ `alignas` `(`[_expression_](expression.md) `)`
 
 _initializer_ :=\
       `=` [_expression_]\
@@ -68,23 +56,6 @@ shared a : T := b           // A variable on the heap managed by ref-counting
 static(.rwdata) a : T := b  // static, in an explicit data segment.
 ```
 
-### Qualifier
-
-#### shared / weak / unique / alloc
-
-These variables manage values on the heap; they are managed as follows:
- * `shared`: Reference counted allocation. Assigning a `shared var` to another
-   will assign the underlying address of the reference.
- * `weak`: A weak copy of a `shared` reference, becomes _empty_ when
-   ref-count is zero. And creates a `shared` when assigned.
- * `unique`: Only one reference can point to the managed allocation. The
-   reference may be moved or swapped.
- * `alloc`: Memory is allocated, but must be manually deallocated.
-
-The optional argument is the allocator to use. Otherwise it is the current
-or default allocator.
-
-
 
 ### initializer
 
@@ -113,3 +84,82 @@ Special types, like functions, have overload sets that may be merged.
 > [!caution]
 > Technically any type can implement the `__merge__()` method,
 > but it should be extremely rare. As we want `=` to mean immutable.
+
+## annotations
+
+A variable definition consumes the pending-annotations.
+
+
+### @alignas(integer-expression)
+
+Make the allocation for this objects aligned to the given expression.
+
+### [[deprecated(message)]]
+
+This variable/function is deprecated. The compiler will emit a warning message
+where the variable is used, including the `message` passed in the attribute.
+
+
+### @export(abi)
+
+The function will be available in the executable using the `abi`
+specified.
+
+  abi      | Description
+ :-------- |:---------------
+  `"c"`    | Use the C ABI.
+  `"c++"`  | Use the C++ ABI.
+
+
+### @metatype
+
+This function's [_fqname_] is added to type-definition keyword list.
+
+This function is called when a type-definition is found. The arguments
+to this functions are:
+
+ * The list of type attributes
+ * The template argument list
+ * The type-inheritance list
+ * The [_code-block_]
+
+It returns a function that in-turn returns an actual type, which is
+added to the overload-set as a type template.
+
+
+### @public
+
+This variable can be named outside of the module.
+
+
+### @section(link-name)
+
+In case of a global variable place it in a specific section of the executable.
+
+
+### @shared(allocator)
+
+Allocate the object on the heap, and make it sharable to other shared variables
+using reference counting.
+
+
+### @static
+
+This function is a class memember function, instead of instance member function.
+
+
+### @thread_local
+
+Allocate the variable in the thread-local region.
+
+
+### @unique(allocator)
+
+Allocate the object on the heap, only one variable can own this object, but the
+ownership can be moved to another variable
+
+
+### @weak
+
+A variable that references a shared variable. This variable becomes empty when
+the shared variable's reference count becomes zero.

@@ -1,35 +1,5 @@
 # function-definition
 
-## Syntax
-
-
-_function-definition_ :=\
-    [_qualifier_]__*__\
-    `fn` __(__ `(` [_argument-declaration-list_]__?__ `)` __)?__
-      [_function-return-type_]__?__\
-    *constraint*__*__\
-    _specifier_
-
-_constraint_ :=\
-      `expect` `(` [_expression_] `)` \
-    __|__ `build_guard` `(` [_build-guard-expression_] `)`\
-    __|__ `pre` `(` [_expression_] `)`\
-    __|__ `post` `(` [_expression_] `)`
-
-_qualifier_ :=\
-      `public`\
-    __|__ `static`\
-    __|__ `export` `(` [_string-literal_] `)`\
-    __|__ `metatype`
-
-_specifier_ :=\
-      [_code-block_]\
-    __|__ `=` `default` `;`\
-    __|__ `=` `delete` `;`\
-    __|__ `=` `extern` `;`\
-    __|__ `=` `abstract` `;`\
-    __|__ `=` `builtin` `;`
-
 [_argument-declaration-list_]: argument_declaration_list.md
 [_attribute_]: attribute.md
 [_build-guard-expression_]: build_guard_expression.md
@@ -45,11 +15,35 @@ _specifier_ :=\
 [_string-literal_]: string_literal.md
 [_positional-argument_]: positional_argument.md
 
+
+## Syntax
+
+_function-definition_ :=\
+    `fn` __(__ `(` [_argument-declaration-list_]__?__ `)` __)?__
+      [_function-return-type_]__?__\
+    *constraint*__*__\
+    _specifier_
+
+_constraint_ :=\
+      `expect` `(` [_expression_] `)` \
+    __|__ `build_guard` `(` [_build-guard-expression_] `)`\
+    __|__ `pre` `(` [_expression_] `)`\
+    __|__ `post` `(` [_expression_] `)`
+
+_specifier_ :=\
+      [_code-block_]\
+    __|__ `=` `default` `;`\
+    __|__ `=` `delete` `;`\
+    __|__ `=` `extern` `;`\
+    __|__ `=` `abstract` `;`\
+    __|__ `=` `builtin` `;`
+
+
 ## Semantics
 
 ### argument declaration
 
-#### lambda
+### lambda
 
 A lambda is just a function definition; most of a function definition is
 optional, including the argument declaration and return type declaration. The
@@ -62,35 +56,6 @@ a = foo(fn { $0 + $1 })
 ```
 
 
-### export(abi: string)
-
-The function will be available in the executable using the `abi`
-specified.
-
-  abi      | Description
- :-------- |:---------------
-  `"c"`    | Use the C ABI.
-  `"c++"`  | Use the C++ ABI.
-
-
-### metatype
-
-This function's [_fqname_] is added to type-definition keyword list.
-
-This function is called when a type-definition is found. The arguments
-to this functions are:
-
- * The list of type attributes
- * The template argument list
- * The type-inheritance list
- * The [_code-block_]
-
-It returns a function that in-turn returns an actual type, which is
-added to the overload-set as a type template.
-
-### static
-
-This function is a class memember function, instead of instance member function. 
 
 
 ### build_guard(expression)
@@ -126,5 +91,41 @@ available:
 
 
 
+## annotations
+
+A function definition consumes the pending-annotations and apply it to the function
+definition.
+
+### @export(abi: string)
+
+The function will be available in the executable using the `abi`
+specified.
+
+  abi      | Description
+ :-------- |:---------------
+  `"c"`    | Use the C ABI.
+  `"c++"`  | Use the C++ ABI.
 
 
+### @metatype
+
+This function's [_fqname_] is added to type-definition keyword list.
+
+This function is called when a type-definition is found. The arguments
+to this functions are:
+
+ * The list of type attributes
+ * The template argument list
+ * The type-inheritance list
+ * The [_code-block_]
+
+It returns a function that in-turn returns an actual type, which is
+added to the overload-set as a type template.
+
+
+### @static
+
+This function is a class memember function, instead of instance member function.
+
+
+### @public
