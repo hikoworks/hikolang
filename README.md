@@ -6,17 +6,75 @@
 [![License](https://img.shields.io/github/license/hikoworks/hikolang.svg)](https://github.com/hikoworks/hikolang/blob/main/LICENSE)
 [![Coverage](https://codecov.io/github/hikoworks/hikolang/graph/badge.svg?token=P95N8UFH1D)](https://codecov.io/github/hikoworks/hikolang)
 
- * Safe Integers
- * Unit System
+hikolang is a systems programming language built around the idea that
+correctness, expressiveness, and low-level control do not have to be
+competing goals. It provides explicit mechanisms for handling errors,
+integer safety, effects, memory, units, and compile-time computation,
+while keeping the resulting programs suitable for systems-level
+development.
+
+The language moves several traditionally separate concerns into the
+type system and compilation process. Integer ranges can be tracked
+statically, units participate in dimensional analysis, effects can
+be constrained, and contracts can describe the assumptions made by
+functions. At the same time, compile-time evaluation and reflection
+are treated as fundamental language features rather than separate
+metaprogramming facilities.
+
+hikolang also deliberately keeps the language extensible. Operators,
+units, effects, errors, metatypes, and even parts of the type system
+can be extended from within the language itself. A dedicated
+elaboration phase bridges compile-time and runtime, allowing code
+to participate in compilation without making compile-time behavior
+indistinguishable from runtime behavior.
+
+The result is a language designed for programs where the details
+matter: programs that need predictable execution, explicit failure
+modes, efficient representations, and strong compile-time
+guarantees, without giving up the ability to express higher-level
+abstractions.
+
+Features:
+
+ * Fast errors
+ * Safe integers
+ * Compile-time allocations moved into runtime
+ * Unit system
+ * Hidden context arguments
+ * Universal call syntax
+ * Variant with associated values
+ * with_effect / without_effect constrain
  * Contracts and invariants
- * Fast errors, caught by caller
- * Hidden Context Arguments
- * Universal Call Syntax
  * Elaboration phase
- * Extendable syntax: operators, metatypes, units
- * Compile time reflection, types are values
- * Function overloading, on both arguments (type and non-type) and return type
- * Modern C++ Memory Model
+ * Compile time reflection
+ * Builtin Package Manager
+ * Extendable syntax
+
+
+## Fast errors
+
+There are three different outcomes from a function:
+ * A value was returned using a value `return` statement.
+ * An _empty_ was returned using a non-value `return` statement.
+ * An _error_ was thrown using a `throw` statement.
+
+An error must be handled by the caller. The `if` statement include
+`catch` and `empty` clauses to make it easier.
+
+```
+if (x = foo()) {
+    print("foo() returned a value {:1}", x)
+} empty {
+    print("foo() did not return anything")
+} catch (out_of_bound) {
+    print("foo() causes an out-of-bound error")
+    throw   // rethrow the error.
+}
+```
+
+Some error-codes may be annotated with `@auto_rethrow` for which the
+compiler will automatically synthesize a catch-rethrow statement. This
+keeps the invariant "An error must be handled by the caller".
 
 
 ## Safe integers
@@ -31,7 +89,7 @@ Errors that may be thrown by certain operations:
  * Narrow-error when explicitly casting to a smaller integer
    range.
 
-The `int` template type automatically scales based on interval arithmatic to fit
+The `int` template type infers based on interval arithmatic to fit
 the full result of an operation: 
 
 ```
@@ -41,30 +99,46 @@ foo = fn(x : int[10...20], y : int[2...4]) {
 }
 ```
 
-`int` is the basic integer type and the result of integer literals.
-The `int` with proper ranges are compatible with both signed and
-unsigned integers with C and C++.
+`int` is the basic integer type of the standard libary and the result
+of integer literals. `int` values are ABI compatible with the equal or
+next larger signed or unsigned C++ integer.
 
 The range of an `int` is arbitrarilly long, but static. The memory size
 of an `int` is based on the range.
 
 The second integer type is `long`, this integer dynamically scales in size
-and is allocated on the heap, and includes SIO (Short Integer Optimization).
+and is allocated on the heap. The interval of an `int` are based on
+`long`.
 
 
-## Units system
+## Compile-time allocations moved into runtime
+
+`long` being part of the `int` type requires that allocations survive
+into runtime.
+
+After compilation any allocations will be copied into the executable.
+These allocations behave as normal allocations at runtime, which means
+they can be deallocated, and the freed memory may be reused.
+
+Types that use pointer-tagging or other odd pointer handling can add
+special methods that are used to read and modify pointers to help
+allocations be moved between compilation and runtime.
+
+
+## Unit system
 
 Types and values can be tagged with a unit, which is used
 for dimensional analysis.
 
-Conversions between unit-systems like using a resolution value
-like `72.0 #(px/in)` works as expected.
+The `#` operator converts a scalar-value to a unit-value by multiplying
+by the unit. The `#-` operator converts a unit-value back to a
+scalar-value by dividing by the unit.
 
 ```
 duration = 15.0 #min
 speed = 100.0 #(km/h)
 distance = speed * duration
-distance_in_km = distance #-1km
+distance_in_km = distance #-km
 
 convert = fn(length : real #m, ppi : real #(px/in)) -> real #px
 {
@@ -73,7 +147,7 @@ convert = fn(length : real #m, ppi : real #(px/in)) -> real #px
 ```
 
 
-## Hidden Context Arguments
+## Hidden context arguments
 
 Context arguments reduces the need for global variables in many uses. It makes
 it easy to inject context in unit-tests as well.
@@ -97,7 +171,38 @@ qux = fn(x, y) {
 }
 ```
 
+
+## Universal call syntax
+
+Functions and member functions may be called in two different ways:
+ * `foo(a, b)`
+ * `a.foo(b)`
+
+Functions and members are handled together in a single overload resolution
+algorithm.
+
+
+## Variant with associated values
+
+Enums members have zero or more associated values, like the following
+optional type, which is a template. Template arguments use the bracketed
+argument syntax.
+
+```
+.std.optional[T : type] = variant {
+    none
+    some(T)
+}
+```
+
+Niche values and niche-mask allow optimization to compress the enum's index-tag
+to occupy the same space as the associated value. For example the address of a
+reference can never be zero, so this niche-value can be used for `none` with an
+optional reference.
+
+
 ## with_effect / without_effect constrain
+
 Sometimes you want to limit the effects that functions can make,
 for example you may not want to do any: allocations, IO or block.
 
@@ -124,91 +229,14 @@ foo = fn(fd, n) {
 ```
 
 
-## Universal call syntax
+## Contracts and invariants
 
-Functions and member functions may be called in two different ways:
- * `foo(a, b)`
- * `a.foo(b)`
-
-
-## Builtin Package Manager
-
-The compiler will automatically clone and update git repositories that
-are imported with the `import git` statement. Repositories are
-cloned into the `_hkdeps` directory, by recursively scanning the
-repositories.
-
-Directory structure within a repository is free-form; the compilation
-order and conditional compilation is determined after scanning the
-prologue of each module (a file).
+Function and method definitions can include `pre()` and `post()`
+clauses that are checked in the scope of the caller to make sure
+that the arguments, type-invariant and return values are correct.
 
 
-## Compile-time allocations survive into runtime.
-
-Since a lot of code will be executed at compile-time it is likely that
-a lot of allocations will be executed. Especially since `int` type contains
-two `long` values for the interval which may allocate.
-
-So allocations during compilation must survive into the executable.
-
- * Surviving allocation are compressed in a read-write `.alloc` section
- * A automatic generated/manual `__pointer_discovery__()` method is used to
-   find all the pointers in the program.
- * If an object has encoded/tagged pointers you can add a `__pointer_relocate()`
-   method.
- * In case the read-write .section is relocated:
-    - Then the language runtime will rewrite the pointers before `main()` and
-    - `__pointer_relocate__()` will be called.
- * The read-write `.alloc` section is part of the normal allocation,
-   allowing deallocation and reusing.
-
-
-## Variant with associated values
-
-Enums members have zero or more associated values, like the following
-optional type, which is a template. Template arguments use the bracketed
-argument syntax.
-
-```
-optional = variant[T : type] {
-  none
-  some(T)
-}
-```
-
-Niche values and niche-mask allow optimization to compress the enum's index-tag
-to occupy the same space as the associated value. For example the address of a
-reference can never be zero, so this niche-value can be used for `none` with an
-optional reference.
-
-
-## Capturing string literals
-
-String literals with the `t` prefix like the following `t"Hello {foo()}"`
-are converted to a tuple of the following form: `("Hello {1:}", foo())`.
-
-
-## Types are values
-
-All types are constructed from templates. Returned types are interned; two types
-returned from the same template with same arguments are identical.
-
-Templates are normal functions that return a type, and like normal functions may
-have an overload-set. Templates may be modified, at compile time, before the
-template is used to instantiate a type. Since all functions are templates, any
-type-template in a type decoration on arguments and return types are not
-instantiated until that function is called.
-
-A partially instantiated template returns a wrapper template that calls the
-original template with the remaining arguments. This means that a type returned
-from the wrapper template still is identified as comming from the original
-template.
-
-For ease of use when a zero argument template is used where a type is needed it
-is automatically instantiated there.
-
-
-## Elaboration Phase
+## Elaboration phase
 
 A program runs in three phases:
  * Elaboration: Types need to be completed during compilation. Any expression
@@ -241,12 +269,38 @@ main = fn() {
 }
 ```
 
+
+## Compile time reflection
+
+The language treats types as if they are first-class values.
+This means types themselves are of a meta-type, recursively.
+
+Since types are values, you can query and manipulate types at compile
+time. This allows you to write generic code that can work with any type, and
+even create new types at compile time.
+
+Types are modifiable until they are used as a type, at this point they become
+frozen. Only enums are special, because members can be added as long as their
+values are previous unused values of the underling `int` type.
+
+## Builtin Package Manager
+
+The compiler will automatically clone and update git repositories that
+are imported with the `import git` statement. Repositories are
+cloned into the `_hkdeps` directory, by recursively scanning the
+repositories.
+
+Directory structure within a repository is free-form; the compilation
+order and conditional compilation is determined after scanning the
+prologue of each module (a module is a file).
+
+
 ## Extensible syntax
 
 ### Custom operators
 
 The language allows you to define custom operators. This is done by registering
-a a keyword or pattern-syntax, precedence and associativity, and a function that
+a keyword or pattern-syntax, precedence and associativity, and a function that
 will be called when the operator is used.
 
 
@@ -267,18 +321,8 @@ Effects can be added anywhere in the program, multiple definition merge.
 
 ### Adding members to open-enums.
 
-Even after an enum is frozen you may add new members anywhere in the program.
-
-
-### Custom literals
-
-The language allows you to define custom literals. This is done by registering a
-suffix-keyword and a function that will be called when the suffix is used with a
-literal.
-
-The literal is passed to the function as a string, and the function determines
-the returned value and type. Since the function is called at compile time, it
-can dynamically create both the value and the type.
+Even after an enum is frozen you may add new members, as long as their values
+where unused and fit the interval of the underlying `int` type.
 
 
 ### Metatypes
@@ -295,18 +339,4 @@ T[template_argument: type] = class {
   ...
 }
 ```
-
-
-## Compile time reflection
-
-The language treats types as if they are first-class values.
-This means types themselves are of a meta-type, recursively.
-
-Since types are values, you can interrigate and manipulate types at compile
-time. This allows you to write generic code that can work with any type, and
-even create new types at compile time.
-
-Meta-types are defined as built-in, by the standard library, and can be extended
-by the user.
-
 
