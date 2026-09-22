@@ -54,17 +54,17 @@ and is allocated on the heap, and includes SIO (Short Integer Optimization).
 
 ## Units system
 
-Real, rational and decimal types can be tagged with a unit, which is used
+Types and values can be tagged with a unit, which is used
 for dimensional analysis.
 
 Conversions between unit-systems like using a resolution value
-like `72.0 (px/in)` works as expected.
+like `72.0 #(px/in)` works as expected.
 
 ```
-duration = 15.0 min
-speed = 100.0 (km/h)
+duration = 15.0 #min
+speed = 100.0 #(km/h)
 distance = speed * duration
-distance_in_km = distance / 1km
+distance_in_km = distance #-1km
 
 convert = fn(length : real #m, ppi : real #(px/in)) -> real #px
 {
@@ -211,25 +211,26 @@ automatically instantiated there.
 ## Elaboration Phase
 
 A program runs in three phases:
- * Elaboration:
- * Compilation:
- * Runtime:
+ * Elaboration: Types need to be completed during compilation. Any expression
+   that is required must be evaluated during this phase. Any I/O will be done
+   in the compiler's environment.
+ * Compilation: Assembly code is being generated for code that needs to be
+   emitted into executable. The generation of assembly code lazily triggers
+   elaboration. Any optimization may trigger elaboration for constant values.
+ * Runtime: the code is run on the target machine. Any I/O will be done
+   in the runtime's environment.
 
-Elaboration is lazy, when compilation starts, functions that will need to be
-written into executable such as `main()` start the elaboration of types and
-values.
+Certain functions have the `@effect(phase_variant)` annotation, such functions
+act differently when running in the compiler's or runtime's environment.
 
-Certain functions have the `@effect(phase_variant)` such as I/O which will
-act different during elaboration and runtime.
- *
+Any call to a function that is NOT annotated with `@effect(phase_variant)` may
+be elaborated as a form of optimization.
+
+Any call to a function that is annotated with `@effect(phase_variant)` by
+default is delayed to runtime, unless:
+ - The call is part of the required elaboration of a type.
+ - The call itself is explicitly annotated with `@elaborate`.
  
- Calls to these functions
-are delayed into runtime. While function calls that does not have this
-effect may be elaborated. Calls within `@effect(phase_variant)` function can
-still elaborate calls to functions that do not carry this effect.
-
-You can also force function call to be elaborated.
-
 ```
 foo = @effect(phase_variant) fn(x) {
   ...
@@ -239,28 +240,6 @@ main = fn() {
   x = @elaborate foo(42);
 }
 ```
-
-
-
-
-Certain languages have a separate elaboration phase during compilation.
-
-In this phase the compiler will fill in all:
- * type and non-type arguments of templates.
- * global variables.
- * Guaranteed full constant folding and function elimination.
-
-The process basically does full constant folding by executing functions until no
-more functions can be executed.
-
-It is a reportable error if any expression is left of which the value needs to
-be known for the next compilation phase.
-
-Note: all functions by default can be executed at compile time. 
-Note: full constant folding allows generic/templated functions without a special syntax.
-Note: since low level functions are written as inline-assembly, inline-assembly must be
-      executable during compile time, possibly using an interpreter/JIT.
-
 
 ## Extensible syntax
 

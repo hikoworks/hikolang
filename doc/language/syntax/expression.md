@@ -1,5 +1,35 @@
 # Expression
 
+[_code-block_]: code_block.md
+[_float-literal_]: float_literal.md
+[_integer-literal_]: integer_literal.md
+[_string-literal_]: string_literal.md
+[_tuple-literal_]: tuple_literal.md
+[_type-expression_]: type_expression.md
+[_simple-unit-expression_]: unit_expression.md
+[_unit-expression_]: unit_expression.md
+[_if-control-expression_]: if_control_expression.md
+[_for-control-expression_]: for_control_expression.md
+[_while-control-expression_]: while_control_expression.md
+[_iterative-for-control-expression_]: iterative_for_control_expression.md
+[_ranged-for-control-expression_]: ranged_for_control_expression.md
+[_switch-control-expression_]: switch_control_expression.md
+[_await-operator_]: await_operator.md
+[_binding-selector_]: binding_selector.md
+[_catch-operator_]: catch_operator.md
+[_call-operator_]: call_operator.md
+[_empty-operator_]: empty_operator.md
+[_error-list_]: error_list.md
+[_index-operator_]: index_operator.md
+[_make-const-operator_]: make_const_operator.md
+[_make-optional-operator_]: make_optional_operator.md
+[_member-access_]: member_access.md
+[_type-operator_]: type_operator.md
+[_shortcut-operator_]: shortcut_operator.md
+[_try-operator_]: try_operator.md
+[_type-member-access_]: type_member_access.md
+[_variable-definition_]: variable_definition.md
+
 ## Primary Expression
 
    Expression                             | Description
@@ -14,20 +44,8 @@
    [_iterative-for-control-expression_]   |
    [_ranged-for-control-expression_]      |
    [_while-control-expression_]           |
+   [_switch-control-expression_]          |
 
-[_code-block_]: code_block.md
-[_float-literal_]: float_literal.md
-[_integer-literal_]: integer_literal.md
-[_string-literal_]: string_literal.md
-[_tuple-literal_]: tuple_literal.md
-[_type-expression_]: type_expression.md
-[_simple-unit-expression_]: unit_expression.md
-[_unit-expression_]: unit_expression.md
-[_if-control-expression_]: if_control_expression.md
-[_for-control-expression_]: for_control_expression.md
-[_while-control-expression_]: while_control_expression.md
-[_iterative-for-control-expression_]: iterative_for_control_expression.md
-[_ranged-for-control-expression_]: ranged_for_control_expression.md
 
 ## Standard Operators
 
@@ -39,7 +57,7 @@
  * `U`: [_unit-expression_]
 
 
-  Operator       | Precedence | Function                    | Description
+  Operator       | Precedence | Function                       | Description
  :------------   |:---------- |:------------------------------ |:----------
   `a++`          |  2000 L    | `__post_increment__(a)`        |
   `a--`          |  2000 L    | `__post_decrement__(a)`        |
@@ -60,6 +78,10 @@
   `*b`           |  3000 R    |                                | [_binding-selector_]
   `const r`      |  3000 R    |                                | [_make-const-operator_]
   `?b`           |  3000 R    |                                | [_make-optional-operator_]
+  `a #U`         |  4000 L    |                                | [_unit-expression_]
+  `T #U`         |  4000 L    |                                | [_unit-expression_]
+  `a #-U`        |  4000 L    |                                | [_unit-expression_]
+  `T #-U`        |  4000 L    |                                | [_unit-expression_]
   `a * b`        |  5000 L    | `__mul__(a, b)`                |
   `a / b`        |  5000 L    | `__div__(a, b)`                |
   `a % b`        |  5000 L    | `__rem__(a, b)`                |
@@ -74,8 +96,6 @@
   `a &>> b`      |  7000 L    | `__slr__(a, b)`                |
   `a ... b`      |  7400 L    | `__closed_interval__(a, b)`    |
   `a ..< b`      |  7400 L    | `__half_open_interval__(a, b)` |
-  `a #U`         |  7500 L    |                                | [_unit-expression_]
-  `T #U`         |  7500 L    |                                | [_unit-expression_]
   `a <=> b`      |  8000 L    | `__cmp__(a, b)`                |
   `a < b`        |  9000 L    | `__lt__(a, b)`                 |
   `a > b`        |  9000 L    | `__gt__(a, b)`                 |
@@ -100,8 +120,8 @@
   `a :! T`       | 15500 L    |                                | [_type-operator_]
   `a :? T`       | 15500 L    |                                | [_type-operator_]
   `a : T`        | 15500 L    |                                | [_type-operator_]
-  `a = b`        | 16000 R A  | * `__merge__(a, b)`            | [_variable-definition_]
-  `a := b`       | 16000 R A  | * `__assign__(a, b)`           | [_variable-definition_]
+  `a = b`        | 16000 R A  | `__merge__(a, b)`              | [_variable-definition_]
+  `a := b`       | 16000 R A  | `__assign__(a, b)`             | [_variable-definition_]
   `a += b`       | 16000 R    | `__inplace_add__(a, b)`        |
   `a -= b`       | 16000 R    | `__inplace_sub__(a, b)`        |
   `a *= b`       | 16000 R    | `__inplace_mul__(a, b)`        |
@@ -115,24 +135,12 @@
   `a \|= b`      | 16000 R    | `__inplace_or__(a, b)`         |
 
 > [!note]
-> \* `a = b` and `a := b` are assignment operators or variable definitions
-> depending on the context.
+>  * 'A' in the "Precedence" column marks that this expression consumes
+>    annotations.
+>  * `a = b` and `a := b` are assignment operators or variable definitions
+>    depending on the context.
 
-[_await-operator_]: await_operator.md
-[_binding-selector_]: binding_selector.md
-[_catch-operator_]: catch_operator.md
-[_call-operator_]: call_operator.md
-[_empty-operator_]: empty_operator.md
-[_error-list_]: error_list.md
-[_index-operator_]: index_operator.md
-[_make-const-operator_]: make_const_operator.md
-[_make-optional-operator_]: make_optional_operator.md
-[_member-access_]: member_access.md
-[_type-operator_]: type_operator.md
-[_shortcut-operator_]: shortcut_operator.md
-[_try-operator_]: try_operator.md
-[_type-member-access_]: type_member_access.md
-[_variable-definition_]: variable_definition.md
+
 
 ## Semantics
 

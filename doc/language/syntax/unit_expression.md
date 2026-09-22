@@ -1,5 +1,8 @@
 # unit-expression
 
+[_enum_]: enum.md
+[_identifier_]: identifier.md
+[Units and Tags]: ../unit_and_tags.md
 ## Syntax
 
 _unit-expression_ :=\
@@ -22,49 +25,83 @@ _complex-unit-expression_ :=\
 
 ## Semantic
 
-In the example below you see how a _unit-expression_ can be used together
-with literals; and add `*` and remove `/` units from types. The actual values
-are scaled to the base units of the domain they belong to.
+For an explenation of the concetps see [Units and Tags].
+
+In the example below you see how a _unit-expression_ can be used together with
+values. The [_identifier_]s in a _unit-expression_ are from the built-in
+`std.unit` [_enum_].
+
+The operators `#` and `#-` can be used on values, to add dimensions.
+ - `a #U`   : multiply the value `a` with the unit `U`
+ - `a #-U`  : multiply the value `a` with the unit `U⁻¹`
+
+If the result of these operators becomes a dimensionless value, then the result is a
+normal scalar (without units). For example a convert to a unit, then back into a
+scaler:
+ - `a = 1.0 #km` translates into: `1000.0 * SI(0,1,0,0,0,0,0)`.
+ - `b = a #-foot` translates into `1000.0 / 0.3048 × SI(0,0,0,0,0,0,0)`, since
+   the dimension vector is all-zero (aka dimensionless), it becomes the scalar
+   `3280.84` 
+
+An example of using `#` and `#-` operators on values:
 
 ```
-let speed = 10.0 #(km/h)                    // f64 m/s
-let duration_in_hours = 2.0                 // f64
-let duration = duration_in_hours * 1#h      // f64 s
-let distance = speed * duration             // f64 m
-let distance_in_km = distance / 1.0 #km     // f64
+speed = 10.0 #(km/h)                 // f64 m/s
+duration_in_hours = 2.0              // f64
+duration = duration_in_hours #h      // f64 s
+distance = speed * duration          // f64 m
+distance_in_km = distance #-km       // f64
 ```
 
-In the next example we show how _unit-expression_ can be used on a type to
-match the unit of arguments passed to a function. The actual units used
-on the type coercions are unimportant as the _unit-expression_ is reduced
-to the domain's base units:
+When `T #U` is used on a type it can be used to check if the value corresponds
+with that dimension. The unit expression on a type is normalized into just the
+dimension tuple. Unit names do not survive normalization. So the check only
+checks the dimension tuple.
 
 ```
-fn distance(speed : f64 #(m/s), duration : f64 #s) {
+distance = fn(speed : f64 #(m/s), duration : f64 #s) {
     return speed * duration
 }
 
-var distance_in_miles = distance(20.0 #(km/h), 5 #h) / 1.0 mi
+distance_in_miles = distance(20.0 #(km/h), 5 #h) #-mi
 ```
 
-The [_identifier_](identifier.md)s in a _unit-expression_ are from the namespace
-maintained by the [_domain-declaration_](domain_declaration.md)s. The expression
-is reduced to a list of domain-exponent-tuples.
 
-Here are some examples how a _unit-expression_ is converted into
+Here are some examples how a _unit-expression_ is converted into a list of
 domain-exponent-tuples and the internal scalar value.
 
 ```
-domain SI (s, m, kg, A, K, mol, cd)
-domain screen (px)
-domain unit g = 0.001 kg
-domain unit mm = 0.001 m
-domain unit km = 1000.0 m
-domain unit inch = 24.5 mm
-domain unit h = 3600 s
+.std.unit = enum u32 {
+    SI
+    @domain(SI, 0) s
+    @domain(SI, 1) m
+    @domain(SI, 2) kg
+    @domain(SI, 3) A
+    @domain(SI, 4) K
+    @domain(SI, 5) mol
+    @domain(SI, 6) cd
+    @unit(0.001 kg) g 
+    @unit(0.001 m) mm
+    @unit(1000.0 m) km
+    @unit(24.5 mm) inch 
+    @unit(3600 s) h
+    @unit(s⁻¹) Hz
+    @unit(kg m s⁻²) N 
+}
 
-var distance = 1.0 mm             // 0.001 SI(0,1,0,0,0,0,0)
-var speed = 55 km/h               // 15.2778 SI(-1,1,0,0,0,0,0)
-var screen_density = 72px/inch    // 2834.65 screen(1) * SI(0,-1,0,0,0,0,0)
+.std.unit = enum {
+    screen
+    @domain(screen, 0) px
+}
+
+.std.unit = enum {
+    // A tag is a unit, that is its own domain, with a single exponent.
+    @tag my_tag
+}
+
+distance = 1.0 #mm             // 0.001 SI(0,1,0,0,0,0,0)
+speed = 55 #(km/h)             // 15.2778 SI(-1,1,0,0,0,0,0)
+screen_density = 72 #(px/inch) // 2834.65 [screen(1), SI(0,-1,0,0,0,0,0)]
+flag = true #my_tag            // true my_tag(1)
 ```
 

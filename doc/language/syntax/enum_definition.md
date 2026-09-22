@@ -89,7 +89,7 @@ bar = enum {
 ```
 
 
-### Exaustive check
+### Exhaustive check
 
 An enum is dense if every value in the range of its underlying integer type
 is assigned to a member. Otherwise the enum is sparse.
@@ -155,13 +155,35 @@ Effects that a function has on the system
 
 ```
 .std.effect = enum u32 {
+    /** This code behaves differently between elaboration and runtime. */
+    phase_variant
+
     /** This code performs I/O operations. */
-    io
+    @implies(phase_variant) io
 
     /** This code may cause the operating to block progress */
     blocking
 }
 ```
+
+#### .std.effect.phase_variant
+
+This is a special built-in effect used by the compiler.
+
+When `phase_variant` is not an effect of a function, then this function can
+be called during elaboration as an optimization.
+
+If `phase_variant` is an effect, then this function is by default delayed until
+runtime with the following exceptions:
+ - A call to this function is done during elaboration of types that are needed
+   during compilation.
+ - A call to this function has an explicit `@elaborate` annotation.
+
+
+#### @implies(effects, ...)
+
+When `@with_effect(...)` is used, it is as-if `@with_effect(...)` is also
+used on the implied effects.
 
 
 ### std.unit
@@ -189,6 +211,10 @@ Units can be attached to types like a tag to do domain analysis on those types.
     screen
     @domain(screen, 0) px
 }
+
+.std.unit = enum {
+    @tag my_tag
+}
 ```
 
 #### @domain(domain, index)
@@ -197,8 +223,21 @@ Units can be attached to types like a tag to do domain analysis on those types.
  - index: An exponation index inside this domain.
 
 
-####  @unit(unit-expression)
+#### @unit(unit-expression)
+
 The [_unit-expression_] for conversion to the new unit.
+
+
+#### @tag
+
+`@tag` declares a unit whose domain contains exactly one dimension and whose
+conversion factor is 1. The resulting unit behaves algebraically like any other
+unit, but is intended for nominal type tagging rather than physical measurement.
+
+A `@tag` does not introduce a scaling factor like `@unit()` does. A tagged value
+therefore retains its underlying scalar type and may be used where its
+non-tagged scalar type is expected. In such cases, the tag is implicitly dropped
+from the type.
 
 
 ### std.operator
