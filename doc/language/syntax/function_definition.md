@@ -89,43 +89,21 @@ available:
   * The arguments by index using the `$` [_integer_literal_]
 
 
+## Annotations
 
 
-## annotations
+### [[discard]]
 
-A function definition consumes the pending-annotations and apply it to the function
-definition.
-
-### @export(abi: string)
-
-The function will be available in the executable using the `abi`
-specified.
-
-  abi      | Description
- :-------- |:---------------
-  `"c"`    | Use the C ABI.
-  `"c++"`  | Use the C++ ABI.
+The function's return value maybe discarded.
 
 
-### @metatype
+### [[effects(effect-list)]]
 
-This function's [_fqname_] is added to type-definition keyword list.
-
-This function is called when a type-definition is found. The arguments
-to this functions are:
-
- * The list of type attributes
- * The template argument list
- * The type-inheritance list
- * The [_code-block_]
-
-It returns a function that in-turn returns an actual type, which is
-added to the overload-set as a type template.
+Add, Remove and Check for effects to be available in the function.
 
 
-### @static
+### [[no_return]]
 
-This function is a class memember function, instead of instance member function.
+This function will not return, used for functions like `std.terminate()`.
+Meaning code after this function call will never execute.
 
-
-### @public

@@ -77,15 +77,15 @@ class int[let range : long_range]
 
 // Note: The compiler blesses a closed-range of two integer literals as a long_range.
 
-let u1 = int[0..=1]
-let u8 = int[0..=255]
-let u16 = int[0..=65535]
-let u32 = int[0..=4294967295]
-let u64 = int[0..=18446744073709551615]
-let i8 = int[-128..=127]
-let i16 = int[-32768..=32768]
-let i32 = int[-2147483648..=2147483647]
-let i64 = int[-9223372036854775808..=9223372036854775807]
+let u1 = int[0...1]
+let u8 = int[0...255]
+let u16 = int[0...65535]
+let u32 = int[0...4294967295]
+let u64 = int[0...18446744073709551615]
+let i8 = int[-128...127]
+let i16 = int[-32768...32768]
+let i32 = int[-2147483648...2147483647]
+let i64 = int[-9223372036854775808...9223372036854775807]
 
 fn long::size() -> u32
 {

@@ -3,7 +3,7 @@
 
 ## var
 ```
-var i8 = int[0..=255]
+var i8 = int[0...255]
 var a : i8 = 42
 var b = i8(42)
 a = 3

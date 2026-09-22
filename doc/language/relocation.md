@@ -26,7 +26,7 @@ class __reloc_patch_entry_type__ {
     offset : size_t
     target : size_t
     mask : pointer
-    shift : int[-64..=64]
+    shift : int[-64...64]
 } 
 ```
 

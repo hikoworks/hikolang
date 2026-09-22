@@ -17,54 +17,113 @@ _enum-definition_ := [_annotation_]__*__ `enum` [_underlying_]__?__ `{`\
 _enum-member_ := [_annotation_]__*__ __(__ [_identifier_] | [_string-literal_] __)__ __(__ `=` [_expression_] __)?__\
 
 
-
 ## Semantics
 
-An `enum` is a built-in meta-type.
+An `enum` is a built-in meta-type; it defines enum-types. An instance of an
+enum-type is a value represented by one of its members. A _enum-member_ is
+a unique name with a unique integral value, together with optional
+annotations.
 
-A _enum-member_ consists of a name and an optional value. The name may be any
-valid and secure Unicode string, this string will be normalized to NFC.
-If the string follows Unicode annex #31 you may use a [_identifier_] as short
-hand.
+If no [_underlying_] `int[min...max]` type is specified, the compiler
+determines the underlying type when the enum freezes. Its range is the
+minimum and maximum values of all members at that point.
 
-Like other meta-types after the type is frozen the data-layout of instances
-can no longer be changed. Enum-members, enum-metadata may still be
-added after being frozen.
+> [!note]
+> Freezing happens when a type becomes concrete when it is being used.
+> The compiler tries to be as lazy as possible to delay making types
+> concrete. When a type becomes frozen the data layout of instances
+> can no longer be changed.
 
-Duplicate members are merged if they have the same value. It is a compilation
-error if the duplicate has a different value. If a duplicate member has a
-different annotation, then those annotations are merged. 
+The name of a member may be any [_string-literal_]. A [_identifier_] may
+be used instead of a [_string-literal_] as a short hand.
 
-If a member has not value, then the member is automatically assigned the next
-number following the member with the highest number. If a member without a value
-is merged with a duplicate with a value, then it is merged with the previous
-definition.
+Every enum member has a distinct integral value. It is a compilation
+error for two members with different names to have the same value.
 
-If an `enum` definition does not have a [_underlying_] then by default it will
-become `u32`. If a `enum` definition without a [_underlying_] is merged, then it
-merges without problem. If a `enum` definition with a [_underlying_] is merged
-then the [_underlying_] must match the previous definition.
+A member declaration without an explicit value receives the smallest
+integral value greater than the greatest value assigned to any member.
+If the enum has no members, implicit values start at zero.
+
+
+### Reopening members and merging
+
+If a member declaration has the same name as an existing member,
+it declares that member again. If it specifies a value, that value
+must equal the existing member's value. Its annotations are merged with
+those of the existing member.
+
+```
+foo = enum {   // int[0...6]
+    a          // 0
+    b = 5      // 5
+    "c"        // 6
+}
+```
+
+New members can be added at any time, before and after the enum is frozen,
+as long as the value of members is inside the range of the underlying integer
+type, and the value has not been used yet.
+
+```
+// The underlying was not specified so the range can grow.
+foo = enum {   // int[0...7]
+    d          // 7
+}
+
+freeze foo
+
+foo = enum {
+     e = 1      // 1 was not yet used, so can be added.
+}
+```
+
+A member declaration whose name matches an existing member extends that
+member. Its annotations are merged with the existing member's annotations.
+If it specifies a value, that value must equal the existing member's value.
+
+```
+bar = enum {
+    a = 1
+    // b = 1   ERROR: values must be unique
+}
+```
+
+
+### Exaustive check
+
+An enum is dense if every value in the range of its underlying integer type
+is assigned to a member. Otherwise the enum is sparse.
+
+> [!note]
+> The simple case of enums are automatically dense.
+
+A switch over an enum-type requires a default case if the enum is sparse at
+the point the switch is compiled. If the enum is dense, a default case is
+not required when all members are covered by cases.
+
 
 ## Built-in enum types
 
 The following enum types are part of the language itself:
 
+
 ### void
 
 ```
-.void = enum u0 {
-    @keyword void
+.void = enum {
 }
 ```
+
 
 ### bool
 
 ```
-.bool = enum u1 {
-    @keyword false,
+.bool = enum {
+    @keyword false
     @keyword true
 }
 ```
+
 
 ### std.error_code
 
@@ -83,9 +142,12 @@ Error codes that can be thrown and caught from functions.
 }
 ```
 
-The following annotations may be attached to members:
- - `@auto_rethrow`: The compiler will synthesize a catch-rethrow for any
-   flow-control-expression that does not explicitly catch this error.
+
+#### @auto_rethrow
+
+The compiler will synthesize a catch-rethrow for any
+flow-control-expression that does not explicitly catch this error.
+
 
 ### std.effect
 
@@ -100,6 +162,7 @@ Effects that a function has on the system
     blocking
 }
 ```
+
 
 ### std.unit
 
@@ -128,12 +191,15 @@ Units can be attached to types like a tag to do domain analysis on those types.
 }
 ```
 
-The following annotations may be attached to members:
- - `@domain(domain, index)`:
-   - A `std.unit` to be used as a domain,
-   - An exponation index inside this domain.
- - `@unit(unit-expression)`: The [_unit-expression_] for conversion to the new
-   unit.
+#### @domain(domain, index)
+
+ - domain: A `std.unit` to be used as a domain,
+ - index: An exponation index inside this domain.
+
+
+####  @unit(unit-expression)
+The [_unit-expression_] for conversion to the new unit.
+
 
 ### std.operator
 
@@ -149,16 +215,33 @@ The following annotations may be attached to members:
 }
 ```
 
-The following annotations may be attached to members:
- - `@prefix(precedence [, function ])`: Prefix operator
-   - precedence: An integer priority, lower numbers bind closer.
-   - function: The name of the function call that implements the operator.
- - `@suffix(precedence [, function])`: Suffix operator
-   - precedence: An integer priority, lower numbers bind closer.
-   - function: The name of the function call that implements the operator.
- - `@right(precedence [, function])`: Right associative
-   - precedence: An integer priority, lower numbers bind closer.
-   - function: The name of the function call that implements the operator.
- - `@left(precedence [, function])`: Left associative
-   - precedence: An integer priority, lower numbers bind closer.
-   - function: The name of the function call that implements the operator.
+
+#### @prefix(precedence [, function ])
+
+Prefix operator
+ - precedence: An integer priority, lower numbers bind closer.
+ - function: The name of the function call that implements the operator.
+
+
+#### @suffix(precedence [, function])
+
+Suffix operator
+
+ - precedence: An integer priority, lower numbers bind closer.
+ - function: The name of the function call that implements the operator.
+
+
+#### @right(precedence [, function])
+
+Right associative
+
+ - precedence: An integer priority, lower numbers bind closer.
+ - function: The name of the function call that implements the operator.
+
+
+#### @left(precedence [, function])
+
+Left associative
+
+ - precedence: An integer priority, lower numbers bind closer.
+ - function: The name of the function call that implements the operator.

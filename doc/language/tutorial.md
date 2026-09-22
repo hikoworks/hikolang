@@ -16,14 +16,14 @@ Example of a variable:
 
 ```
 var sum = 42.0              // 42.0 : f64
-for (var x in 0..=10) {     // x : int[0..=10]
+for (var x in 0...10) {     // x : int[0...10]
     sum = sum + x
 }
 print(sum)
 ```
 
 > [!NOTE]
-> In the example above we convert the type of the literal `42` (`int[42..=42]`) to
+> In the example above we convert the type of the literal `42` (`int[42...42]`) to
 > an integer with a larger range `i32`. If we did not change this type then we would not
 > be able to change the value to anything but `42`.
 
@@ -38,9 +38,9 @@ be changed at all.
 Example of the immutables `x` and `y`:
 
 ```
-var sum = 42 : i32          // 42 : int[42..=42], sum : i32
-for (let x in 0..=10) {     // x : int[0..=10]
-    let y = x + 10          // y : int[10..=20]
+var sum = 42 : i32          // 42 : int[42...42], sum : i32
+for (let x in 0...10) {     // x : int[0...10]
+    let y = x + 10          // y : int[10...20]
     sum = sum + x
 }
 print(sum)
@@ -185,7 +185,7 @@ fn foo(a) {
     return a + 42
 }
 
-let b = foo(1)    // b : int[43..=43]
+let b = foo(1)    // b : int[43...43]
 print(b)          // prints "43"
 ```
 

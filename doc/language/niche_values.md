@@ -3,7 +3,7 @@
 To reduce the space of the `optional` or similar types, a type may add an API
 for creating an index out of niche (out-of-domain) values.
 
-For example an `optional[int[0..=254]]` only needs to occupy a single byte, as
+For example an `optional[int[0...254]]` only needs to occupy a single byte, as
 it can use 255 as a niche value.
 
 The value returned from `__niche_index__()` is used to select one of the enum
@@ -22,12 +22,12 @@ one that holds the type.
 enum my_enum {
     one,                  // niche: 0.
     two                   // niche: 1.
-    three(int[0..=253]),  // niche: 2, the one beyond the niche is a normal value.
+    three(int[0...253]),  // niche: 2, the one beyond the niche is a normal value.
 };
 
 enum my_enum_less_optimized {
     one,                // nice: 0.
-    two(int[0..=253]),  // nice: 2, the one beyond the niche is a normal value.
+    two(int[0...253]),  // nice: 2, the one beyond the niche is a normal value.
     three               // nice: 1.
 };
 ```
@@ -40,14 +40,14 @@ single value to be compressed in the space of a single value:
 
 ## \_\_niche\_max\_\_()
 
-`__niche_max__(self) -> int[M..=M]`
+`__niche_max__(self) -> int[M...M]`
 
 Returns the number of niche values. `M` is the result of `__niche_max__()`.
 
 
 ## \_\_niche\_index\_\_()
 
-`__niche_index__(self) -> int[0..=M]`
+`__niche_index__(self) -> int[0...M]`
 
 Returns the index of the niche value,
    or `__niche_max__()` when `self` is in-domain.
@@ -65,7 +65,7 @@ If types expose a niche-mask then multiple enum-names may have arguments. This
 requires the `1`-bits in a niche-mask of the enum-names to overlap, the largest
 set of consecutive `1`-bits are used as the niche-index of the enum.
 
-For example two objects of `int[0..=127]` have an overlapping niche-mask of
+For example two objects of `int[0...127]` have an overlapping niche-mask of
 `0x80` and thus can share an enum with each other.
 
 If one object is smaller, then the extra padding bits are treated as `1` in the
@@ -74,14 +74,14 @@ itself.
 
 ```
 enum {
-    a(int[0..=127])
-    b(int[0..=127])
+    a(int[0...127])
+    b(int[0...127])
 }
 ```
 
 ## \_\_niche\_mask\_\_()
 
-`__niche_mask__(self) -> int[0..=2**N]`
+`__niche_mask__(self) -> int[0...2**N]`
 
 Returns a mask of `N` bits where `1` means that the bit may be used for a
 niche value. The value of these bits do not change the invariant status

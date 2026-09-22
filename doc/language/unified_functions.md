@@ -14,9 +14,9 @@ foo <-| struct(T : type)
      }
 };
 
-i8[] = int[0..=255]
+i8[] = int[0...255]
 
-a : const i8 := 5 // int[5..=5]
+a : const i8 := 5 // int[5...5]
 a :: const ref i8 := c
 a :^ foo := c
 a :! foo := c

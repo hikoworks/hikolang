@@ -20,10 +20,10 @@ run-time performance.
 Integer Type
 ------------
 
-An `int` is a type template, with as argument a range. For example `int[4..=10]`
+An `int` is a type template, with as argument a range. For example `int[4...10]`
 is an integer that may have the values: `4`, `5`, `6`, `7`, `8`, `9` or `10`.
 
-The operator `..=` creates a closed-range, while the `..<` operator creates a
+The operator `...` creates a closed-range, while the `..<` operator creates a
 half-open-range. The range must be a compile time constant.
 
 
@@ -31,7 +31,7 @@ Internal Format
 ---------------
 
 There are three represenations
- - Single value, like `int[42..=42]`, this uses no bits at all.
+ - Single value, like `int[42...42]`, this uses no bits at all.
  - 
 
 
@@ -42,7 +42,7 @@ Integer Literal
 
 The type of an integer literal is an integer with the range set to only being
 able to hold that integer value. So for example the integer literal `42` has
-the type `int[42..=42]`.
+the type `int[42...42]`.
 
 
 Range Inference
@@ -57,12 +57,12 @@ to show how the type of `z` is inferred.
 import std
 program "let_int_range"
 
-let a = 2 + 3             // int[2..=2] + int[3..=3] -> int[5..=5]
+let a = 2 + 3             // int[2...2] + int[3...3] -> int[5...5]
 std.repr(a)               // displays: 5
 
-let x = 2 : int[2..=4]
-let y = 7 : int[3..=10]
-let z = x * y             // int[2..=4] * int[3..=10] -> int[6..=40]
+let x = 2 : int[2...4]
+let y = 7 : int[3...10]
+let z = x * y             // int[2...4] * int[3...10] -> int[6...40]
 std.repr(z)               // displays: 14
 ```
 
@@ -88,8 +88,8 @@ be done when assigning the value.
 import std
 program "int_narrow"
 
-var a = 0 : int[0..=10]
-a = 2                     // int[2..=2] is fully in range of int[0..=10]
+var a = 0 : int[0...10]
+a = 2                     // int[2...2] is fully in range of int[0...10]
 std.repr(a)
 ```
 
@@ -106,8 +106,8 @@ causing a trap in this case.
 import std
 program "int_narrow"
 
-var a = 0 : int[0..=10]
-try a = a + 2             // int[2..=12], values 11 and 12 cause overflow
+var a = 0 : int[0...10]
+try a = a + 2             // int[2...12], values 11 and 12 cause overflow
 std.repr(a)
 ```
 
@@ -116,6 +116,6 @@ std.repr(a)
 When NONE of the values can be converted a compile time error will be reported.
 
 ```
-var a = 0     // int[0..=0]
-// a = a + 2  error: non-overlapping range (int[0..=0] and int[2..=2])
+var a = 0     // int[0...0]
+// a = a + 2  error: non-overlapping range (int[0...0] and int[2...2])
 ```

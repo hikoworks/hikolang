@@ -72,6 +72,8 @@
   `a << b`       |  7000 L    | `__sal__(a, b)`                |
   `a >> b`       |  7000 L    | `__sar__(a, b)`                |
   `a &>> b`      |  7000 L    | `__slr__(a, b)`                |
+  `a ... b`      |  7400 L    | `__closed_interval__(a, b)`    |
+  `a ..< b`      |  7400 L    | `__half_open_interval__(a, b)` |
   `a #U`         |  7500 L    |                                | [_unit-expression_]
   `T #U`         |  7500 L    |                                | [_unit-expression_]
   `a <=> b`      |  8000 L    | `__cmp__(a, b)`                |

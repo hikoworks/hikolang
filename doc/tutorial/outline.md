@@ -17,8 +17,8 @@
  - let (sealed variables)
 
 3. Ranged Integers (Introduce the First “Weird Rule”)
- - What int[4..=10] means
- - Literals have exact ranges (10 → int[10..=10])
+ - What int[4...10] means
+ - Literals have exact ranges (10 → int[10...10])
  - Assignment failures due to range mismatch
  - Why this exists (safety + optimization)
 

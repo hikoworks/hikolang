@@ -23,11 +23,11 @@ Here are some language constructions:
      declaration)
    + `import bar.baz; module bar 1.0.0` (a module with a version number is an end-point)
  - Function definitions look like:
-   + `fn foo(x, y : int[4..=10], return int) { ... }`
-   + `fn foo[x, y : int[4..=10], return int] { ... }` (identical to the
+   + `fn foo(x, y : int[4...10], return int) { ... }`
+   + `fn foo[x, y : int[4...10], return int] { ... }` (identical to the
      previous, but must be called like `foo[1, 2]`, used for type templates and
      index operator overload)
-   + `var foo = fn(x, y : int[4..=10], return int) { ... }` (desugared)
+   + `var foo = fn(x, y : int[4...10], return int) { ... }` (desugared)
  - Variables are declared like:
    + `var foo = 42.0`
    + `var bar = 10 : int[0..<100]`
@@ -38,9 +38,9 @@ Here are some language constructions:
    + `ref qax = foo` syntactic sugar of `var qaz = foo : &mut`.
    + `view qix = foo` syntactic sugar of `var qix = foo : &const`.
  - Type conversions:
-   + `10 : f64` convert `10 : int[10..=10]` into a `f64`. This is a widening conversion. It matches 1:1, or matches the super-type, or is converted by
+   + `10 : f64` convert `10 : int[10...10]` into a `f64`. This is a widening conversion. It matches 1:1, or matches the super-type, or is converted by
     a conversion function.
-   + `foo :! int[0..=10]` narrowing conversion may throw, this is used also to
+   + `foo :! int[0...10]` narrowing conversion may throw, this is used also to
     match a super-type with a derived type.
    + `foo :^ bar` Match with the super class `bar`.
    + `foo := bar` Match exactly with `bar`.

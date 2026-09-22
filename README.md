@@ -35,8 +35,8 @@ The `int` template type automatically scales to fit the full
 result of an operation: 
 
 ```
-foo = fn(x : int[10..=20], y : int[2..=4]) {
-    // return type is infered as int[20..=80]
+foo = fn(x : int[10...20], y : int[2...4]) {
+    // return type is infered as int[20...80]
     return x * y
 }
 ```
@@ -164,14 +164,14 @@ So allocations during compilation must survive into the executable.
    allowing deallocation and reusing.
 
 
-## Enum with associated values
+## Variant with associated values
 
 Enums members have zero or more associated values, like the following
 optional type, which is a template. Template arguments use the bracketed
 argument syntax.
 
 ```
-optional = enum[T : type] {
+optional = variant[T : type] {
   none
   some(T)
 }
@@ -209,6 +209,39 @@ automatically instantiated there.
 
 
 ## Elaboration Phase
+
+A program runs in three phases:
+ * Elaboration:
+ * Compilation:
+ * Runtime:
+
+Elaboration is lazy, when compilation starts, functions that will need to be
+written into executable such as `main()` start the elaboration of types and
+values.
+
+Certain functions have the `@effect(phase_variant)` such as I/O which will
+act different during elaboration and runtime.
+ *
+ 
+ Calls to these functions
+are delayed into runtime. While function calls that does not have this
+effect may be elaborated. Calls within `@effect(phase_variant)` function can
+still elaborate calls to functions that do not carry this effect.
+
+You can also force function call to be elaborated.
+
+```
+foo = @effect(phase_variant) fn(x) {
+  ...
+}
+
+main = fn() {
+  x = @elaborate foo(42);
+}
+```
+
+
+
 
 Certain languages have a separate elaboration phase during compilation.
 

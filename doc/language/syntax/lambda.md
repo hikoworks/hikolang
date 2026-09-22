@@ -65,9 +65,9 @@ See [_call_](call.md) for more information.
 ## Example
 
 ```
-var a = {(x, y :*int) -> int[5..=6] in x + y }
+var a = {(x, y :*int) -> int[5...6] in x + y }
 var b = {(x, y :*int) in x + y }
-var c = {-> int[5..=6] in $0 + $1 }
+var c = {-> int[5...6] in $0 + $1 }
 var d = { $0 + $1 }
 ```
 
