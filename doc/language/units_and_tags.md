@@ -36,8 +36,8 @@ The declaration of `km` states that one kilometer is one thousand meters.
 Similarly, one hour is three thousand six hundred seconds.
 
 Units can be combined using multiplication, division, and integer powers.
-Consequently, compound units such as meters per second or kilograms per meter
-per second squared can be expressed directly:
+Consequently, compound units such (force in Newton) as meters per second or
+kilograms meter per second squared can be expressed directly:
 
 ```text
 km/h
@@ -88,6 +88,10 @@ For example, a screen can have its own domain:
     @domain(screen, 0) px
 }
 ```
+> [!note]
+> Multiple definitions on a enum type will merge the members, see
+> [_enum_](syntax/enum_definition.md)
+
 
 A screen density expressed as pixels per meter (`px/m`) then has two independent
 components:
@@ -113,11 +117,12 @@ A complete unit expression can contain vectors from multiple domains. Such an
 expression is therefore represented as a collection of domain vectors.
 
 For example: `px/inch` can be reduced to: `screen(1) * SI(0,-1,0,0,0,0,0)`.
+Notice how`px/inch` and `px/m` are reduced to the same domain vector.
 
 The scalar conversion factor is kept separately. Thus the complete normalized
 representation consists of: conversion factor + domain vectors.
 
-For example, `55 km/h` is converted to: `15.2778 × SI(-1, 1,0,0,0,0,0)`.
+For example, `55 km/h` is converted to: `15.2778 × SI(-1,1,0,0,0,0,0)`.
 
 The names `km` and `h` are no longer relevant after normalization. Only their
 conversion factor and dimensions remain.
@@ -138,10 +143,9 @@ becomes: `SI(0, 2, 0, 0, 0, 0, 0)`
 
 The same rules apply independently to every domain.
 
-A dimension whose exponent becomes zero disappears from the normalized
-representation. This is what makes unit cancellation possible: `m / m` becomes
-the dimensionless vector: `SI(0,0,0,0,0,0,0)` and therefore produces an ordinary
-scalar.
+When every exponent in a given domain's vector hits zero, that whole domain
+vector is removed from the type. This is what makes unit cancellation possible:
+`m / m` becomes cancels out and therefore produces an ordinary scalar.
 
 ## Tags
 
@@ -160,8 +164,8 @@ A tag is a unit in its own domain with a single dimension and a conversion
 factor of one. Consequently: `#my_tag` has the domain vector: `my_tag(1)`.
 
 Tags use exactly the same algebra as other units. Applying the inverse tag gives
-an exponent of `-1`: `#-my_tag`. and the two cancel when combined: `#my_tag
-#-my_tag` resulting in a dimensionless value.
+an exponent of `-1`: `#-my_tag`. The two cancel when combined: `#my_tag
+#-my_tag` resulting in the scalar value.
 
 This allows units to be used not only for physical measurements, but also as
 lightweight nominal constraints on values. For example:
@@ -178,12 +182,12 @@ foo = fn(flag : bool #my_tag) {
 x = foo(true #my_tag)
 ```
 
-requires an argument whose dimension contains `my_tag(1)`, without requiring a
-separate runtime representation for the tag.
+The function signature of `foo()` requires an argument whose dimension contains
+`my_tag(1)`, without requiring a separate runtime representation for the tag.
 
-Becuase tags do not have a conversion-factor like units do, a tagged value can
-still be used as a scalar. So a tagged value can be passed to function that does
-not constrain on that tag.
+Because tags do not have a conversion-factor like units do, a tagged value can
+still be used as a scalar. So a tagged value can be passed to a function that
+does not constrain on that tag.
 
 ```text
 bar = fn(flag : bool) {

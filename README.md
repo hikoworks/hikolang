@@ -31,8 +31,8 @@ Errors that may be thrown by certain operations:
  * Narrow-error when explicitly casting to a smaller integer
    range.
 
-The `int` template type automatically scales to fit the full
-result of an operation: 
+The `int` template type automatically scales based on interval arithmatic to fit
+the full result of an operation: 
 
 ```
 foo = fn(x : int[10...20], y : int[2...4]) {
@@ -75,8 +75,8 @@ convert = fn(length : real #m, ppi : real #(px/in)) -> real #px
 
 ## Hidden Context Arguments
 
-Context arguments reduces the need for global variables in many uses. It makes it easy
-to inject context in unit-tests as well.
+Context arguments reduces the need for global variables in many uses. It makes
+it easy to inject context in unit-tests as well.
 
 ```
 foo = fn(x) {
@@ -147,8 +147,7 @@ prologue of each module (a file).
 
 Since a lot of code will be executed at compile-time it is likely that
 a lot of allocations will be executed. Especially since `int` type contains
-two `long` values for the range which may allocate. And all `int` literals
-are a `string`.
+two `long` values for the interval which may allocate.
 
 So allocations during compilation must survive into the executable.
 
@@ -158,7 +157,7 @@ So allocations during compilation must survive into the executable.
  * If an object has encoded/tagged pointers you can add a `__pointer_relocate()`
    method.
  * In case the read-write .section is relocated:
-    - The linker will rewrite the pointers, and
+    - Then the language runtime will rewrite the pointers before `main()` and
     - `__pointer_relocate__()` will be called.
  * The read-write `.alloc` section is part of the normal allocation,
    allowing deallocation and reusing.
@@ -177,9 +176,9 @@ optional = variant[T : type] {
 }
 ```
 
-Niche values and niche-mask allow optimization to compress the enum's index-tag to
-occupy the same space as the associated value. For example the address of a reference
-can never be zero, so this niche-value can be used for `none` with an
+Niche values and niche-mask allow optimization to compress the enum's index-tag
+to occupy the same space as the associated value. For example the address of a
+reference can never be zero, so this niche-value can be used for `none` with an
 optional reference.
 
 
@@ -194,18 +193,19 @@ are converted to a tuple of the following form: `("Hello {1:}", foo())`.
 All types are constructed from templates. Returned types are interned; two types
 returned from the same template with same arguments are identical.
 
-Templates are normal functions that return a type, and like normal functions may have
-an overload-set. Templates may be modified, at compile time, before the template is
-used to instantiate a type. Since all functions are templates, any type-template in
-a type decoration on arguments and return types are not instantiated until that
-function is called.
+Templates are normal functions that return a type, and like normal functions may
+have an overload-set. Templates may be modified, at compile time, before the
+template is used to instantiate a type. Since all functions are templates, any
+type-template in a type decoration on arguments and return types are not
+instantiated until that function is called.
 
-A partially instantiated template returns a wrapper template that calls the original
-template with the remaining arguments. This means that a type returned from the
-wrapper template still is identified as comming from the original template.
+A partially instantiated template returns a wrapper template that calls the
+original template with the remaining arguments. This means that a type returned
+from the wrapper template still is identified as comming from the original
+template.
 
-For ease of use when a zero argument template is used where a type is needed it is
-automatically instantiated there.
+For ease of use when a zero argument template is used where a type is needed it
+is automatically instantiated there.
 
 
 ## Elaboration Phase
@@ -245,8 +245,8 @@ main = fn() {
 
 ### Custom operators
 
-The language allows you to define custom operators. This is done by registering a
-a keyword or pattern-syntax, precedence and associativity, and a function that
+The language allows you to define custom operators. This is done by registering
+a a keyword or pattern-syntax, precedence and associativity, and a function that
 will be called when the operator is used.
 
 
@@ -273,11 +273,12 @@ Even after an enum is frozen you may add new members anywhere in the program.
 ### Custom literals
 
 The language allows you to define custom literals. This is done by registering a
-suffix-keyword and a function that will be called when the suffix is used with a literal.
+suffix-keyword and a function that will be called when the suffix is used with a
+literal.
 
-The literal is passed to the function as a string, and the function determines the
-returned value and type. Since the function is called at compile time, it can
-dynamically create both the value and the type.
+The literal is passed to the function as a string, and the function determines
+the returned value and type. Since the function is called at compile time, it
+can dynamically create both the value and the type.
 
 
 ### Metatypes
@@ -301,9 +302,9 @@ T[template_argument: type] = class {
 The language treats types as if they are first-class values.
 This means types themselves are of a meta-type, recursively.
 
-Since types are values, you can interrigate and manipulate types at compile time.
-This allows you to write generic code that can work with any type, and even
-create new types at compile time.
+Since types are values, you can interrigate and manipulate types at compile
+time. This allows you to write generic code that can work with any type, and
+even create new types at compile time.
 
 Meta-types are defined as built-in, by the standard library, and can be extended
 by the user.
