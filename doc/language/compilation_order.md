@@ -46,3 +46,50 @@ to the programmer; see: [_guard_expression_](syntax/guard_expression.md).
 
  - Update the current namespace based on the prologue and `namespace` statement
  - Add operators
+
+
+
+The compiler treats the whole program as a whole, so libraries are being compiled
+together with the program. Files in a program or library are called modules.
+Modules are parsed depth-first.
+
+A module is parsed statement by statement. Each statement at file scope is
+directly evaluated after being parsed. The statement at file scopes are mostly
+definitions of types, functions and global variables; but some can also modify
+existing types. This execution at compile time is called elaboration. Statements
+at other scopes, like function scopes, are not elaborated until such function
+are used.
+
+After all the modules are parsed and the file scope statements have been
+elaborated; there will be a list of functions, like `main()` that need to be
+written into the executable. The compiler is now in the translation phase.
+
+As the compiler is translating these functions, the usage of
+types in these functions may trigger more elaborations; types must be complete
+when translating functions.
+
+The compiler will aggressively constant fold. It expects by default that any
+function can be evaluated during constant folding. Certain functions are
+annotated with `@with_effect(phase_variant)`, these functions would work
+differently during elaboration/constant-folding vs runtime, for example
+functions that perform I/O. Functions that always work the same are called
+phase-invariant.
+
+ * elaboration: any function, including phase-variant functions, are always
+   evaluated immediately, in the compiler's environment
+ * const-folding:
+   - phase-invariant functions are evaluated immediately in the compiler's
+     environment.
+   - calls to phase-variant functions are translated into the executable.
+   - `@fold` annotated calls to phase-variant expressions are evaluated
+     immediately in the compiler's environment.
+ * runtime: any function that was translated, including phase-variant functions,
+   are executed in the runtime's environment.
+
+Expressions inside phase-variant functions are still optimized if those
+expressions are phase-invariant or explicitly annotated with `@fold`.
+
+During elaboration and constant-folding memory may be allocated. After
+translation the compiler will move these allocations into the executable; as-if
+the executable has an embedded allocation-arena. This embedded allocation-arena
+acts like a normal allocation-arena, allowing deallocation and new allocations.

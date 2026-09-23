@@ -3,10 +3,10 @@
 
 ## var
 ```
-var i8 = int[0...255]
-var a : i8 = 42
-var b = i8(42)
-a = 3
+i8 := int[0...255]
+a : i8 := 42
+b := i8(42)
+a := 3
 ```
 
 ## const
@@ -33,12 +33,12 @@ Implicit `seal`:
 ## let
 
 ```
-let a = 42
+a = 42
 ```
 
 Is syntactic sugar for:
 
 ```
-var a = 42
+a := 42
 seal a
 ```

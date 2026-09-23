@@ -123,20 +123,6 @@ and is allocated on the heap. The interval of an `int` are based on
 `long`.
 
 
-## Compile-time allocations moved into runtime
-
-`long` being part of the `int` type requires that allocations survive
-into runtime.
-
-After compilation any allocations will be copied into the executable.
-These allocations behave as normal allocations at runtime, which means
-they can be deallocated, and the freed memory may be reused.
-
-Types that use pointer-tagging or other odd pointer handling can add
-special methods that are used to read and modify pointers to help
-allocations be moved between compilation and runtime.
-
-
 ## Unit system
 
 Types and values can be tagged with a unit, which is used
@@ -248,38 +234,34 @@ clauses that are checked in the scope of the caller to make sure
 that the arguments, type-invariant and return values are correct.
 
 
+Yes — I’d make the distinction explicit that the **allocation itself crosses the phase boundary**, not merely its contents.
+
 ## Elaboration phase
 
-A program runs in three phases:
- * Elaboration: Types need to be completed during compilation. Any expression
-   that is required must be evaluated during this phase. Any I/O will be done
-   in the compiler's environment.
- * Compilation: Assembly code is being generated for code that needs to be
-   emitted into executable. The generation of assembly code lazily triggers
-   elaboration. Any optimization may trigger elaboration for constant values.
- * Runtime: the code is run on the target machine. Any I/O will be done
-   in the runtime's environment.
+After parsing, the compiler enters the **elaboration phase**, where it resolves
+the meaning of the program and produces the information required for
+translation. Elaboration may happen lazily: translating one definition can
+trigger elaboration of another definition when its meaning is required.
 
-Certain functions have the `@effect(phase_variant)` annotation, such functions
-act differently when running in the compiler's or runtime's environment.
+Translation may also perform **compile-time evaluation**, including constant
+folding. An explicit `@fold` annotation requires an expression to be evaluated
+during compilation:
 
-Any call to a function that is NOT annotated with `@effect(phase_variant)` may
-be elaborated as a form of optimization.
-
-Any call to a function that is annotated with `@effect(phase_variant)` by
-default is delayed to runtime, unless:
- - The call is part of the required elaboration of a type.
- - The call itself is explicitly annotated with `@elaborate`.
- 
-```
-foo = @effect(phase_variant) fn(x) {
-  ...
-}
-
-main = fn() {
-  x = @elaborate foo(42);
+```text
+foo = fn(x) {
+    y = @fold read_from_file()
+    return y + x
 }
 ```
+
+The result of compile-time evaluation can be materialized as part of the
+generated program. This also applies to allocations. The **allocation itself**:
+allocated during compile-time evaluation becomes a corresponding runtime
+allocation, with its resulting contents preserved.
+
+For example, a compile-time-created array can become an allocated array in the
+generated program rather than merely having its contents copied into some
+unrelated runtime storage; and can therefore be deallocated.
 
 
 ## Compile time reflection

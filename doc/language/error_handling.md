@@ -27,8 +27,10 @@ Features:
 ## Adding error codes
 
 ```
-syntax error out_of_bounds
-syntax error out_of_memory auto_rethrow
+.std.error_code = enum {
+    out_of_bounds
+    @auto_rethrow out_of_memory
+}
 ```
 
 ## Throwing an error

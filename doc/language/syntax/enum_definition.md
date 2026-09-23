@@ -111,6 +111,7 @@ The following enum types are part of the language itself:
 
 ```
 .void = enum {
+    empty
 }
 ```
 
