@@ -1,4 +1,4 @@
-# Elaboration
+# Elaboration and Constant-folding
 
 Hikolang separates program execution into three phases: **elaboration**,
 **translation**, and **runtime**.
@@ -10,7 +10,7 @@ as runtime code. The compiler determines when an expression must be evaluated,
 when it may be evaluated early, and when it must remain part of the generated
 program.
 
-# Elaboration
+## Elaboration
 
 Elaboration is the phase in which the program is constructed.
 
@@ -41,7 +41,7 @@ another type, or allocate an object. The resulting value becomes part of the
 compilation state and can subsequently be used by other declarations.
 
 
-# Translation
+## Translation
 
 Once the reachable declarations have been elaborated, the compiler translates
 the functions and other runtime code that must be emitted into the executable,
@@ -61,7 +61,7 @@ while still guaranteeing that all information required for generated code is
 available when it is needed.
 
 
-# Constant-folding
+## Constant-folding
 
 Hikolang aggressively performs constant-folding.
 
@@ -225,7 +225,7 @@ compilation/runtime boundary**. Compilation can construct the initial object
 graph, and runtime execution can subsequently manage that object graph as
 ordinary program state.
 
-## Target-Machine Semantics During Cross-Compilation
+### Target-Machine Semantics During Cross-Compilation
 
 Elaboration and compile-time evaluation operate on behalf of the target program,
 not the machine on which the compiler happens to be running. This distinction

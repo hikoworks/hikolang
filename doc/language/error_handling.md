@@ -22,7 +22,8 @@ Features:
      in a register by known constant values.
  - errors can be defined as `auto_rethrow`:
    - Compiler automatically synthesises rethrow handlers.
-   - An `auto_rethrow` error aborts the application when it is not explicitly caught.
+   - An `auto_rethrow` error aborts the application when it is not explicitly
+     caught.
 
 ## Adding error codes
 
@@ -49,9 +50,12 @@ The compiler tracks which *errors* may be thrown by a function, and the compiler
 will give an error message if not caught by the caller. Rethrown errors are
 tracked as well. 
 
-> [!NOTE]
+> [!caution]
 > You can't throw an *error* from a destructor. 
 
+The message is part of the table with throw-id as key, so that this information
+does not need to be constructed during the throw. This improves perfomance of
+throwing errors.
 
 ## Returning no-value
 
@@ -69,13 +73,14 @@ a no-value `return` statement becomes syntactic sugar for `throw empty`.
 > `void` is a compiler-provided type with a single zero-bit value.
 > Values of `void` may be discarded.
 
-A `empty` clause on a flow control expression is syntactic sugar for a `catch(empty)`
-clause.
+A `empty` clause on a flow control expression is syntactic sugar for a
+`catch(empty)` clause.
 
 
 ## Assertions
 
-The following assert and contract statements `throw assertion` and `throw contract`:
+The following assert and contract statements `throw assertion` and `throw
+contract`:
  * `assert()`, `debug_assert()`,
  * `pre()`, `debug_pre()`, `post()`, `debug_post()`,
  * `invariant()`, `debug_invariant()`.
@@ -87,10 +92,11 @@ See also the [assertions](assertions.md) document.
 
 Recoverable hardware traps like divide-by-zero are converted to errors.
 
-On x86 Linux this could be done by having function that can trap having the first slot
-on the stack frame set to the jump-address to instructions that unwinds the function and return
-the error. The signal handler would look at the stack-frame and return to that address and set the
-register with the proper error-code.
+On x86 Linux this could be done by having function that can trap having the
+first slot on the stack frame set to the jump-address to instructions that
+unwinds the function and return the error. The signal handler would look at the
+stack-frame and return to that address and set the register with the proper
+error-code.
 
 
 ## Catch clause
@@ -172,32 +178,32 @@ d = foo() empty 69
 
 ## ABI x86
 
-If a function is guaranteed to return a value and cannot throw an error,
-it uses the normal x86-64 ABI. This means ordinary functions incur no
-additional cost from the error-handling mechanism.
+If a function is guaranteed to return a value and cannot throw an error, it uses
+the normal x86-64 ABI. This means ordinary functions incur no additional cost
+from the error-handling mechanism.
 
-If a function can return an error, it uses the error-aware ABI. The result
-is communicated primarily through `RAX` and `RDX`. `RDX[63]` acts as a
-discriminator: a `1` bit indicates a successful value, while a `0`
-bit indicates an error.
+If a function can return an error, it uses the error-aware ABI. The result is
+communicated primarily through `RAX` and `RDX`. `RDX[63]` acts as a
+discriminator: a `1` bit indicates a successful value, while a `0` bit indicates
+an error.
 
 On success, values up to 127 bits can be returned directly in
-`RDX[62:0]:RAX[63:0]`. Larger values are returned indirectly through a
-pointer passed as the first argument.
+`RDX[62:0]:RAX[63:0]`. Larger values are returned indirectly through a pointer
+passed as the first argument.
 
 On error, the remaining bits of `RDX` contain the error metadata:
  - `RDX[62:32]`: The error code identifies the kind of error,
  - `RDX[31:8]`:  the throw ID identifies the source throw site,
- - `RDX[7:0]`:   and the throw depth records how many rethrows have
-                 contributed to the error trace.
+ - `RDX[7:0]`:   and the throw depth records how many rethrows have contributed
+                 to the error trace.
 
 
 ### Initial throw
 
-An initial throw only needs to construct the error metadata in `RDX` and
-return. In particular, it does not need to touch the per-thread trace
-table. This keeps the common case of throwing an error as cheap as possible.
-The initial throw always starts with a throw depth of zero:
+An initial throw only needs to construct the error metadata in `RDX` and return.
+In particular, it does not need to touch the per-thread trace table. This keeps
+the common case of throwing an error as cheap as possible. The initial throw
+always starts with a throw depth of zero:
 
 ```asm
         mov rdx, <error-code, throw-id, throw-depth=0>
@@ -210,14 +216,14 @@ populated when an error is rethrown.
 
 ### Catch
 
-A caller first invokes the function normally and then checks the value flag
-in `RDX`. Because the flag occupies the sign bit, `test rdx, rdx` followed
-by `jns` provides a compact way to distinguish errors from successful values.
+A caller first invokes the function normally and then checks the value flag in
+`RDX`. Because the flag occupies the sign bit, `test rdx, rdx` followed by `jns`
+provides a compact way to distinguish errors from successful values.
 
 For an error, the error code occupies `RDX[62:32]`. Since the value flag is
-known to be zero in this case, shifting the value right by 32 bits extracts
-the error code without requiring a mask. The handler can then dispatch on the
-error code:
+known to be zero in this case, shifting the value right by 32 bits extracts the
+error code without requiring a mask. The handler can then dispatch on the error
+code:
 
 ```asm
         call foo
@@ -249,14 +255,13 @@ result and, if necessary, inspect the error code.
 A rethrow records the current throw ID in the per-thread trace table before
 replacing the throw metadata with the rethrowing throw site.
 
-The current depth selects the trace-table entry. After storing the entry,
-the depth is incremented with saturation at 255. This means the metadata
-carried by the error itself determines how much of its rethrow history
-is relevant; there is no need to reset or clear the trace table when an
-error is handled.
+The current depth selects the trace-table entry. After storing the entry, the
+depth is incremented with saturation at 255. This means the metadata carried by
+the error itself determines how much of its rethrow history is relevant; there
+is no need to reset or clear the trace table when an error is handled.
 
-The old error code is preserved during an ordinary rethrow, while the
-throw ID is replaced:
+The old error code is preserved during an ordinary rethrow, while the throw ID
+is replaced:
 
 ```asm
         mov fs:[throw_table + dl * 4], edx  ; entry 255 may get clobbered
@@ -268,8 +273,8 @@ throw ID is replaced:
         or rdx, <throw_id, throw-depth=0>
 ```
 
-The mask clears the old throw ID and preserves the error code and current
-depth. The final `or` inserts the new throw ID and resets the throw depth.
+The mask clears the old throw ID and preserves the error code and current depth.
+The final `or` inserts the new throw ID and resets the throw depth.
 
 
 ### Rethrow with new error
@@ -277,9 +282,9 @@ depth. The final `or` inserts the new throw ID and resets the throw depth.
 When a catch handler converts one error into a different error, the old error
 metadata is discarded after its trace entry has been recorded.
 
-Only the newly accumulated depth needs to survive from the old error.
-Clearing `RDX` down to its low byte achieves this directly, after which the
-new error code and throw ID can be inserted as a complete error value.
+Only the newly accumulated depth needs to survive from the old error. Clearing
+`RDX` down to its low byte achieves this directly, after which the new error
+code and throw ID can be inserted as a complete error value.
 
 ```asm
         mov fs:[trace_table + dl * 4], edx  ; entry 255 may get clobbered
@@ -291,6 +296,6 @@ new error code and throw ID can be inserted as a complete error value.
         or rdx, rax
 ```
 
-This also means that creating a new error does not require individually
-clearing the old error code and throw ID. The `and edx, 0xff` operation clears
-the upper 56 bits in one instruction while retaining the accumulated depth.
+This also means that creating a new error does not require individually clearing
+the old error code and throw ID. The `and edx, 0xff` operation clears the upper
+56 bits in one instruction while retaining the accumulated depth.
