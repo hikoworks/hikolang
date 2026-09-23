@@ -1,6 +1,8 @@
 # Expression
 
 [_code-block_]: code_block.md
+[_context-argument_]: context_argument.md
+[_identifier_]: identifier.md
 [_float-literal_]: float_literal.md
 [_integer-literal_]: integer_literal.md
 [_string-literal_]: string_literal.md
@@ -40,6 +42,8 @@
    [_float-literal_]                      | Floating point literal
    [_string-literal_]                     | String literal
    [_tuple-literal_]                      |
+   [_identifier_]                         | Variable name
+   [_context-argument_]                   |
    [_if-control-expression_]              |
    [_iterative-for-control-expression_]   |
    [_ranged-for-control-expression_]      |

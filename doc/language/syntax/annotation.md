@@ -30,6 +30,7 @@ Attributes apear in front of different syntactical constructs:
  * [_code-block_]
  * [_variable-definition_]
 
+
 ### call-operator: [[call]] 
 
 Use a `call` instruction; do not inline the function being called.

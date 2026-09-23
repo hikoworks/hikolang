@@ -181,7 +181,7 @@ runtime with the following exceptions:
  - A call to this function has an explicit `@elaborate` annotation.
 
 
-#### @implies(effects, ...)
+#### @implies(effect, ...)
 
 When `@with_effect(...)` is used, it is as-if `@with_effect(...)` is also
 used on the implied effects.

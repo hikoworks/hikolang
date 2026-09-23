@@ -1,5 +1,12 @@
 # Body
 
+[_annotation_]: annotation.md
+[_code-block_]: code_block.md
+[_directive_]: directive.md
+[_label_]: label.md
+[_statement_]: statement.md
+
+
 ## Syntax
 
 _body_ := __(__\
@@ -8,22 +15,16 @@ _body_ := __(__\
     __|__ [_annotation_]\
 __)*__
 
-[_annotation_]: annotation.md
-[_code-block_]: code_block.md
-[_directive_]: directive.md
-[_label_]: label.md
-[_statement_]: statement.md
-
-
-# Semantics
+## Semantics
 
 The body is acts like a [_code-block_] at the file level.
 
-The body is parsed from top to bottom, [_directive_]s may
-modify the internal state of the parser:
- - Adding new error-codes
- - Adding new expression-operators
- - Adding new units and domains
- - Adding new effects
- - Adding new meta-types
- - Changing the current namespace
+The body is parsed and the [_statement_]s and [_directive_]s evaluated from
+top to bottom, may modify the internal state of the parser:
+
+ * Adding new error-codes
+ * Adding new expression-operators
+ * Adding new units and domains
+ * Adding new effects
+ * Adding new meta-types
+ * Changing the current namespace

@@ -41,7 +41,17 @@ _specifier_ :=\
 
 ## Semantics
 
+
 ### argument declaration
+
+Inside a function, type or lambdas, the argument declarations are available as
+variables as:
+ - by their name,
+ - positional arguments: `$0`, `$1`, etc,
+ - positional arguments: `$[` integer `]`,
+ - the number of arguments: `$#`,
+ - result value as: `$_`
+
 
 ### lambda
 

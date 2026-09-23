@@ -1,14 +1,34 @@
 # context-argument
 
+[_identifier_]: identifier.md
+
+
 ## Syntax
 
 _context_argument_ := `$` [_identifier_]
 
-[_identifier_]: identifier.md
 
 ## Semantics
-Context arguments are reference variables which are implied and hidden arguments of a function.
-If a variable 
+
+A context argument is a reference variable that is implicitly supplied to a
+function without appearing in its explicit argument declaration. A context
+argument is identified by a `$`-prefixed identifier, such as `$log`.
+
+When a function references a context argument, that context argument becomes
+an implicit dependency of the function. When the function calls another
+function that references the same context argument, the context argument is
+implicitly forwarded to that call. This propagation continues through the call
+chain until the context argument is explicitly provided by the caller.
+
+The context argument is therefore resolved by name rather than by position. A
+caller may satisfy the dependency by explicitly providing a value using the
+`$identifier=value` syntax. If no value is available when a context argument is
+required, it is an error.
+
+Context arguments are distinct from ordinary function arguments: they do not
+form part of the function's explicit calling convention and do not need to be
+declared by the function or by intermediate functions that merely forward them.
+
 
 ## Example
 

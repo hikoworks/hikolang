@@ -22,21 +22,22 @@ be a list of arguments.
 
 Explicitly emit a `call`-like instruction and do not inline.
 
-### @elaborate
+### @fold
 
-Call this function during elaboration. This means any function that is annotated
-with `@with_effect(phase_variant)` will be executed in the compiler's
-environment.
+Force a function call to be evaluated (constant-folded) during the
+translation phase of the compiler; even if the function is annotated
+with `@with_effect(+phase_variant)`.
 
 > [!note]
-> Normally any function annotated with `@with_effect(phase_variant)` is delayed
-> until runtime.
+> Normally any function annotated with `@with_effect(+phase_variant)` is
+> translated so that it is executed during runtime.
 
-Any arguments passed into the call will be elaborated as well. It is an error
-if one or more arguments are not available during elaboration.
+All arguments passed to a `@fold` call must already be available as
+compile-time values. An error is raised if an argument requires
+compile-time evaluation that has not otherwise been requested or
+performed (by guaranteed constant-folding).
 
-The function being called can still be optimized to be partially executed
-during elaboration, for example function calls to functions that are not
-annotated with `@with_effect(phase_variant)`.
-
-Function inlining, constant folding and other optimizations are still valid.
+> [!note]
+> The `@fold` annotation does not propagate to argument
+> dependencies; it only forces evaluation of the annotated function call
+> itself.
