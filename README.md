@@ -6,33 +6,45 @@
 [![License](https://img.shields.io/github/license/hikoworks/hikolang.svg)](https://github.com/hikoworks/hikolang/blob/main/LICENSE)
 [![Coverage](https://codecov.io/github/hikoworks/hikolang/graph/badge.svg?token=P95N8UFH1D)](https://codecov.io/github/hikoworks/hikolang)
 
-hikolang is a systems programming language built around the idea that
+
+Hikolang is a systems programming language built around the idea that
 correctness, expressiveness, and low-level control do not have to be
-competing goals. It provides explicit mechanisms for handling errors,
-integer safety, effects, memory, units, and compile-time computation,
-while keeping the resulting programs suitable for systems-level
-development.
+competing goals.
 
-The language moves several traditionally separate concerns into the
-type system and compilation process. Integer ranges can be tracked
-statically, units participate in dimensional analysis, effects can
-be constrained, and contracts can describe the assumptions made by
-functions. At the same time, compile-time evaluation and reflection
-are treated as fundamental language features rather than separate
-metaprogramming facilities.
+Its central idea is to make information that is normally implicit in
+systems programs explicit to the compiler, while still allowing programs
+to extend and refine that information themselves.
 
-hikolang also deliberately keeps the language extensible. Operators,
-units, effects, errors, metatypes, and even parts of the type system
-can be extended from within the language itself. A dedicated
-elaboration phase bridges compile-time and runtime, allowing code
-to participate in compilation without making compile-time behavior
-indistinguishable from runtime behavior.
+Rather than relying solely on conventions, runtime checks, or programmer
+discipline, hikolang allows the compiler to reason about properties that
+are traditionally left implicit, without taking control away from the
+programmer.
 
-The result is a language designed for programs where the details
-matter: programs that need predictable execution, explicit failure
-modes, efficient representations, and strong compile-time
-guarantees, without giving up the ability to express higher-level
-abstractions.
+The language provides explicit mechanisms for handling errors, integer
+safety, effects, memory, units, and compile-time computation, while
+keeping the resulting programs suitable for systems-level development.
+
+The language moves several traditionally separate concerns into the type
+system and compilation process. Integer ranges can be tracked statically,
+units participate in dimensional analysis, effects can be constrained, and
+contracts can describe the assumptions made by functions. Compile-time
+evaluation and reflection are treated as fundamental language features
+rather than as separate metaprogramming facilities.
+
+Hikolang programs are compiled as a whole rather than as independently
+compiled libraries. Declarations and extensions therefore become part of
+the compilation environment at their point of definition, allowing syntax,
+types, effects, errors, units, and other language constructs to be extended
+throughout the program.
+
+A dedicated elaboration phase bridges compile-time and runtime. Code can
+therefore participate directly in compilation without making compile-time
+behavior indistinguishable from runtime behavior.
+
+The result is a language designed for programs where explicit guarantees
+and predictable behavior matter: programs that require explicit failure modes,
+efficient representations, and strong compile-time reasoning, without giving
+up the ability to express higher-level abstractions.
 
 Features:
 
@@ -47,7 +59,7 @@ Features:
  * Contracts and invariants
  * Elaboration phase
  * Compile time reflection
- * Builtin Package Manager
+ * Builtin package manager
  * Extendable syntax
 
 
