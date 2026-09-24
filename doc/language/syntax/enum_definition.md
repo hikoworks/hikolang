@@ -178,13 +178,13 @@ If `phase_variant` is an effect, then this function is by default delayed until
 runtime with the following exceptions:
  - A call to this function is done during elaboration of types that are needed
    during compilation.
- - A call to this function has an explicit `@elaborate` annotation.
+ - A call to this function has an explicit `@fold` annotation.
 
 
 #### @implies(effect, ...)
 
-When `@with_effect(...)` is used, it is as-if `@with_effect(...)` is also
-used on the implied effects.
+Following the example above; when `effect(+io)` is used, it is as-if
+`effect(+phase_variant)` is also implied.
 
 
 ### std.unit
