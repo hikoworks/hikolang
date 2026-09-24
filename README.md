@@ -50,7 +50,6 @@ Features:
 
  * Fast errors
  * Safe integers
- * Compile-time allocations moved into runtime
  * Unit system
  * Hidden context arguments
  * Universal call syntax
@@ -199,26 +198,27 @@ reference can never be zero, so this niche-value can be used for `none` with an
 optional reference.
 
 
-## with_effect / without_effect constrain
+## effect constrain
 
 Sometimes you want to limit the effects that functions can make,
 for example you may not want to do any: allocations, IO or block.
 
 ```
-// This function's implementation and any callers
-// are marked to have effects(io, block)
+// This function's implementation and any callers are marked to have the
+// effects +io or +block depending if the arguments are constant at compile
+// time.
 read = fn(fd, size) -> string {
   if (size == 0) {
     ...
-  } else if (size <= 4096) effect(io) {
+  } else if (size <= 4096) effect(+io) {
     ...
-  } else effect(io, block) {
+  } else effect(+io, +block) {
     while (...) {...}
   }
 }
 
 foo = fn(fd, n) {
-  without_effect(block) {
+  effect(!block) {
     t = read(fd, 4096); // OK
     u = read(fd, 6000); // ERROR: read() has effect 'block'
     v = read(fd, n); // ERROR: read() has effect 'block'
@@ -233,8 +233,6 @@ Function and method definitions can include `pre()` and `post()`
 clauses that are checked in the scope of the caller to make sure
 that the arguments, type-invariant and return values are correct.
 
-
-Yes — I’d make the distinction explicit that the **allocation itself crosses the phase boundary**, not merely its contents.
 
 ## Elaboration phase
 

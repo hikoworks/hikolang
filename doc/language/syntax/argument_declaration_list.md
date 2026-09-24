@@ -8,5 +8,6 @@ _argument_declaration_list := [_argument-declaration_] __(__ `,` [_argument-decl
 [_argument-declaration_]: argument_declaration.md
 
 ## Semantics
-A list of argument declarations, used for: function, type, variant-member and lambda declarations.
+A list of argument declarations, used for: function, type, variant-member and
+lambda declarations.
 
