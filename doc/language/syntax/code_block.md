@@ -32,16 +32,4 @@ The default set of effects can be found here [_enum-definition_]. You
 can also modify the `.std.effect` enum to add more effects.
 
 
-### code-block: [[fast_path]]
-
-Used on a block of a flow-control expression, indicating the path to optimize.
-This will:
- * Order code to reduce latency for this fast-path.
- * Prefer calling, instead of inlining, on the slow-path.
-
-
-### code-block: [[slow_path]]
-
-Used on a block of a flow-control expression, indicating the path to not
-optimize. This is the opposite of `@fast_path`.
 

@@ -1,19 +1,23 @@
 # while-control-expression
 
+
+[_alternate-clauses_]: alternate_clauses.md
+[_annotation_]: annotation.md
+[_code-block_]: code_block.md
+[_condition-expression_]: condition_expression.md
+[_do-clause_]: do_clause.md
+[_init-expression_]: init_expression.md
+[_if-control-expression_]: if_control_expression.md
+
 ## Syntax
 
 _while-control-expression_ :=\
     [_do-clause_]__?__\
-    `while` `(` [_init_expression_]__?__ [_condition-expression_] `)`\
-        __(__ [_annotation_]__*__ [_code_block_] __)?__\
+    `while` `(` [_init-expression_]__?__ [_condition-expression_] `)`\
+        __(__ [_annotation_]__*__ [_code-block_] __)?__\
     [_alternate-clauses_]
 
 
-[_alternate-clauses_]: alternate_clauses.md
-[_code-block_]: code_block.md
-[_condition-expression_]: condition_expression.md
-[_do-clause_]: do_clause.md
-[_init_expression_]: init_expression.md
 
 ## Semantics
 The `while` control-expression is a loop that executes the body of the
@@ -59,4 +63,18 @@ b = do {
    break with "no result"
 }
 ```
+
+## Annotations
+
+### [[fast]]
+
+See: [_if-control-expression_]
+
+A `[[fast]]` annotation on a else-clause would reorder instructions, this
+improves the performance of retry loops.
+
+
+### [[lean]]
+
+See: [_if-control-expression_]
 

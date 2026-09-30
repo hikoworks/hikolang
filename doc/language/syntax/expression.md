@@ -1,37 +1,5 @@
 # Expression
 
-[_annotation_]: annotation.md
-[_code-block_]: code_block.md
-[_context-argument_]: context_argument.md
-[_identifier_]: identifier.md
-[_float-literal_]: float_literal.md
-[_integer-literal_]: integer_literal.md
-[_string-literal_]: string_literal.md
-[_tuple-literal_]: tuple_literal.md
-[_type-expression_]: type_expression.md
-[_simple-unit-expression_]: unit_expression.md
-[_unit-expression_]: unit_expression.md
-[_if-control-expression_]: if_control_expression.md
-[_for-control-expression_]: for_control_expression.md
-[_while-control-expression_]: while_control_expression.md
-[_iterative-for-control-expression_]: iterative_for_control_expression.md
-[_ranged-for-control-expression_]: ranged_for_control_expression.md
-[_switch-control-expression_]: switch_control_expression.md
-[_await-operator_]: await_operator.md
-[_binding-selector_]: binding_selector.md
-[_catch-operator_]: catch_operator.md
-[_call-operator_]: call_operator.md
-[_empty-operator_]: empty_operator.md
-[_error-list_]: error_list.md
-[_index-operator_]: index_operator.md
-[_make-const-operator_]: make_const_operator.md
-[_make-optional-operator_]: make_optional_operator.md
-[_member-access_]: member_access.md
-[_type-operator_]: type_operator.md
-[_shortcut-operator_]: shortcut_operator.md
-[_try-operator_]: try_operator.md
-[_type-member-access_]: type_member_access.md
-[_variable-definition_]: variable_definition.md
 
 ## Primary Expression
 
@@ -64,46 +32,47 @@
 
 
   Operator       | Precedence | Function                       | Description
- :------------   |:---------- |:------------------------------ |:----------
-  `a++`          |  2000 L    | `__post_increment__(a)`        |
-  `a--`          |  2000 L    | `__post_decrement__(a)`        |
-  `a(...)`       |  2000 L    |                                | [_call-operator_]
-  `a[...]`       |  2000 L    |                                | [_index-operator_]
-  `a.<name>`     |  2000 L    |                                | [_member-access_]
-  `a::<name>`    |  2000 L    |                                | [_type-member-access_]
-  `@A b`         |  3000 R    |                                | [_annotation_]
-  `[[A]] b`      |  3000 R    |                                | [_annotation_]
-  `++b`          |  3000 R    | `__increment__(a)`             |
-  `--b`          |  3000 R    | `__decrement__(a)`             |
-  `+b`           |  3000 R    | `__pos__(a)`                   |
-  `-b`           |  3000 R    | `__neg__(a)`                   |
-  `~b`           |  3000 R    | `__inv__(a)`                   |
-  `not b`        |  3000 R    | `__not__(a)`                   |
-  `await b`      |  3000 R    |                                | [_await-operator_]
-  `try b`        |  3000 R    |                                | [_try-operator_]
-  `&b`           |  3000 R    |                                | [_binding-selector_]
-  `&&b`          |  3000 R    |                                | [_binding-selector_]
-  `*b`           |  3000 R    |                                | [_binding-selector_]
-  `const r`      |  3000 R    |                                | [_make-const-operator_]
-  `?b`           |  3000 R    |                                | [_make-optional-operator_]
-  `a #U`         |  4000 L    |                                | [_unit-expression_]
-  `T #U`         |  4000 L    |                                | [_unit-expression_]
-  `a #-U`        |  4000 L    |                                | [_unit-expression_]
-  `T #-U`        |  4000 L    |                                | [_unit-expression_]
-  `a * b`        |  5000 L    | `__mul__(a, b)`                |
-  `a / b`        |  5000 L    | `__div__(a, b)`                |
-  `a % b`        |  5000 L    | `__rem__(a, b)`                |
-  `a &* b`       |  5000 L    | `__mod_mul__(a, b)`            |
-  `a &/ b`       |  5000 L    | `__mod_div__(a, b)`            |
-  `a + b`        |  6000 L    | `__add__(a, b)`                |
-  `a - b`        |  6000 L    | `__sub__(a, b)`                |
-  `a &+ b`       |  6000 L    | `__mod_add__(a, b)`            |
-  `a &- b`       |  6000 L    | `__mod_sub__(a, b)`            |
-  `a << b`       |  7000 L    | `__sal__(a, b)`                |
-  `a >> b`       |  7000 L    | `__sar__(a, b)`                |
-  `a &>> b`      |  7000 L    | `__slr__(a, b)`                |
-  `a ... b`      |  7400 L    | `__closed_interval__(a, b)`    |
-  `a ..< b`      |  7400 L    | `__half_open_interval__(a, b)` |
+ :-------------- |:---------- |:------------------------------ |:----------
+  `.<name>`      |     0 R    |                                | [_namespace-traversal-operator_]
+  `a++`          |  1000 L    | `__post_increment__(a)`        |
+  `a--`          |  1000 L    | `__post_decrement__(a)`        |
+  `a(...)`       |  1000 L    |                                | [_call-operator_]
+  `a[...]`       |  1000 L    |                                | [_index-operator_]
+  `a.<name>`     |  1000 L    |                                | [_member-access_]
+  `a::<name>`    |  1000 L    |                                | [_type-member-access_]
+  `@A b`         |  2000 R    |                                | [_annotation_]
+  `[[A]] b`      |  2000 R    |                                | [_annotation_]
+  `++b`          |  2000 R    | `__increment__(a)`             |
+  `--b`          |  2000 R    | `__decrement__(a)`             |
+  `+b`           |  2000 R    | `__pos__(a)`                   |
+  `-b`           |  2000 R    | `__neg__(a)`                   |
+  `~b`           |  2000 R    | `__inv__(a)`                   |
+  `not b`        |  2000 R    | `__not__(a)`                   |
+  `await b`      |  2000 R    |                                | [_await-operator_]
+  `try b`        |  2000 R    |                                | [_try-operator_]
+  `&b`           |  2000 R    |                                | [_binding-selector_]
+  `&&b`          |  2000 R    |                                | [_binding-selector_]
+  `*b`           |  2000 R    |                                | [_binding-selector_]
+  `const r`      |  2000 R    |                                | [_make-const-operator_]
+  `?b`           |  2000 R    |                                | [_make-optional-operator_]
+  `a #U`         |  3000 L    |                                | [_unit-expression_]
+  `T #U`         |  3000 L    |                                | [_unit-expression_]
+  `a #-U`        |  3000 L    |                                | [_unit-expression_]
+  `T #-U`        |  3000 L    |                                | [_unit-expression_]
+  `a * b`        |  4000 L    | `__mul__(a, b)`                |
+  `a / b`        |  4000 L    | `__div__(a, b)`                |
+  `a % b`        |  4000 L    | `__rem__(a, b)`                |
+  `a &* b`       |  4000 L    | `__mod_mul__(a, b)`            |
+  `a &/ b`       |  4000 L    | `__mod_div__(a, b)`            |
+  `a + b`        |  5000 L    | `__add__(a, b)`                |
+  `a - b`        |  5000 L    | `__sub__(a, b)`                |
+  `a &+ b`       |  5000 L    | `__mod_add__(a, b)`            |
+  `a &- b`       |  5000 L    | `__mod_sub__(a, b)`            |
+  `a << b`       |  6000 L    | `__sal__(a, b)`                |
+  `a >> b`       |  6000 L    | `__sar__(a, b)`                |
+  `a &>> b`      |  6000 L    | `__slr__(a, b)`                |
+  `a ... b`      |  7000 L    | `__closed_interval__(a, b)`    |
+  `a ..< b`      |  7000 L    | `__half_open_interval__(a, b)` |
   `a <=> b`      |  8000 L    | `__cmp__(a, b)`                |
   `a < b`        |  9000 L    | `__lt__(a, b)`                 |
   `a > b`        |  9000 L    | `__gt__(a, b)`                 |
@@ -118,35 +87,37 @@
   `a \| b`       | 13000 L    | `__bit_or__(a, b)`             |
   `a and b`      | 14000 L    |                                | [_shortcut-operator_]
   `a or b`       | 15000 L    |                                | [_shortcut-operator_]
-  `a catch b`    | 15100 R    |                                | [_catch-operator_]
-  `a catch(E) b` | 15100 R    |                                | [_catch-operator_]
-  `a empty b`    | 15100 R    |                                | [_empty-operator_]
-  `a :~+ T`      | 15500 L    | `__convert_widen__(a, T)`      | [_type-operator_]
-  `a :~! T`      | 15500 L    | `__convert_truncate__(a, T)`   | [_type-operator_]
-  `a :~? T`      | 15500 L    | `__convert_narrow__(a, T)`     | [_type-operator_]
-  `a :+ T`       | 15500 L    |                                | [_type-operator_]
-  `a :! T`       | 15500 L    |                                | [_type-operator_]
-  `a :? T`       | 15500 L    |                                | [_type-operator_]
-  `a : T`        | 15500 L    |                                | [_type-operator_]
-  `a = b`        | 16000 R    | `__merge__(a, b)`              | [_variable-definition_]
-  `a := b`       | 16000 R    | `__assign__(a, b)`             | [_variable-definition_]
-  `a += b`       | 16000 R    | `__inplace_add__(a, b)`        |
-  `a -= b`       | 16000 R    | `__inplace_sub__(a, b)`        |
-  `a *= b`       | 16000 R    | `__inplace_mul__(a, b)`        |
-  `a /= b`       | 16000 R    | `__inplace_div__(a, b)`        |
-  `a %= b`       | 16000 R    | `__inplace_mod__(a, b)`        |
-  `a <<= b`      | 16000 R    | `__inplace_sll__(a, b)`        |
-  `a >>= b`      | 16000 R    | `__inplace_sar__(a, b)`        |
-  `a &>>= b`     | 16000 R    | `__inplace_slr__(a, b)`        |
-  `a &= b`       | 16000 R    | `__inplace_and__(a, b)`        |
-  `a ^= b`       | 16000 R    | `__inplace_xor__(a, b)`        |
-  `a \|= b`      | 16000 R    | `__inplace_or__(a, b)`         |
+  `a catch b`    | 16000 R    |                                | [_catch-operator_]
+  `a catch(E) b` | 16000 R    |                                | [_catch-operator_]
+  `a empty b`    | 16000 R    |                                | [_empty-operator_]
+  `a :~+ T`      | 17000 L    | `__convert_widen__(a, T)`      | [_type-operator_]
+  `a :~! T`      | 17000 L    | `__convert_truncate__(a, T)`   | [_type-operator_]
+  `a :~? T`      | 17000 L    | `__convert_narrow__(a, T)`     | [_type-operator_]
+  `a :+ T`       | 17000 L    |                                | [_type-operator_]
+  `a :! T`       | 17000 L    |                                | [_type-operator_]
+  `a :? T`       | 17000 L    |                                | [_type-operator_]
+  `a : T`        | 17000 L    |                                | [_type-operator_]
+  `a = b`        | 18000 R    | `__merge__(a, b)`              | [_variable-definition_]
+  `a := b`       | 18000 R    | `__assign__(a, b)`             | [_variable-definition_]
+  `a += b`       | 18000 R    | `__inplace_add__(a, b)`        |
+  `a -= b`       | 18000 R    | `__inplace_sub__(a, b)`        |
+  `a *= b`       | 18000 R    | `__inplace_mul__(a, b)`        |
+  `a /= b`       | 18000 R    | `__inplace_div__(a, b)`        |
+  `a %= b`       | 18000 R    | `__inplace_mod__(a, b)`        |
+  `a <<= b`      | 18000 R    | `__inplace_sll__(a, b)`        |
+  `a >>= b`      | 18000 R    | `__inplace_sar__(a, b)`        |
+  `a &>>= b`     | 18000 R    | `__inplace_slr__(a, b)`        |
+  `a &= b`       | 18000 R    | `__inplace_and__(a, b)`        |
+  `a ^= b`       | 18000 R    | `__inplace_xor__(a, b)`        |
+  `a \|= b`      | 18000 R    | `__inplace_or__(a, b)`         |
 
 > [!note]
->  * `a = b` and `a := b` are assignment operators or variable definitions
+>  * `a = b` and `a := b`: are assignment operators or variable definitions
 >    depending on the context.
->  * `[[A]] b` and `@A b`: annotations are parsed as-if they are prefix operators,
->    the annotations are later moved to the proper sub-expression.
+>  * `[[A]] b` and `@A b`: annotations are parsed as-if they are prefix
+>    operators, the annotations are later moved to the proper sub-expression.
+>  * `.<name>`: The namespace traversal operator searches the name in a
+>    different namespace depending on the number of prefix dots.
 
 
 
@@ -161,3 +132,36 @@ Yard](https://en.wikipedia.org/wiki/Shunting-yard_algorithm) is used.
 The other expressions listed in this document are terminal expressions which
 are parsed outside of the shunting yard.
 
+[_annotation_]: annotation.md
+[_code-block_]: code_block.md
+[_context-argument_]: context_argument.md
+[_identifier_]: identifier.md
+[_float-literal_]: float_literal.md
+[_integer-literal_]: integer_literal.md
+[_string-literal_]: string_literal.md
+[_tuple-literal_]: tuple_literal.md
+[_type-expression_]: type_expression.md
+[_simple-unit-expression_]: unit_expression.md
+[_unit-expression_]: unit_expression.md
+[_if-control-expression_]: if_control_expression.md
+[_for-control-expression_]: for_control_expression.md
+[_while-control-expression_]: while_control_expression.md
+[_iterative-for-control-expression_]: iterative_for_control_expression.md
+[_ranged-for-control-expression_]: ranged_for_control_expression.md
+[_switch-control-expression_]: switch_control_expression.md
+[_await-operator_]: await_operator.md
+[_binding-selector_]: binding_selector.md
+[_catch-operator_]: catch_operator.md
+[_call-operator_]: call_operator.md
+[_empty-operator_]: empty_operator.md
+[_error-list_]: error_list.md
+[_index-operator_]: index_operator.md
+[_make-const-operator_]: make_const_operator.md
+[_make-optional-operator_]: make_optional_operator.md
+[_member-access_]: member_access.md
+[_namespace-traversal-operator_]: namespace_traversal_operator.md
+[_type-operator_]: type_operator.md
+[_shortcut-operator_]: shortcut_operator.md
+[_try-operator_]: try_operator.md
+[_type-member-access_]: type_member_access.md
+[_variable-definition_]: variable_definition.md
