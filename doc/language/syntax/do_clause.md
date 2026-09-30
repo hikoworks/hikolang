@@ -2,7 +2,7 @@
 
 ## Syntax
 
-_do-clause_ := `do` `{` [_code-block_] `}`
+_do-clause_ := `do` [_annotation_]__*__ [_code_block_]
 
 [_code-block_]: code_block.md
 

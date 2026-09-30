@@ -66,8 +66,6 @@ a = foo(fn { $0 + $1 })
 ```
 
 
-
-
 ### build_guard(expression)
 
 Conditional compilation of the function.
@@ -101,15 +99,22 @@ available:
 
 ## Annotations
 
+### [[abi(x)]]
+
+On a type this will change how the memory layout is for an object.
+ 
+ abi         | Description
+ :---------- | :---------
+ `c`         | Use the C calling convention.
 
 ### [[discard]]
 
 The function's return value maybe discarded.
 
 
-### [[effects(effect-list)]]
+### @effect([_effect-list_])
 
-Add, Remove and Check for effects to be available in the function.
+See: [_code-block_]
 
 
 ### [[no_return]]

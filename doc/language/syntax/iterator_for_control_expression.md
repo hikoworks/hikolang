@@ -4,7 +4,8 @@
 
 _iterator-for-loop-control-expression_ :=\
     [_do-clause_]__?__\
-    `for` `(` [_variable_definition_]__?__ `;`  [_condition_expression_]__?__ `;` [_expression_]__?__ `)` __(__ `{` [_code-block_] `}` __)?__\
+    `for` `(` [_variable_definition_]__?__ `;`  [_condition_expression_]__?__ `;` [_expression_]__?__ `)`\
+        __(__ [_annotation_]__*__ [_code_block_] __)?__\
     [_alternate-clauses_]
 
 

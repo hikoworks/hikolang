@@ -74,7 +74,7 @@ Constant-folding is an optimization rather than a separate execution phase. The
 compiler may evaluate an expression early.
 
 Some functions are **phase-variant**. They are annotated with
-`@effect(phase_variant)` because their behavior can depend on whether they
+`@effect(+phase_variant)` because their behavior can depend on whether they
 execute in the compiler or runtime environment.
 
 For example, a function that reads a file might return the contents of a file
@@ -100,7 +100,7 @@ request compile-time evaluation.
 For example:
 
 ```text
-@effect(phase_variant)
+@effect(+phase_variant)
 read_value_from_file = fn(path) {
     ...
 }

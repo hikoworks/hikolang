@@ -183,8 +183,8 @@ runtime with the following exceptions:
 
 #### @implies(effect, ...)
 
-Following the example above; when `effect(+io)` is used, it is as-if
-`effect(+phase_variant)` is also implied.
+Following the example above; when the annotation `@effect(+io)` is used,
+it is as-if `@effect(+phase_variant)` is also implied.
 
 
 ### std.unit

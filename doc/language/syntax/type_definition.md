@@ -71,3 +71,15 @@ fn struct(template_arguments, inheritence_list, attributes, members)
 }
 ```
 
+## Annotation
+
+### [[abi(x)]]
+
+On a type this will change how the memory layout is for an object.
+ 
+ abi         | Description
+ :---------- | :---------
+ `c`         | Use the C ABI, keeping members aligned and in original order.
+ `reorder`   | Reorder members from large to small struct, maintaining alignment. (default)
+ `pack`      | Keep members in original order, but ignore alignment. Access to members is valid.
+ `compress`  | Use niche-mask to further compress members in a struct. Access to members may require shifts and masks. 

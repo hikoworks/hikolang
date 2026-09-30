@@ -6,13 +6,13 @@ _alternate-clauses_ := _alternate-clauses-1_ __|__ _alternate-clauses-2_
 
 _alternate-clauses-1_ :=\
     [_catch-clauses_]\
-    __(__ `elif` `(` [_condition-expression_] `)` `{` [_statement-list_ ]`}` [_catch-clauses_] __)*__\
-    __(__ `else` `{` [_statement-list_] `}` __)?__\
-    __(__ `empty` `{` [_statement-list_] `}` __)?__
+    __(__ `elif` `(` [_condition-expression_] `)` [_annotation_]__*__ [_code_block_] [_catch-clauses_] __)*__\
+    __(__ `else` [_annotation_]__*__ [_code_block_] __)?__\
+    __(__ `empty` [_annotation_]__*__ [_code_block_] __)?__
 
 _alternate-clauses-2_ :=\
-    __(__ `else` `{` [_statement-list_] `}` __)?__\
-    __(__ `empty` `{` [_statement-list_] `}` __)?__\
+    __(__ `else` [_annotation_]__*__ [_code_block_] __)?__\
+    __(__ `empty` [_annotation_]__*__ [_code_block_] __)?__\
     [_catch-clauses_]
 
 [_condition-expression_]: condition_expression.md

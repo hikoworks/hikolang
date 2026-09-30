@@ -4,7 +4,8 @@
 
 _while-control-expression_ :=\
     [_do-clause_]__?__\
-    `while` `(` [_init_expression_]__?__ [_condition-expression_] `)` __(__ `{` [_code-block_] `}` __)?__\
+    `while` `(` [_init_expression_]__?__ [_condition-expression_] `)`\
+        __(__ [_annotation_]__*__ [_code_block_] __)?__\
     [_alternate-clauses_]
 
 

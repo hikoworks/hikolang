@@ -1,5 +1,6 @@
 # Expression
 
+[_annotation_]: annotation.md
 [_code-block_]: code_block.md
 [_context-argument_]: context_argument.md
 [_identifier_]: identifier.md
@@ -59,24 +60,27 @@
  * `T`: [_type-expression_]
  * `E`: [_error-list_]
  * `U`: [_unit-expression_]
+ * `A`: [_annotation_]
 
 
   Operator       | Precedence | Function                       | Description
  :------------   |:---------- |:------------------------------ |:----------
   `a++`          |  2000 L    | `__post_increment__(a)`        |
   `a--`          |  2000 L    | `__post_decrement__(a)`        |
-  `a(...)`       |  2000 L A  |                                | [_call-operator_]
-  `a[...]`       |  2000 L A  |                                | [_index-operator_]
+  `a(...)`       |  2000 L    |                                | [_call-operator_]
+  `a[...]`       |  2000 L    |                                | [_index-operator_]
   `a.<name>`     |  2000 L    |                                | [_member-access_]
   `a::<name>`    |  2000 L    |                                | [_type-member-access_]
+  `@A b`         |  3000 R    |                                | [_annotation_]
+  `[[A]] b`      |  3000 R    |                                | [_annotation_]
   `++b`          |  3000 R    | `__increment__(a)`             |
   `--b`          |  3000 R    | `__decrement__(a)`             |
   `+b`           |  3000 R    | `__pos__(a)`                   |
   `-b`           |  3000 R    | `__neg__(a)`                   |
   `~b`           |  3000 R    | `__inv__(a)`                   |
   `not b`        |  3000 R    | `__not__(a)`                   |
-  `await b`      |  3000 R A  |                                | [_await-operator_]
-  `try b`        |  3000 R A  |                                | [_try-operator_]
+  `await b`      |  3000 R    |                                | [_await-operator_]
+  `try b`        |  3000 R    |                                | [_try-operator_]
   `&b`           |  3000 R    |                                | [_binding-selector_]
   `&&b`          |  3000 R    |                                | [_binding-selector_]
   `*b`           |  3000 R    |                                | [_binding-selector_]
@@ -112,11 +116,11 @@
   `a & b`        | 11000 L    | `__bit_and__(a, b)`            |
   `a ^ b`        | 12000 L    | `__bit_xor__(a, b)`            |
   `a \| b`       | 13000 L    | `__bit_or__(a, b)`             |
-  `a and b`      | 14000 L A  |                                | [_shortcut-operator_]
-  `a or b`       | 15000 L A  |                                | [_shortcut-operator_]
-  `a catch b`    | 15100 R A  |                                | [_catch-operator_]
-  `a catch(E) b` | 15100 R A  |                                | [_catch-operator_]
-  `a empty b`    | 15100 R A  |                                | [_empty-operator_]
+  `a and b`      | 14000 L    |                                | [_shortcut-operator_]
+  `a or b`       | 15000 L    |                                | [_shortcut-operator_]
+  `a catch b`    | 15100 R    |                                | [_catch-operator_]
+  `a catch(E) b` | 15100 R    |                                | [_catch-operator_]
+  `a empty b`    | 15100 R    |                                | [_empty-operator_]
   `a :~+ T`      | 15500 L    | `__convert_widen__(a, T)`      | [_type-operator_]
   `a :~! T`      | 15500 L    | `__convert_truncate__(a, T)`   | [_type-operator_]
   `a :~? T`      | 15500 L    | `__convert_narrow__(a, T)`     | [_type-operator_]
@@ -124,8 +128,8 @@
   `a :! T`       | 15500 L    |                                | [_type-operator_]
   `a :? T`       | 15500 L    |                                | [_type-operator_]
   `a : T`        | 15500 L    |                                | [_type-operator_]
-  `a = b`        | 16000 R A  | `__merge__(a, b)`              | [_variable-definition_]
-  `a := b`       | 16000 R A  | `__assign__(a, b)`             | [_variable-definition_]
+  `a = b`        | 16000 R    | `__merge__(a, b)`              | [_variable-definition_]
+  `a := b`       | 16000 R    | `__assign__(a, b)`             | [_variable-definition_]
   `a += b`       | 16000 R    | `__inplace_add__(a, b)`        |
   `a -= b`       | 16000 R    | `__inplace_sub__(a, b)`        |
   `a *= b`       | 16000 R    | `__inplace_mul__(a, b)`        |
@@ -139,10 +143,10 @@
   `a \|= b`      | 16000 R    | `__inplace_or__(a, b)`         |
 
 > [!note]
->  * 'A' in the "Precedence" column marks that this expression consumes
->    annotations.
 >  * `a = b` and `a := b` are assignment operators or variable definitions
 >    depending on the context.
+>  * `[[A]] b` and `@A b`: annotations are parsed as-if they are prefix operators,
+>    the annotations are later moved to the proper sub-expression.
 
 
 

@@ -12,12 +12,12 @@ _effect := __(__ `+` __|__ `-`  __|__ `!` __|__ `=` __)__ [_identifier_]
 
 These are the prefix operators for effects in the list:
 
-   Op | Description
- :--- |:---------------
-  `+` | Add an effect to a block.
-  `-` | Remove an effect from the block.
-  `=` | Require that all contained blocks and calls have this effect.
-  `!` | Require that none of the contained blocks and calls have this effect.
+ op     | description
+ :----- |:----------------------------------------------------
+ `+foo` | Add the effect `foo` to this block.
+ `-foo` | Remove the effect `foo` from this block.
+ `=foo` | Assert that this block has effect `foo`.
+ `!foo` | Assert that this block DOES NOT have effect `foo`.
 
 These are the default effects in the language. You can add more using the
 [_syntax-effect_].

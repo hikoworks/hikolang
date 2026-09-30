@@ -4,7 +4,7 @@
 
 _if-control-expression_ :=\
     [_do-clause_]__?__\
-    `if` `(` [_init_expression_]__?__ [_condition-expression_] `)` __(__ `{` [_code-block_] `}` __)?__\
+    `if` `(` [_init_expression_]__?__ [_condition-expression_] `)` [_annotation_]__*__ [_code-block_]\
     [_alternate-clauses_]
 
 

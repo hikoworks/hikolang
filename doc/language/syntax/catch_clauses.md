@@ -3,8 +3,8 @@
 ## Syntax
 
 _catch-clauses_ :=\
-    __(__ `catch` `(` [_error-list_] `)` `{` [_statement-list_ ]`}` __)*__\
-    __(__ `catch` `{` [_statement-list_] `}` __)?__
+    __(__ `catch` `(` [_error-list_] `)` [_annotation_]__*__ [_code_block_] __)*__\
+    __(__ `catch` [_annotation_]__*__ [_code_block_] __)?__
 
 [_error-list_]: error_list.md
 [_statement-list]: statement_list.md

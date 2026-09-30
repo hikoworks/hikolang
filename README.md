@@ -172,8 +172,8 @@ qux = fn(x, y) {
 ## Universal call syntax
 
 Functions and member functions may be called in two different ways:
- * `foo(a, b)`
- * `a.foo(b)`
+ * `<name>(a, b)`
+ * `a.<name>(b)`
 
 Functions and members are handled together in a single overload resolution
 algorithm.
@@ -210,15 +210,15 @@ for example you may not want to do any: allocations, IO or block.
 read = fn(fd, size) -> string {
   if (size == 0) {
     ...
-  } else if (size <= 4096) effect(+io) {
+  } else if (size <= 4096) @effect(+io) {
     ...
-  } else effect(+io, +block) {
+  } else @effect(+io, +block) {
     while (...) {...}
   }
 }
 
 foo = fn(fd, n) {
-  effect(!block) {
+  @effect(!block) {
     t = read(fd, 4096); // OK
     u = read(fd, 6000); // ERROR: read() has effect 'block'
     v = read(fd, n); // ERROR: read() has effect 'block'
