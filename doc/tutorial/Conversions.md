@@ -5,7 +5,7 @@ To be able to use these ranged integers it is required to convert them,
 here is an example:
 
 ```
-sum := 0 : int[0...100]     // 0 : int[0...0], sum : int[0...100]
+sum <- 0 : int[0...100]     // 0 : int[0...0], sum : int[0...100]
 for (a in 0..<10) {         // a : int[0...9]
     try sum += a
 }

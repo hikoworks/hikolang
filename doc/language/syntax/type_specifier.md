@@ -16,3 +16,4 @@ For the [_type-operator_] being `:+`, `:!`, `:?` & `:` the value is checked
 if it can be converted to the [_type-expression_], but it retains the type
 of the passed in value.
 
+For the [_type-operator_] being `<-` it infers both the binding and type.

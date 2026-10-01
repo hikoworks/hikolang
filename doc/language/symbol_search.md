@@ -33,7 +33,7 @@ How to score function signatures:
  - The first two arguments have a 1.5 multiplier.
  - A return type has a 0.5 multiplier.
  - Arguments with the exact type of the coercion has a 1.5 multipler.
- - 1,000,000,000 points for an argument that is coerced with `:=`.
+ - 1,000,000,000 points for an argument that is coerced with `:`.
  - 1,000,000 points for an argument that coerced with `:^` or `:!`.
  - 1,000 points for an argument that is coerced with `:`.
  - -1,000 points for each unused defaulted argument.

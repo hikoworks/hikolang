@@ -9,11 +9,11 @@ class raw_ptr[T : type] {
         self._p = p
     }
 
-    fn __index__(self := ptr_type[T], i : int) {
+    fn __index__(self : ptr_type[T], i : int) {
         return __builtin_dereference(type(self), self._p, i)
     }
 
-    fn __dereference__(self := ptr_type[T])
+    fn __dereference__(self : ptr_type[T])
     {
         return __builtin_dereference(type(self), self._p)        
     }

@@ -26,7 +26,7 @@ vector = class[T : type] {
     __init__ = fn(size : int) {}
 };
 
-b := vector[int[0..<100]]
+b <- vector[int[0..<100]]
 b.append(1)
 ```
 

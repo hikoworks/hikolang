@@ -23,9 +23,9 @@
  - Why this exists (safety + optimization)
 
 4. Conversions (Make It Usable)
- - Widening conversion (:)
+ - Widening conversion (:+)
  - Narrowing conversion (:!)
- - Exact matching (:=)
+ - Exact matching (:)
  - Super-type matching (:^)
 
 👉 This is a core chapter cluster

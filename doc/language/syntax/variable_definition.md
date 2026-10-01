@@ -10,10 +10,10 @@ _variable-definition_ :=\
 
 _initializer_ :=\
       `=` [_expression_]\
-    __|__ `:=` [_expression_]\
-    __|__ `:=` `unintialized`\
-    __|__ `:=` `extern`
-    __|__ `:=` `default`
+    __|__ `<-` [_expression_]\
+    __|__ `<-` `unintialized`\
+    __|__ `<-` `extern`
+    __|__ `<-` `default`
 
 
 [_attribute_]: attribute.md
@@ -47,13 +47,13 @@ used as the type of the variable.
 Examples:
 
 ```
-a : T := default            // Variable default value of specific type
-a := b                      // Variable type is inferred
-a :~+ T := b                // Value is converted to type T.
-a :~+ T := b :~+ U          // ((b :~+ U) :~+ T)
-thread_local a : T := b     // A thread_local variable
-shared a : T := b           // A variable on the heap managed by ref-counting
-static(.rwdata) a : T := b  // static, in an explicit data segment.
+a : T <- default            // Variable default value of specific type
+a <- b                      // Variable type is inferred
+a :~+ T <- b                // Value is converted to type T.
+a :~+ T <- b :~+ U          // ((b :~+ U) :~+ T)
+thread_local a : T <- b     // A thread_local variable
+shared a : T <- b           // A variable on the heap managed by ref-counting
+static(.rwdata) a : T <- b  // static, in an explicit data segment.
 ```
 
 
@@ -62,10 +62,10 @@ static(.rwdata) a : T := b  // static, in an explicit data segment.
  Initializer          | Description
  :------------------- | :------------
  `=` [_expression_]   | Create an immutable variable.
- `:=` [_expression_]  | Create a variable.
- `:=` `extern`        | Link to an external variable of the same name.
- `:=` `default`       | Initialize the variable to the default value.
- `:=` `uninitialized` | The variable is not initialized, you must initialize it later before reading from it.
+ `<-` [_expression_]  | Create a variable.
+ `<-` `extern`        | Link to an external variable of the same name.
+ `<-` `default`       | Initialize the variable to the default value.
+ `<-` `uninitialized` | The variable is not initialized, you must initialize it later before reading from it.
 
 
 ### assignment operator
@@ -76,7 +76,7 @@ will call different methods on the value.
 
  Initializer          | Method         | Description
  :------------------- | :------------- | :----------
- `:=` [_expression_]  | `__assign__()` | Assigns to a variable
+ `<-` [_expression_]  | `__assign__()` | Assigns to a variable
  `=` [_expression_]   | `__merge__()`  | Merge function/type definitions
 
 Special types, like functions, have overload sets that may be merged.

@@ -70,10 +70,10 @@ reference is written as `&T`, where `T` is the referenced type. For example:
 
 ```
 // x manages the storage containing 42.0.
-x := 42.0
+x <- 42.0
 
 // y refers to x's storage.
-y := &x
+y <- &x
 ```
 
 The two variables therefore have different roles:
@@ -102,14 +102,14 @@ underlying storage:
 
 ```
 // x is a value.
-x := 42.0
+x <- 42.0
 
 // y refers to x.
-y := &x
+y <- &x
 
 // z also refers to x.
 // It does not refer to y as a separate object.
-z := &y
+z <- &y
 ```
 
 Conceptually:
@@ -123,11 +123,28 @@ y ──refers──────┘ │
 z ──refers────────┘
 ```
 
-## Movable
+## movables
 
-A movable is like a reference that revers to a value, with the added permission
-to consume the internals of the referenced value. The original value must
-remain in a valid-but-indeterminate state.
+A movable is a reference with additional permission to move from the referenced
+object. The type of a movable is `&&T`; since references can't be nested
+this is not ambiguous.
+
+A movable permits the referenced object's internals to be consumed. However
+the referenced object's needs to maintain its invariant. So the following
+must apply to an object after it was moved from:
+
+ * the internals of the source object may be consumed;
+ * the source object remains valid;
+ * its state becomes indeterminate.
+
+This is particularly useful for types that manage resources internally.
+
+For example, a container might own a dynamically allocated buffer. A movable
+could allow an operation to consume that buffer rather than copying every
+element.
+
+Afterward, the original container still exists, but its contents should not be
+assumed to be the same as before the move.
 
 ## Binding selector vs. Binding specification 
 
@@ -138,8 +155,8 @@ binding-method is then consumed by the:
  - immutable initializer, or the
  - function parameter of a function call.
 
-In this example we see `&x` be passed as an initializer and as a function
-argument, setting the preferred binding method to a reference:
+In this example we see `&x` (binding selector) be passed as an initializer and
+as a function argument, setting the preferred binding method to a reference:
 
 ```
 foo = fn(a) {
@@ -152,16 +169,16 @@ z = foo(&x)
 ```
 
 A binding specification is made on the actual variable or function parameter,
-it follows the type-inference-operator `<-`. In this example we use the
+it follows the type-inference-operator `:`. In this example we use the
 binding specification with the same result as the previous example:
 
 ```
-foo = fn(a <- &) {
+foo = fn(a : &) {
     return a
 }
 
 x = 42.0
-y <- & = x
+y : & = x
 z = foo(x)
 ```
 
@@ -171,12 +188,15 @@ The binding specification is evaluated after the binding selector:
 x = 42.0
 y = &x
 
-a = y           // y:   reference            a: value (no selector: default)
-b <- = y        // y:   reference            b: reference (no selector: inferred)
-c <- & = &x     // &x:  reference (selector) c: reference (selector overridden)
-d <- & = &&x    // &&x: movable (selector)   d: reference (selector overridden)
+a = y          // y:   reference            a: value     (default)
+b : = y        // y:   reference            b: reference (inferred)
+c : = &y       // y:   reference (make ref) b: reference (inferred)
+d : = &&x      // x:   movable   (forward)  b: movable   (inferred)
+d : = &&y      // y:   reference (forward)  b: reference (inferred)
+e : & = &x     // &x:  reference (make ref) c: reference (overridden)
+f : & = &&x    // &&x: movable   (forward)  d: reference (overridden)
 
-//e <- && = &x  // ERROR cannot make movable from reference
+//g : && = &x  // ERROR cannot make movable from reference
 ```
 
 The binding-method attached to the explicit return type specification on a
@@ -184,15 +204,15 @@ function should be seen as a binding specification.
 
 ```
 // return type specification acts as-if '->' is an inference operator.
-foo = fn(a <- &) -> & {
+foo = fn(a : &) -> & {
     return a
 }
 
 x = 42.0
 
 a = foo(x)       // a: copy of x
-b <- = foo(x)    // b: reference to x
-c <- & = foo(x)  // c: reference to x
+b : = foo(x)     // b: reference to x
+c : & = foo(x)   // c: reference to x
 d = &foo(x)      // d: reference to x
 ```
 
@@ -207,8 +227,8 @@ to life-time rules.
 Consider:
 
 ```
-foo = fn(a <- &) -> & {
-    a := a + 1.0
+foo = fn(a : &) -> & {
+    a <- a + 1.0
     return a
 }
 
@@ -247,12 +267,12 @@ process.
 A **binding specification** tells Hikolang how a variable, immutable, or
 function parameter should infer its type.
 
-The operator `<-` is a type-inference operator.
+The operator `:` is a type-inference operator.
 
 For example:
 
 ```
-a <- := x
+a : <- x
 ```
 
 means that the binding of `a` is inferred from `x`.
@@ -262,49 +282,100 @@ value, reference, const value, or movable. The most common binding
 specifications are:
 
 ```
-a := x              // By default: bind as value,
-                    // otherwise preserve the explicit binding selector of 'x'.
-a <- := x           // Bind by preserving the value-category of the expression.
-a <- * := x         // Bind as a value
-a <- & := x         // Bind as a reference
-a <- &const := x    // Bind as a const reference
-a <- && := foo()    // Bind as a movable (only explicit moves, or temporaries)
+a <- x             // By default: bind as value,
+                   // otherwise preserve the explicit binding selector of 'x'.
+a : <- x           // Bind by preserving the value-category of the expression.
+a : * <- x         // Bind as a value
+a : & <- x         // Bind as a reference
+a : &const <- x    // Bind as a const reference
+a : && <- foo()    // Bind as a movable (only explicit moves, or temporaries)
 ```
 
-`a := x` does not have a binding specification, and will therefore by default
+`a <- x` does not have a binding specification, and will therefore by default
 make a copy of the result of the expression and bind that as a value. In
-previous chapters we have used `a := &x` to add an explicit binding selector to
+previous chapters we have used `a <- &x` to add an explicit binding selector to
 `x` in that case `a` will conform to that explicit binding.
 
 The following table shows the resulting type of a variable initialized with each
 binding specification. The type of `x` or function-argument is in the horizontal
 header:
 
- Variable binding   | Parameter binding  | `T`        | `const T`   | `&T`       | `&const T` | `&&T`      |
- :----------------- |:------------------ | ---------- | ----------- | ---------- | ---------- | ---------- |
- `a := x`           | `foo(a)`           | `T`        | `T`         | `T`        | `T`        | `T`        |
- `a <- := x`        | `foo(a <-)`        | `T`        | `T`         | `&T`       | `&const T` | `&&T`      |
- `a <- * := x`      | `foo(a <- *)`      | `T`        | `T`         | `T`        | `T`        | `T`        |
- `a <- & := x`      | `foo(a <- &)`      | `&T`       | `&const T`  | `&T`       | `&const T` | `&T`       |
- `a <- &const := x` | `foo(a <- &const)` | `&const T` | `&const T`  | `&const T` | `&const T` | `&const T` |
- `a <- && := x`     | `foo(a <- &&)`     | `&&T`      | -           | -          | -          | `&&T`      |
+ Selector   | Description
+ :----------|:-------------
+ `x`        | No selector, see type-specification
+ `*x`       | Request to copy the value, this may materialize a temporary.
+ `&x`       | Request a reference to the value
+ `&const x` | Request a const reference to the value
+ `&&x`      | Forward the value, reference or movable
+
+ Type specfication | Description
+ :-----------------|:-----------------------------
+ `fn(a)`           | Efficient argument passing
+ `fn(a : *)`       | Copy the value
+ `fn(a : &)`       | Require a reference
+ `fn(a : &const)`  | Require a const reference
+ `fn(a : &&)`      | Require a movable
+ `fn(a :)`         | Infer passing mode
+
+
+ * `v`: variable; `T`
+ * `cv`: const variable; `const T`
+ * `r`: reference; `&T`
+ * `cr`: reference to const; `&const T`
+ * `m`: movable; `&&T`
+ * `t`: temporary from expression; `&&T`
+
+ Sel \\ Spec  | `fn(a)`    | `fn(a:*)` | `fn(a:&)` | `fn(a:&const)` | `fn(a:&&)` | `fn(a:)`
+ :------------|:---------- |:----------|:----------|:---------------|:-----------|:----------
+ `v`          | `&const T` | `T`       | `&T`      | `&const T`     | -          | `&const T`
+ `*v`         | `T`        | `T`       | -         | `&const T`     | -          | `T`
+ `&v`         | `&const T` | `T`       | `&T`      | `&const T`     | -          | `&T`
+ `&const v`   | `&const T` | `T`       | -         | `&const T`     | -          | `&const T`
+ `&&v`        | `&const T` | `T`       | `&T`      | `&const T`     | `&&T`      | `&&T`
+ `cv`         | `&const T` | `T`       | -         | `&const T`     | -          | `&const T`
+ `*cv`        | `T`        | `T`       | -         | `&const T`     | -          | `T`
+ `&cv`        | `&const T` | `T`       | -         | `&const T`     | -          | `&const T`
+ `&const cv`  | `&const T` | `T`       | -         | `&const T`     | -          | `&const T`
+ `&&cv`       | `&const T` | `T`       | -         | `&const T`     | -          | `&const T`
+ `r`          | `&const T` | `T`       | `&T`      | `&const T`     | -          | `&T`
+ `*r`         | `T`        | `T`       | -         | `&const T`     | -          | `T`
+ `&r`         | `&const T` | `T`       | `&T`      | `&const T`     | -          | `&T`
+ `&const r`   | `&const T` | `T`       | -         | `&const T`     | -          | `&const T`
+ `&&r`        | `&const T` | `T`       | `&T`      | `&const T`     | -          | `&T`
+ `cr`         | `&const T` | `T`       | -         | `&const T`     | -          | `&const T`
+ `*cr`        | `T`        | `T`       | -         | `&const T`     | -          | `T`
+ `&cr`        | `&const T` | `T`       | -         | `&const T`     | -          | `&const T`
+ `&const cr`  | `&const T` | `T`       | -         | `&const T`     | -          | `&const T`
+ `&&cr`       | `&const T` | `T`       | -         | `&const T`     | -          | `&const T`
+ `m`          | `&const T` | `T`       | `&T`      | `&const T`     | -          | `&const T`
+ `*m`         | `T`        | `T`       | -         | `&const T`     | -          | `T`
+ `&m`         | `&const T` | `T`       | `&T`      | `&const T`     | -          | `&T`
+ `&const m`   | `&const T` | `T`       | -         | `&const T`     | -          | `&const T`
+ `&&m`        | `&const T` | `T`       | `&T`      | `&const T`     | `&&T`      | `&&T`
+ `t`          | `&const T` | `T`       | `&T`      | `&const T`     | `&&T`      | `&&T`
+ `*t`         | `T`        | `T`       | -         | `&const T`     | -          | `T`
+ `&t`         | `&const T` | `T`       | `&T`      | `&const T`     | -          | `&T`
+ `&const t`   | `&const T` | `T`       | -         | `&const T`     | -          | `&const T`
+ `&&t`        | `&const T` | `T`       | `&T`      | `&const T`     | `&&T`      | `&&T`
+ 
 
 ### Overload resolution
 
 When passing a value, reference or movable to an overloaded function there are
 priorities.
 
-  rhs expression            | exact       | priority                          
- :------------------------- |:------------|:----------------------------------
- `x : T`, `*x`              | `<- *`      | `<-`, `<- &const`, `<- &`         
- `x : &T`, `&x`             | `<- &`      | `<-`, `<- &const`, `<- *`         
- `x : &const T`, `&const x` | `<- &const` | `<-`, `<- *`                      
- `&&x`, temporary           | `<- &&`     | `<-`, `<- &const`, `<- &`, `<- *` 
+  rhs expression                          | exact      | priority                          
+ :--------------------------------------- |:---------- |:----------------------------------
+ `x : *T`, `*x`                           | `: *`      | `:`, `: &const`, `: &`         
+ `x : &T`, `&x`, `x : &&T`, `&&(x : &T)`  | `: &`      | `:`, `: &const`, `: *`         
+ `x : &const T`, `&const x`               | `: &const` | `:`, `: *`                      
+ `&&x`, temporary                         | `: &&`     | `:`, `: &const`, `: &`, `: *` 
 
-A movable is not implicitly passed as a movable. Instead:
- - `x : &&T` is treated as `&T` for overload resolutions,
- - therefore, it uses the `x : &T` overload priorities, and
- - priorities, and a bare `<-` resolves as a reference.
+> [!note]
+> `x : &&T` is passed as-if `x : &T`; because movable objects are not implicitly
+> passed as movable.
+>
+> `&&(x : &T)` Forwards a reference, since a reference to `x` is not a movable.
 
 Temporary results of expressions (not a name by itself) may be implicitly passed
 as a movable. You may also explicitly pass a movable using the `&&x` syntax.
@@ -312,130 +383,33 @@ as a movable. You may also explicitly pass a movable using the `&&x` syntax.
 This shows passing of movables to functions:
 
 ```
-foo = fn(a <- &) { }
-foo = fn(a <- &&) { }
+foo = fn(a : &) { }
+foo = fn(a : &&) { }
 
 x = 42.0
-y : &&x            // y has the possession of move capability
-foo(y)             // fn(a <- &): don't exercise that capability
-foo(&&y)           // fn(a <- &&): explicitly exercise/select moveable overload
-foo(make_value())  // fn(a <- &&): temporary → implicitly movable
+y : = &&x          // y has the possession of move capability
+foo(y)             // fn(a : &): don't exercise that capability
+foo(&&y)           // fn(a : &&): explicitly exercise/select moveable overload
+foo(make_value())  // fn(a : &&): temporary → implicitly movable
 ```
 
-
-### Examples
-
-For example:
-
-```
-x: &T
-
-a := x
-```
-
-makes `a` a value:
-
-```
-a: T
-```
-
-whereas:
-
-```
-a <- & := x
-```
-
-makes `a` a reference:
-
-```
-a: &T
-```
-
-#### Value binding
-
-The `*` binding selector explicitly requests a value binding.
-
-For example:
-
-```
-a <- * := x
-```
-
-If `x` is a reference, `a` receives the referenced value rather than retaining the reference.
-
-Conceptually:
-
-```
-x ──refers──> [42]
-
-a <- * := x
-
-a ──manages──> [42]
-```
-
-The storage managed by `a` is distinct from the storage referenced by `x`.
-
-The `*` selector therefore provides an explicit way to say:
-
-> "Bind the value, not the reference."
-
-#### Reference binding
-
-The `&` selector explicitly requests a reference binding:
-
-```
-a <- & := x
-```
-
-For example:
-
-```
-x := 42.0
-y <- & := x
-```
-
-Now:
-
-```
-x ──manages──> [42.0]
-                ▲
-                │
-y ──refers──────┘
-```
-
-The two names refer to the same storage.
-
-A const reference can be requested with `&const`:
-
-```
-a <- &const := x
-```
-
-This produces:
-
-```
-&const T
-```
-
-The reference can access the object, but cannot be used to modify it through that reference.
 
 ### Binding to immutables
 
-The following table shows the resulting type of a immutable initialized with each
-binding specification. The type of `x` is in the horizontal
-header:
+The following table shows the resulting type of an immutable initialized with
+each binding specification. The type of `x` is in the horizontal header:
 
  Immutable binding | `T`         | `const T`   | `&T`       | `&const T` | `&&T`
  :---------------- |:----------- |:----------- |:---------- |:---------- |:-----------
  `a = x`           | `const T`   | `const T`   | `const T`  | `const T`  | `const T`
- `a <- = x`        | `const T`   | `const T`   | `&const T` | `&const T` | -
- `a <- * = x`      | `const T`   | `const T`   | `const T`  | `const T`  | `const T`
- `a <- & = x`      | `&const T`  | `&const T`  | `&const T` | `&const T` | `&const T`
- `a <- &const = x` | `&const T`  | `&const T`  | `&const T` | `&const T` | `&const T`
- `a <- && = x`     | -           | -           | -          | -          | -
+ `a : = x`         | `const T`   | `const T`   | `&const T` | `&const T` | -
+ `a : * = x`       | `const T`   | `const T`   | `const T`  | `const T`  | `const T`
+ `a : & = x`       | `&const T`  | `&const T`  | `&const T` | `&const T` | `&const T`
+ `a : &const = x`  | `&const T`  | `&const T`  | `&const T` | `&const T` | `&const T`
+ `a : && = x`      | -           | -           | -          | -          | -
 
 
-An immutable binding is created with `=` rather than `:=`.
+An immutable binding is created with `=` rather than `<-`.
 
 For example:
 
@@ -443,7 +417,7 @@ For example:
 x = 42.0
 ```
 
-The immutable binding cannot be modified or reseated.
+The immutable binding cannot normally be modified or reseated.
 
 Immutability applies to the binding itself. For a value, this means that the
 value cannot be modified. For a reference, it also means that the reference
@@ -455,70 +429,41 @@ representing a location.
 For example:
 
 ```
-x := 42.0
-r <- & := x
+x <- 42.0
+r : & <- x
+s : & = x
 ```
 
-Here `r` is a reference whose value identifies the storage managed by `x`.
-
-Making `r` immutable freezes that reference:
-
-```
-r <- & = x
-```
-
-The object referred to by `r` is not necessarily const. The reference itself is immutable.
+Here `r` and `s` are references whose value identifies the storage managed by
+`x`. The object referred to by `s` is not necessarily const. The reference
+itself is immutable.
 
 This gives us an important distinction:
 
-```
-&T          mutable reference to mutable T
-&const T    reference to const T
-const T     immutable value
-const &T    immutable reference to mutable T
-```
+ Type     | Description
+ :--------|:------------------
+ &T       | mutable reference to mutable T
+ &const T | reference to const T
+ const T  | immutable value
+ const &T | immutable reference to mutable T
 
-In practice, the binding rules normalize these concepts so that immutable bindings add `const` to the appropriate type.
+In practice, the binding rules normalize these concepts so that immutable
+bindings add `const` to the appropriate type.
 
 ## Immutable binding inference
 
 
-
-Notice the difference between:
-
 ```
-a = x
-```
+x <- 42.0   // x : f64
+y <- &x     // y : &f64
 
-and:
+a = y       // a : const f64
+b <- y      // b : f64
 
-```
-a <- = x
+c : = y     // c : const &f64
+d : <- y    // d : &f64
 ```
 
-The first always creates an immutable value binding.
-
-The second infers the binding from `x`, while also applying the immutability of the new binding.
-
-For example, if `x` is `&T`:
-
-```
-a = x
-```
-
-produces a const value binding, while:
-
-```
-a <- = x
-```
-
-preserves the fact that `x` is a reference:
-
-```
-a: &T
-```
-
-but makes the reference binding immutable.
 
 ## Binding Selectors
 
@@ -527,169 +472,35 @@ that expression should be bound.
 
 The selectors are:
 
-```
-const x
-*x
-*const x
-&x
-&const x
-&&x
-```
+ Selector        | Description
+ :-------------- |:-----------------------
+ `a <- x`        | Pass `x` by value or reference
+ `a <- const x`  | Pass `x` by value or const reference
+ `a <- *x`       | Copy the value of `x`
+ `a <- *const x` | Copy the value of `x`
+ `a <- &x`       | Pass `x` by reference
+ `a <- &const x` | Pass `x` by const reference
+ `a <- &&x`      | Forward `x` by value, reference, const reference or movable
 
-These selectors are consumed by a variable initializer, immutable initializer, or function parameter.
+These selectors are consumed by:
+ - a variable initializer,
+ - an immutable initializer,
+ - a function parameter.
 
-Think of a binding selector as metadata attached to the expression:
+Think of a binding selector as metadata attached to the expression, used by
+the selector's consumer to change its behavior
 
-```
-expression
-    │
-    └── binding selector
-             │
-             ▼
-       determines binding
-```
 
-## Value selectors
+## Forwarding selector
 
-The `*` selector requests a value:
+The `&&` selector gives explicit permission to be consumed:
 
 ```
-*x
+a <- &&x
 ```
 
-The `*const` selector requests a const value:
 
-```
-*const x
-```
 
-For example:
-
-```
-a := *x
-```
-
-creates a value binding regardless of whether `x` itself is a reference.
-
-Likewise:
-
-```
-a := *const x
-```
-
-requests a const value.
-
-With the ordinary `:=` binding, however, the binding is still a value binding, so the const information does not necessarily appear in the resulting type.
-
-## Reference selectors
-
-The `&` selector requests a reference:
-
-```
-&x
-```
-
-For example:
-
-```
-a := &x
-```
-
-makes `a` a reference to the storage of `x`.
-
-The `&const` selector requests a const reference:
-
-```
-a := &const x
-```
-
-This prevents modification of the referenced object through `a`.
-
-## movable selectors
-
-The `&&` selector requests a movable:
-
-```
-a := &&x
-```
-
-A movable is different from an ordinary reference because it allows the
-internals of the referenced object to be **consumed**.
-
-The object from which the contents are moved remains valid, but its state is
-**indeterminate**.
-
-This is useful when an operation needs to take ownership of an object's internal
-resources without requiring the object itself to become invalid.
-
-Conceptually:
-
-```
-x ──manages──> [object]
-                 ▲
-                 │
-a ──movable──────┘
-```
-
-After consuming the internals through `a`, `x` still denotes a valid object, but its contents should no longer be assumed to have their previous state.
-
-## Binding selectors in practice
-
-The binding selector becomes especially useful when the expression and the desired binding do not naturally match.
-
-For example:
-
-```
-x := 42.0
-
-a := &x
-b <- * := x
-c <- &const := x
-```
-
-These produce three different relationships with `x`:
-
-```
-x ──manages──> [42.0]
-                ▲
-                │
-a ──refers──────┘
-
-b ──manages──> [42.0]    // separate value
-
-c ──refers────> [42.0]    // const reference
-```
-
-The selector makes the programmer's intent explicit.
-
-# movables
-
-A movable has the type:
-
-```
-&&T
-```
-
-It should not be confused with a reference to a reference. References cannot be nested, so `&&T` has its own meaning.
-
-A movable permits the referenced object's internals to be consumed.
-
-The important consequence is that moving does **not** make the source object invalid.
-
-Instead:
-
-1. the internals of the source object may be consumed;
-2. the source object remains valid;
-3. its state becomes indeterminate.
-
-This is particularly useful for types that manage resources internally.
-
-For example, a container might own a dynamically allocated buffer. A movable
-could allow an operation to consume that buffer rather than copying every
-element.
-
-Afterward, the original container still exists, but its contents should not be
-assumed to be the same as before the move.
 
 # Putting It All Together
 
@@ -710,12 +521,12 @@ T       manages storage
 The binding specification determines how the variable, immutable, or parameter is bound.
 
 ```
-:=             value
-<- :=          infer binding
-<- * :=        value
-<- & :=        reference
-<- &const :=   const reference
-<- && :=       movable
+<-             value
+: <-          infer binding
+: * <-        value
+: & <-        reference
+: &const <-   const reference
+: && <-       movable
 ```
 
 Binding selectors perform the corresponding operation on expressions:
@@ -731,11 +542,11 @@ Binding selectors perform the corresponding operation on expressions:
 Consider the following example:
 
 ```
-x := 42.0
+x <- 42.0
 
-value := x
-reference <- & := x
-const_reference <- &const := x
+value <- x
+reference <- & <- x
+const_reference <- &const <- x
 ```
 
 The result is:
@@ -752,28 +563,4 @@ There is one object containing `42.0`, managed by `x`. The other bindings either
 
 Once this distinction is understood, the binding tables become much easier to read: they simply describe how the language preserves, discards, or explicitly changes this binding information when an expression is used to initialize another binding or passed to a function.
 
-## Quick Reference
 
-| Syntax                | Meaning                           |
-| --------------------- | --------------------------------- |
-| `x`                   | use the expression's value        |
-| `*x`                  | bind the value                    |
-| `*const x`            | bind a const value                |
-| `&x`                  | bind a reference                  |
-| `&const x`            | bind a const reference            |
-| `&&x`                 | bind a movable             |
-| `x: T`                | explicitly typed value            |
-| `x: &T`               | explicitly typed reference        |
-| `x: &&T`              | explicitly typed movable   |
-| `x := expr`           | create a value binding            |
-| `x <- := expr`        | infer the binding from `expr`     |
-| `x <- * := expr`      | explicitly bind a value           |
-| `x <- & := expr`      | explicitly bind a reference       |
-| `x <- &const := expr` | explicitly bind a const reference |
-| `x <- && := expr`     | explicitly bind a movable  |
-
-The central rule to remember is simple:
-
-> **Values manage storage; references access storage managed elsewhere; movables allow that storage's contents to be consumed.**
-
-Everything else in the binding system exists to precisely control which of these relationships is established.

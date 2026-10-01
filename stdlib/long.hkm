@@ -12,21 +12,21 @@ pub class long
     var _capacity : __builtin_u32
     var _size : __builtin_u32
 
-    pub fn __deinit__(self := long)
+    pub fn __deinit__(self : long)
     {
         if (_capacity) {
             deallocate(self._ptr, self._capacity)
         }
     }
 
-    pub fn __init__(self := long)
+    pub fn __init__(self : long)
     {
         self._value = 0
         self._capacity = 0
         self._size = 0
     }
 
-    pub fn __init__(self := long, other : __builtin_i64)
+    pub fn __init__(self : long, other : __builtin_i64)
     {
         self._value = other
         self._capacity = 0
@@ -37,7 +37,7 @@ pub class long
         }
     }
 
-    pub fn __add__(self := long, other : long)
+    pub fn __add__(self : long, other : long)
     {
         
     }

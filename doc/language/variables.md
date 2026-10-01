@@ -3,10 +3,10 @@
 
 ## var
 ```
-i8 := int[0...255]
-a : i8 := 42
-b := i8(42)
-a := 3
+i8 <- int[0...255]
+a : i8 <- 42
+b <- i8(42)
+a <- 3
 ```
 
 ## const
@@ -39,6 +39,6 @@ a = 42
 Is syntactic sugar for:
 
 ```
-a := 42
+a <- 42
 seal a
 ```

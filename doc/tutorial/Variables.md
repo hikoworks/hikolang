@@ -8,8 +8,8 @@ Tutorial - Variables
 import std
 program "variable"
 
-a := 40.0
-a := a + 2.0
+a <- 40.0
+a <- a + 2.0
 std.repr(a)                                      // 42.0
 ```
 

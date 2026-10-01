@@ -66,11 +66,11 @@ The non-proxy reference can also be used to reseat a reference:
 a = 42
 b = 5
 
-x := &a // x->a
-y := &x // y->a
+x <- &a // x->a
+y <- &x // y->a
 
-x := 1 // a == 1, x->a, y->a
-x := &b // a == 1, x->b, y->a
+x <- 1 // a == 1, x->a, y->a
+x <- &b // a == 1, x->b, y->a
 ```
 
  ## Forwarding reference

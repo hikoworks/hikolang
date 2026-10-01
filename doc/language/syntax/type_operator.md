@@ -12,7 +12,6 @@
  `:`      | Constrain by exact type.
 
 
-
 ## Type Constraints `:+`, `:!`, `:?`, `:`
 
 Type constraints check the type of the value, matches the type. The type may

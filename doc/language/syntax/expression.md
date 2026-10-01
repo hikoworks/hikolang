@@ -98,7 +98,7 @@
   `a :? T`       | 17000 L    |                                | [_type-operator_]
   `a : T`        | 17000 L    |                                | [_type-operator_]
   `a = b`        | 18000 R    | `__merge__(a, b)`              | [_variable-definition_]
-  `a := b`       | 18000 R    | `__assign__(a, b)`             | [_variable-definition_]
+  `a <- b`       | 18000 R    | `__assign__(a, b)`             | [_variable-definition_]
   `a += b`       | 18000 R    | `__inplace_add__(a, b)`        |
   `a -= b`       | 18000 R    | `__inplace_sub__(a, b)`        |
   `a *= b`       | 18000 R    | `__inplace_mul__(a, b)`        |
@@ -112,7 +112,7 @@
   `a \|= b`      | 18000 R    | `__inplace_or__(a, b)`         |
 
 > [!note]
->  * `a = b` and `a := b`: are assignment operators or variable definitions
+>  * `a = b` and `a <- b`: are assignment operators or variable definitions
 >    depending on the context.
 >  * `[[A]] b` and `@A b`: annotations are parsed as-if they are prefix
 >    operators, the annotations are later moved to the proper sub-expression.
