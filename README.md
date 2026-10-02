@@ -322,7 +322,8 @@ where unused and fit the interval of the underlying `int` type.
 A function marked with `metatype` becomes a keyword that returns a type.
 
 ```
-class = fn(definition, arguments) metatype {
+@metatype
+class = fn(definition, arguments) {
   ...
   return new_type
 }

@@ -327,7 +327,7 @@ header:
 
  Sel \\ Spec  | `fn(a)`    | `fn(a:*)` | `fn(a:&)` | `fn(a:&const)` | `fn(a:&&)` | `fn(a:)`
  :------------|:---------- |:----------|:----------|:---------------|:-----------|:----------
- `v`          | `&const T` | `T`       | `&T`      | `&const T`     | -          | `&const T`
+ `v`          | `&const T` | `T`       | `&T`      | `&const T`     | -          | `&T`
  `*v`         | `T`        | `T`       | -         | `&const T`     | -          | `T`
  `&v`         | `&const T` | `T`       | `&T`      | `&const T`     | -          | `&T`
  `&const v`   | `&const T` | `T`       | -         | `&const T`     | -          | `&const T`
@@ -347,7 +347,7 @@ header:
  `&cr`        | `&const T` | `T`       | -         | `&const T`     | -          | `&const T`
  `&const cr`  | `&const T` | `T`       | -         | `&const T`     | -          | `&const T`
  `&&cr`       | `&const T` | `T`       | -         | `&const T`     | -          | `&const T`
- `m`          | `&const T` | `T`       | `&T`      | `&const T`     | -          | `&const T`
+ `m`          | `&const T` | `T`       | `&T`      | `&const T`     | -          | `&T`
  `*m`         | `T`        | `T`       | -         | `&const T`     | -          | `T`
  `&m`         | `&const T` | `T`       | `&T`      | `&const T`     | -          | `&T`
  `&const m`   | `&const T` | `T`       | -         | `&const T`     | -          | `&const T`
