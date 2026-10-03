@@ -1,7 +1,7 @@
 # Binding Modes
 
 Hikolang has three binding modes:
- * **value** - a value located in managed storage, or the temporary result of
+ * **value** - a value located in storage, or the temporary result of
    an expression.
  * **reference** - a reference to storage containing a value.
  * **movable** - a reference that permits the internals of the referenced
@@ -10,15 +10,26 @@ Hikolang has three binding modes:
 
 ## Type Qualifiers
 
-Each of the binding modes have specific types:
+```
+a = 10.0    // `a` is an immutable binding whose value is accessed as `const f64`.
+b <- 20.0   // `b` is a variable binding whose value is accessed as `f64`.
+```
 
- mode      | type       | source
- ----------|------------|---------------------------------------------
- value     | `T`        | variable, temporary result of an expression.
- value     | `const T`  | immutable.
- reference | `&T`       | copied reference, taken from movable, variable or temporary.
- reference | `&const T` | copied reference, taken from movable, variable, temporary or immutable.
- movable   | `&&T`      | copied movable, taken from a variable or temporary.
+Binding mutability determines whether a binding may be assigned/rebound.
+Const qualification determines whether an access path may be used to modify the
+referenced value.
+
+Here is a table listing the types, their binding mode and the sources of these
+types:
+
+  type       | binding mode | source
+ ------------|--------------|--------------------------------------------
+  `T`        | value        | variable, temporary result of an expression.
+  `const T`  | value        | immutable.
+  `&T`       | reference    | borrow from reference, movable, variable.
+  `&const T` | reference    | borrow from reference, movable, variable, temporary or immutable.
+  `&&T`      | movable      | borrow from movable, variable or temporary.
+
 
 Here is a diagram how type-qualifiers can be safely converted:
 
@@ -38,44 +49,80 @@ Here is a diagram how type-qualifiers can be safely converted:
        └──→ &const T
 ```
 
-Additionally there are explicit unsafe cast that are possible:
+Additionally there are explicit unsafe cast that are possible, which allows
+modification of values through a previously const-qualified path, even if
+it leads to a value that is managed by a immutable:
  - `&const T` -> `&T` - using `std.unsafe_mutable_cast()`
  - `&T` -> `&&T` - using `std.unsafe_movable_cast()`
 
-`const` limits access to member functions of the object that accept an const
-reference as the `@self` argument, or read-only access to member variables.
-`const` thus does not mean that the object itself is frozen, these member
-function may still modify the value.
+## Const
 
-## References & Movables
+A `const` (reference to a) value limits access to:
+ * member functions that accept a const reference to `self`, or
+ * read-only access to member variables.
 
-A reference and movable are not nullable. Optional references `std.optional[&T]`
-exists and are internally optimized as a pointer.
+A `const` qualifier does not mean that the value cannot be modified;
+it is valid to use `std.unsafe_mutable_cast()` to modify the value anyway.
 
-Both references and movable are reseatable by special compiler-blessed
-functions from other reference or movable.
 
-A movable can be moved from, after the function call the original value is in a
-valid but indeterminate state. After the function call the value may be
-optionally reset and reused. The function is not required to consume the moved
-from value, in this case the original value remains in its original state.
+## Reference
 
-An operation consumes a movable when it transfers ownership of some or all of
-the object's resources out of the referenced object.
+A reference works like a non-nullable pointer, which will automatically
+dereference when a value is expected.
 
-## Type selector
+Optional references `std.optional[&T]` exists and are internally optimized
+as a pointer.
 
-A type selector is attached as metadata to an expression, it does not change the
-result or type of the expression. The type selector metadata is consumed by type
+References can not be nested, which is why `&&T` can be a separate syntax
+for a movable.
+
+You are allowed to borrow multiple const and non-const references from
+a single value. Borrowing from a reference produces a reference to the same
+value.
+
+
+## Movable
+
+A moveable is a reference with added permission to allow the referenced value
+to be consumed. Consume means to take ownership of the internal resources
+of a value, and to leave that value in a indeterminate-but-valid state.
+
+A value being in indeterminate-but-valid state means it is still fully
+functional. For example you can reset or reassign a value to make it
+determinate again.
+
+The actual consuming is done by specialization of member-functions of
+the object, such as:
+ * move constructor
+ * move assignement operator
+ * specialization of the `swap()` function
+ * other move specializations.
+
+Some extra rules:
+ * You are allowed to borrow multiple movables from a single value.
+ * You can borrow a new movable from a movable.
+ * You can borrow a reference from a movable.
+ * Consuming a value does not invalidate references to the value.
+   Existing references continue to refer to the same object, which may
+   now be in an indeterminate-but-valid state.
+ * It is valid to consume from a value multiple times, after the first
+   time the result is indeterminate.
+ * Consuming like most other operations on a object is not thread-safe.
+
+
+## Bind selector
+
+A bind selector is attached as metadata to an expression, it does not change the
+result or type of the expression. The bind selector metadata is consumed by bind
 specification of a variable/immutable initialization or function argument to
 control how the type of the expression is interpreted.
 
  Selector   | Description
  -----------|------------
- `x`        | Use the default binding behavior of the receiving type specification; never implicitly produce a movable.
- `*x`       | Explicitly make a copy of the value in (or referenced by) `x`.
- `&x`       | Take a reference to the value in `x`.
- `&const x` | Take a const reference to the value in `x`.
+ `x`        | _no selector_
+ `*x`       | Make a copy.
+ `&x`       | Borrow a reference.
+ `&const x` | Borrow a const reference.
  `&&x`      | Preserve the binding mode of `x`, except that a value binding is promoted to a movable binding.
 
 Compared to the other type-selector `&&x` is a bit special, it has the following
@@ -89,28 +136,28 @@ rules based on the original type of `x`:
  `&const T`  | `&const T`
  `&&T`       | `&&T`
 
-A temporary expression implicitly has the `&&x` type selector attached as
+A temporary expression implicitly has the `&&x` bind selector attached as
 metadata, causing it to be passed as a movable by default. Although it is
-possible to override the selector of a temporary expression to `*x`, `&x`,
-`&const x` and `&&x`, it is not possible to override it to `x`.
+possible to override the selector of a temporary expression to `*x`,
+`&const x` and `&&x`, it is not possible to override it to `x` or `&x`.
 
-See the next chapter on how each type selector influences how an assignment or
+See the next chapter on how each bind selector influences how an assignment or
 argument pass is bound.
 
 
-## Type specification
+## Bind specification
 
- Parameter        | Variable               | Description
- -----------------|------------------------|------------
- `fn(x : *)`      | `x : *      <- <init>` | Take a copy
- `fn(x : &)`      | `x : &      <- <init>` | Take a reference
- `fn(x : &const)` | `x : &const <- <init>` | Take a const reference
- `fn(x : &&)`     | `x : &&     <- <init>` | Require a movable to be passed in
- `fn(x :)`        | `x :        <- <init>` | Infer the binding mode
- `fn(x)`          | `x          <- <init>` | Shorthand for `fn(x : *)` and `x : <- <init>`
+ Parameter        | Variable               | Return      | Description
+ -----------------|------------------------|-------------|------------
+ `fn(x : *)`      | `x : *      <- <init>` | `-> *`      | Make a semantic copy
+ `fn(x : &)`      | `x : &      <- <init>` | `-> &`      | Borrow a reference
+ `fn(x : &const)` | `x : &const <- <init>` | `-> &const` | Borrow a const reference
+ `fn(x : &&)`     | `x : &&     <- <init>` | `-> &&`     | Require a movable to be passed in
+ `fn(x :)`        | `x :        <- <init>` | `->`        | Infer the binding mode
+ `fn(x)`          | `x          <- <init>` | ``          | Shorthand for `fn(x : *)`, `x : <- <init>` and `-> *`
 
 
-### `fn(x : *)`, `x : * <- <init>` - Take a copy of the value
+### `fn(x : *)`, `x : * <- <init>` - Make a semantic copy
 
 A value parameter may be implemented as a const reference when doing so cannot
 make an additional alias observable by the program:
@@ -127,7 +174,7 @@ In other cases the value is copied.
 > to constrain accepted type, while the first can not.
 
 
-### `fn(x : &)`, `x : & <- <init>` - Take a reference
+### `fn(x : &)`, `x : & <- <init>` - Borrow a reference
 
 When using the selectors `x`, `&x` or `&&x`, take a reference of a value when:
  * A non-const value is passed in.
@@ -137,7 +184,7 @@ When using the selectors `x`, `&x` or `&&x`, take a reference of a value when:
 All other combinations are invalid. See [Invalid Pass]
 
 
-### `fn(x : &const)`, `x : &const <- <init>` - Take a const reference
+### `fn(x : &const)`, `x : &const <- <init>` - Borrow a const reference
 
 Take a const reference, this is always valid. [Temporary Materialization].
 
@@ -187,19 +234,20 @@ see: [Temporary Materialization]
 
 This uses the same rules as `fn(x :* )`.
 
+
 ### `x <- <init>`
 
 This uses the same rules as `x : <- <init>`.
 
 
-
 [Invalid Pass]: #invalid-pass
 ## Invalid Pass
 
-Invalid arguments cause the function overload to be dropped as a candidate
+Invalid arguments causes the function overload to be dropped as a candidate
 for overload resolution.
 
 Invalid initialization of variables and immutable will cause a compile-time error.
+
 
 ## Overload resolution
 
@@ -208,11 +256,10 @@ priorities.
 
   rhs type or selector       | exact match | priority                          
  :---------------------------|:------------|:----------------------------------
- `T`, `*x`                   | `: *`       | `:`, `: &const`, `: &`         
- `&T`, `&x`, `&&T`           | `: &`       | `:`, `: &const`, `: *`         
+ `*x`                        | `: *`       | `:`, `: &const`         
+ `T`, `&T`, `&x`, `&&T`      | `: &`       | `:`, `: &const`, `: *`         
  `&const T`, `&const x`      | `: &const`  | `:`, `: *`                      
  `&&x` (including temporary) | `: &&`      | `:`, `: &const`, `: &`, `: *` 
-
 
 
 [Temporary Materialization]: #temporary-materialization
