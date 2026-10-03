@@ -11,25 +11,13 @@ Hikolang has three binding modes:
 ## Type Qualifiers
 
 ```
-a = 10.0    // `a` is an immutable binding whose value is accessed as `const f64`.
-b <- 20.0   // `b` is a variable binding whose value is accessed as `f64`.
+a = 10.0    // `a` is an immutable binding whose value is accessed as `&const f64`.
+b <- 20.0   // `b` is a variable binding whose value is accessed as `&&f64`.
 ```
 
 Binding mutability determines whether a binding may be assigned/rebound.
 Const qualification determines whether an access path may be used to modify the
 referenced value.
-
-Here is a table listing the types, their binding mode and the sources of these
-types:
-
-  type       | binding mode | source
- ------------|--------------|--------------------------------------------
-  `T`        | value        | variable, temporary result of an expression.
-  `const T`  | value        | immutable.
-  `&T`       | reference    | borrow from reference, movable, variable.
-  `&const T` | reference    | borrow from reference, movable, variable, temporary or immutable.
-  `&&T`      | movable      | borrow from movable, variable or temporary.
-
 
 Here is a diagram how type-qualifiers can be safely converted:
 
@@ -109,6 +97,71 @@ Some extra rules:
    time the result is indeterminate.
  * Consuming like most other operations on a object is not thread-safe.
 
+## Expressions
+
+With the following definitions:
+
+```
+a <- 2.0  // `T`        variable
+b = 1.0   // `const T`  immutable
+r = &a    // `&T`       reference
+cr = &b   // `&const T` const-reference
+m = &&a   // `&&T`      movable
+
+my_type = struct { m <- 3.0 }
+o = my_type()
+co = &const o
+
+get = fn() { return a }
+get_ref = fn() -> & { return a }
+get_const_ref = fn() -> &const { return a }
+get_moveable = fn() -> && { return a }
+```
+
+The next table shows the outcome of several expressions:
+
+  Expression       | Outcome    | Name                  
+ ------------------|------------|-----------------------
+  `a`, `o.m`       | `&&T`      | named
+  `b`, `co.m`      | `&const T` | named const
+  `r`              | `&T`       | named reference
+  `cr`             | `&const T` | named const reference
+  `m`              | `&&T`      | named movable
+  `get()`          | `T`        | temporary
+  `get_ref()`      | `&T`       | reference
+  `get_const_ref()`| `&const T` | const reference
+  `get_movable()`  | `&&T`      | movable
+
+Most operator expressions, like `a + b`, are often lowered to a function call
+`__add__(a, b)` which means that the resulting binding modes are limited by
+what functions can return.
+
+## Temporary
+
+A temporary is a value-result of an expression. Temporaries are as-if they are
+materialized as a variable before the function call. The variable is passed to
+the function or initializer with the given bind selector, or implicitly the
+forward `&&` selector.
+
+For example:
+
+```
+a = foo(b + 10.0)
+
+// lowered as:
+materialization = b + 10
+a = foo(&&materialization)
+```
+
+Here is another example where we explicitly select const reference passing:
+
+```
+a = foo(&const (b + 10.0))
+
+// lowered as:
+materialization = b + 10
+a = foo(&const materialization)
+```
 
 ## Bind selector
 
@@ -147,14 +200,15 @@ argument pass is bound.
 
 ## Bind specification
 
- Parameter        | Variable               | Return      | Description
- -----------------|------------------------|-------------|------------
- `fn(x : *)`      | `x : *      <- <init>` | `-> *`      | Make a semantic copy
- `fn(x : &)`      | `x : &      <- <init>` | `-> &`      | Borrow a reference
- `fn(x : &const)` | `x : &const <- <init>` | `-> &const` | Borrow a const reference
- `fn(x : &&)`     | `x : &&     <- <init>` | `-> &&`     | Require a movable to be passed in
- `fn(x :)`        | `x :        <- <init>` | `->`        | Infer the binding mode
- `fn(x)`          | `x          <- <init>` | ``          | Shorthand for `fn(x : *)`, `x : <- <init>` and `-> *`
+ | Parameter        | Variable               | Return           | Description
+ |------------------|------------------------|------------------|------------
+ | `fn(x : *)`      | `x : *      <- <init>` | `fn() -> *`      | Make a semantic copy
+ | `fn(x : &)`      | `x : &      <- <init>` | `fn() -> &`      | Borrow a reference
+ | `fn(x : &const)` | `x : &const <- <init>` | `fn() -> &const` | Borrow a const reference
+ | `fn(x : &&)`     | `x : &&     <- <init>` | `fn() -> &&`     | Require a movable
+ | `fn(x :)`        | `x :        <- <init>` | `fn() ->`        | Infer the binding mode
+ |                  | `x          <- <init>` | `fn()`           | Guided by selector
+ | `fn(x)`          |                        |                  | Shorthand for `fn(x : *)`
 
 
 ### `fn(x : *)`, `x : * <- <init>` - Make a semantic copy
@@ -168,10 +222,6 @@ make an additional alias observable by the program:
  * The type-selector used is not `*x`.
 
 In other cases the value is copied.
-
-> [!note]
-> `fn(x)` is short-hand for `fn(x : *)`, the second can have a type expression
-> to constrain accepted type, while the first can not.
 
 
 ### `fn(x : &)`, `x : & <- <init>` - Borrow a reference
@@ -230,14 +280,20 @@ If the passed in value is a temporary, then it will be materialized,
 see: [Temporary Materialization]
 
 
-### `fn(x)`
-
-This uses the same rules as `fn(x :* )`.
-
-
 ### `x <- <init>`
 
-This uses the same rules as `x : <- <init>`.
+This binding specification is more directly guided by the binding selector.
+
+ * `x` - Copy the value
+ * `*x` - Make a copy of the value
+ * `&x` - Borrow a reference
+ * `&const x` - Borrow a const reference
+ * `&&x` - Forward the binding mode based on the type:
+   - `T` - Borrow a reference
+   - `const T` - Borrow a const reference
+   - `&T` - Borrow a reference
+   - `&const T` - Borrow a const reference
+   - `&&` - Borrow a movable
 
 
 [Invalid Pass]: #invalid-pass
@@ -261,40 +317,3 @@ priorities.
  `&const T`, `&const x`      | `: &const`  | `:`, `: *`                      
  `&&x` (including temporary) | `: &&`      | `:`, `: &const`, `: &`, `: *` 
 
-
-[Temporary Materialization]: #temporary-materialization
-## Temporary Materialization
-
-Temporaries are materialized before the function call or variable initialization
-in the enclosing code-block. Therefore the lifetime of temporaries are extended
-until the end of the code-block together with other automatic variables.
-
-
-```
-foo = fn(x : &const) {
-  return &x
-}
-
-a = 10.0
-b = &foo(a + 3.0)
-c = b + 1.0
-```
-
-Is executed as-if:
-
-```
-...
-
-a = 10.0
-temporary = a + 3.0
-b = &foo(&&temporary)   // The temporary is passed into the function.
-c = b + 1.0             // b references the temporary.
-```
-
-If multiple arguments cause materializations, then those materializations happen
-in the same order as the arguments.
-
-If the temporary does not escape the operation requiring materialization, its
-materialization may be delayed or eliminated. If a reference to the temporary
-escapes, the temporary must be materialized with the lifetime required by that
-reference.
