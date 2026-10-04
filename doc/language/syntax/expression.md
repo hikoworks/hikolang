@@ -50,10 +50,11 @@
   `not b`        |  2000 R    | `__not__(a)`                   |
   `await b`      |  2000 R    |                                | [_await-operator_]
   `try b`        |  2000 R    |                                | [_try-operator_]
-  `&b`           |  2000 R    |                                | [_binding-selector_]
-  `&&b`          |  2000 R    |                                | [_binding-selector_]
-  `*b`           |  2000 R    |                                | [_binding-selector_]
-  `const r`      |  2000 R    |                                | [_make-const-operator_]
+  `&b`           |  2000 R    |                                | [_binding-operator_]
+  `&&b`          |  2000 R    |                                | [_binding-operator_]
+  `*b`           |  2000 R    |                                | [_binding-operator_]
+  `const r`      |  2000 R    |                                | [_binding-operator_]
+  `move  r`      |  2000 R    |                                | [_binding-operator_]
   `?b`           |  2000 R    |                                | [_make-optional-operator_]
   `a #U`         |  3000 L    |                                | [_unit-expression_]
   `T #U`         |  3000 L    |                                | [_unit-expression_]
@@ -133,6 +134,7 @@ The other expressions listed in this document are terminal expressions which
 are parsed outside of the shunting yard.
 
 [_annotation_]: annotation.md
+[_binding-operator_]: binding_operator.md
 [_code-block_]: code_block.md
 [_context-argument_]: context_argument.md
 [_identifier_]: identifier.md
@@ -156,8 +158,6 @@ are parsed outside of the shunting yard.
 [_empty-operator_]: empty_operator.md
 [_error-list_]: error_list.md
 [_index-operator_]: index_operator.md
-[_make-const-operator_]: make_const_operator.md
-[_make-optional-operator_]: make_optional_operator.md
 [_member-access_]: member_access.md
 [_namespace-traversal-operator_]: namespace_traversal_operator.md
 [_type-operator_]: type_operator.md
