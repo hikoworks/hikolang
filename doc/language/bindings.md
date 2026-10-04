@@ -34,6 +34,9 @@ well, with the following exceptions:
      the reference and its qualifiers.
    - otherwise; create a temporary.
 
+Additionally write access to member variables of a value can only be done
+through a unqualified or move-qualified expression.
+
 > [!note]
 > `fn(x)` may use the as-if rule to take the argument as `&const T` instead.
 
@@ -50,10 +53,11 @@ reference `&move T`, while a const-qualified variable binding is represented
 as-if a const-qualified reference `&const T`.
 
 A move-qualified reference is fragile: passing it to a binding does not preserve
-its move qualification unless the borrow explicitly requests `&move`.
+its move qualification unless either the `&&` or `&move` binding operators are
+used.
 
-When an expression produces a temporary value, the value is materialized
-and implicitly borrowed with `&move` when passed to a binding.
+When an expression produces a temporary value, the value is materialized and
+implicitly borrowed with the `&move` binding operator when passed to a binding.
 
 These are the binding operators that can be used to modify an expression:
  * `&` - Borrow an unqualified reference.
@@ -63,6 +67,15 @@ These are the binding operators that can be used to modify an expression:
  * `&&` - Explicitly borrow and forward the reference; preserving its qualifiers
           when the expression is passed to a binding.
  * `*` - Explicitly copy the (referenced) value as a temporary value.
+
+## Constants
+Unlike C++ `const` does not imply mutability of the value.
+
+The semantics of const-qualified expressions, references and bindings are
+described by this document from how binding will select overloaded functions
+that may actually modify the value.
+
+
 
 ## Moving
 In this language moving is implemented as a non-destructive move like in C++.
