@@ -16,6 +16,6 @@ _binding-operator_ :=\
  * `&const` - Borrow a const-qualified reference.
  * `&move` - Explicitly borrow a move-qualified reference.
  * `&&` - Explicitly forward a reference preserving the qualifier.
- * `*` - Dereference creating a temporary value.
+ * `*` - Dereference, creating a temporary value.
 
 
