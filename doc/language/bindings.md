@@ -168,3 +168,75 @@ other with binding operator that is passed to an function argument.
  `&move`      | `fn(x : &move)`  | `fn(x :)`, `fn(x : &const)`, `fn(x : &)`, `fn(x)`
  temporary    | `fn(x : &move)`  | `fn(x :)`, `fn(x : &const)`, `fn(x)`
 
+## Initializing
+
+When a binding does not yet exist it can be created using two different operators:
+ * `<-` - Defines a variable or reference binding.
+ * `=` - Defines a const-qualified variable or reference binding.
+ 
+`=` is ment to be the most used operator for creating bindings, it creates
+something close to an immutable in other languages. However it just adds
+the `const` qualifier to the binding, it does not make it actual immutable.
+
+
+```
+a <- 1.0                   // Move-qualified variable binding.
+b : const <- 2.0           // Const-qualified variable binding.
+c = 2.0                    // Const-qualified variable binding, same as `b`.
+
+t = enum (int[0...1])  { foo }  // A type is a value, in this case const-qualified.
+f = fn(a : *) {}                // A function is value, in this case const-quallified.
+
+r <- &a                    // Unqualified reference binding to the storage of `a`.
+cr <- &const r             // Const-qualified reference binding to the storage of `a`.
+cr2 = &r                   // Const-qualified reference binding to the storage of `a`.
+m <- &move a               // Move-qualified reference binding to the storage of `a`.
+```
+
+## Assignment
+
+
+
+## Merging
+
+When a binding already exists, then:
+
+ * `<-` assigns a new value, by calling `__assign__()` member function
+   on the value.
+ * `=` merges value, by calling `__merge__()` const-qualified member
+   function on a value. Most types don't implement this member function
+   but types like `enum` or function overload set created by `fn` do.
+
+```
+e <- 2.0                        // Calls `e.__assign__(2.0)`
+t = enum { bar }                // Calls `t.__merge__(enum {bar})`
+```
+
+
+## Initializing and updating references
+
+When a binding does not yet exist the `<-` and `=` operators create a new
+reference binding. For variable bindings these operators work as follows:
+
+```
+a <- 1.0                        // Create a move-qualified value
+b = 2.0                         // Create a const-qualified value
+
+e <- &a                         // Create a unqualified reference
+f <- &const a                   // Create a const-qualified reference
+g <- &move a                    // Create a move-qualified reference
+h = &b                          // Create a const-qualified reference
+
+i = &a                          // Create a const-qualified reference
+```
+
+Initialization determines what a binding refers to. Once a binding exists, <- and = operate on the bound entity rather than replacing the reference itself. A reference binding is therefore not reseatable by assignment.
+
+ * `<-` assigns a new value, by calling `__assign__()` member function
+   on the value through the reference.
+
+```
+e <- 2.0                        // Calls `e.__assign__(2.0)`
+//f <- 3.0                      // ERROR __assign__ does not accept const-qualified reference
+```
+
