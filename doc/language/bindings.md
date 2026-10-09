@@ -2,7 +2,7 @@
 
 Goals these binding rules:
  * Const correctness.
- * Default simple / no bind specification means mostly copy-like semantics.
+ * The simple default syntax means copy-like semantics.
  * Ordinary use of a variable doesn't accidentally give a function permission
    to consume it. An explicit `&move` or `&&` is required to cross that boundary.
  * Temporaries are expected to be consumed.
@@ -10,14 +10,14 @@ Goals these binding rules:
 
 ## Types
 
- | Type       | Description                                                 | Expr result |
- |------------|-------------------------------------------------------------|:-----------:|
- | `T`        | The type of a value                                         |             |
- | `move T`   | The type of a move-qualified variable binding, or temporary |      +      |
- | `const T`  | The type of a const-qualified variable binding              |             |
- | `&T`       | The type of a unqualified reference binding                 |      +      |
- | `&move T`  | The type of a move-qualified reference binding              |      +      |
- | `&const T` | The type of a const-qualified reference binding             |      +      |
+ | Type       | Description                                                 | Expr result | Variable | Reference |
+ |------------|-------------------------------------------------------------|:-----------:|:--------:|:---------:|
+ | `T`        | The type of a value                                         |             |          |           |
+ | `move T`   | The type of a move-qualified variable binding, or temporary |      +      |    +     |           |
+ | `const T`  | The type of a const-qualified variable binding              |             |    +     |           |
+ | `&T`       | The type of a unqualified reference binding                 |      +      |          |     +     |
+ | `&move T`  | The type of a move-qualified reference binding              |      +      |          |     +     |
+ | `&const T` | The type of a const-qualified reference binding             |      +      |          |     +     |
 
 
 
@@ -35,22 +35,25 @@ Rules for how an expression is typed (all rules are applied in order):
  3. A reference binding initially retains its qualifier.
  4. A temporary is materialized as an anonymous move-qualified variable binding,
     then forwarded using the implied `&move` binding operator.
- 5. Apply:
-    - the (implied) binding operator, otherwise
-    - fragility by converting `&move T` to `&T`.
+ 5. If the expression has an explicit or implicit binding operator:
+    - apply the binding operator to the expression, otherwise
+    - apply fragility by converting a `&move T` expression to `&T`.
  6. (optionally) Select function based on overload rules.
- 7. Apply binding qualifier and bind.
+ 7. Apply binding qualifier of the selected function and bind to the named binding.
 
 ```
 a <- 1.0          // Move-qualified variable binding.
 foo(a)            // `a` in an expression has type `&move T`, but the fragile expression
                   // loses its move qualification before binding, causing the type to be `&T`.
 foo(&move a)      // The expression type `&move T` will select `foo(x : &move)`
-foo(make_value()) // The expression type `move T` will select `foo(x : &move)`
+foo(make_value()) // make_value() has as result `T`, then
+                  // materialized as a `move T` anonymous variable binding.
+                  // implicit &move operator will cause the expression to be `&move T`.
+                  // The function selected is `foo(x : &move)`
 ```
 
-Here is the table showing how an expression of a certain type is converted by
-each binding operator:
+Here is the table showing how an intermediate expression result of a certain type
+is converted by each binding operator:
 
  | op \ expr  | Description                                                 | `&T`        | `&const T`  | `&move T`
  |------------|-------------------------------------------------------------|-------------|-------------|------------
@@ -73,7 +76,7 @@ _unqualified_, _const-qualified_ and _move-qualified_. An expression-type after
 applying the binding operator, can be passed to a binding, and result in a
 binding-type according to the following table:
 
-| Binding \\ Expression |                                              | `&T`        | `&const T`  | `&move T` |
+| Binding \\ Expression | Description                                  | `&T`        | `&const T`  | `&move T` |
 |-----------------------|----------------------------------------------|-------------|-------------|-----------|
 | `fn(a : &)`           | Bind as a unqualified reference              | `&T`        | [_invalid_] | `&T`      |
 | `fn(a : &const)`      | Bind as a const-qualified reference          | `&const T`  | `&const T`  | `&const T`|
@@ -89,17 +92,26 @@ binding-type according to the following table:
 
 In the table above we show how arguments behave for function arguments; this
 works identical for variable initializer and function return specification.
+The following tables shows equivalence of the binding types:
 
-These simple-syntax versions are asymmetrical between bindings:
- * The function definition: `fn(a)` is identical to `fn(a : *)`.
+| Function Parameter | Function Return  | Variable Init          |
+|--------------------|------------------|------------------------|
+| `fn(a : &)`        | `fn() -> &`      | `a : & <- <expr>`      |
+| `fn(a : &const)`   | `fn() -> &const` | `a : &const <- <expr>` |
+| `fn(a : &move)`    | `fn() -> &move`  | `a : &move <- <expr>`  |
+| `fn(a : *)`        | `fn() -> *`      | `a : * <- <expr>`      |
+| `fn(a :)`          | `fn() ->`        | `a : <- <expr>`        |
+
+These simple-syntax versions are asymmetrical between functions argument
+definition, variable initializer and function return specification:
+
+ * The function argument definition: `fn(a)` is identical to `fn(a : *)`.
  * The variable initializer: `x <- <init>`:
-   - when the `<init>` expression has an explicit binding operator; preserve the
-     reference and its qualifiers.
-   - otherwise; bind as a move-qualified variable.
- * The (empty) return specification `fn()`:
-   - when the `return` expression has an explicit binding operator; preserve
-     the reference and its qualifiers.
-   - otherwise; create a temporary.
+   - when `<init>` has an explicit binding operator; identical to `x : <- <init>`
+   - otherwise; identical to `x : * <- <init>`.
+ * The (empty) function return specification `fn()`:
+   - when `return` has an explicit binding operator; identical to `fn() ->`
+   - otherwise; identical to `fn() -> *`
 
 
 ## Overload resolution
@@ -107,17 +119,17 @@ These simple-syntax versions are asymmetrical between bindings:
 These are the overload priorities based on the result of the expression
 after the optional binding operator has been applied.
 
- | Expression type | preferred        | fallbacks in order
- |-----------------|------------------|---------------
- | `&T`            | `fn(a : &)`      | `fn(a :)`, `fn(a : &const)`, `fn(a : *)`
- | `&const T`      | `fn(a : &const)` | `fn(a :)`, `fn(a : *)`
- | `&move T`       | `fn(a : &move)`  | `fn(a :)`, `fn(a : &const)`, `fn(a : *)`, `fn(a : &)`
+ | Expression type | preferred in order
+ |-----------------|-----------------
+ | `&T`            | `fn(a : &)`,      `fn(a :)`, `fn(a : &const)`, `fn(a : *)`
+ | `&const T`      | `fn(a : &const)`, `fn(a :)`,                   `fn(a : *)`
+ | `&move T`       | `fn(a : &move)`,  `fn(a :)`, `fn(a : &const)`, `fn(a : *)`, `fn(a : &)`
 
 
 ## Explicit cast
 
 Special standard library functions can cast references beyond the
-implicit conversion, including less safe cast:
+implicit conversion:
 
  * `std.remove_const(x)` - Remove const-qualifier from a reference.
  * `std.remove_move(x)` - Remove move-qualifier from a reference.
