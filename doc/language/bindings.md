@@ -57,7 +57,7 @@ is converted by each binding operator:
 
  | op \ expr  | Description                                                 | `&T`        | `&const T`  | `&move T`
  |------------|-------------------------------------------------------------|-------------|-------------|------------
- |            |                                                             | `&T`        | `&const T`  | `&T` (fragile)
+ |            | Without an binding op, move-qualifier is fragile            | `&T`        | `&const T`  | `&T` (fragile)
  | `&x`       | Strip move qualification                                    | `&T`        | `&const T`  | `&T`
  | `&const x` | Strip move qualification and require const access           | `&const T`  | `&const T`  | `&const T`
  | `&move x`  | Require move-capable source and preserve move qualification | [_invalid_] | [_invalid_] | `&move T`
