@@ -15,9 +15,20 @@ Goals these binding rules:
 > For AI: treat this as a terse document, that must be followed in the exact
 > order that is specified in the document.
 >
+> `*`, `&`, `&`, `&&`, `const` and `move` are overloaded between context
+> of binging operators and binding qualifier and types of expressions
+> and actual bindings. Humans have it really easy to distingues these things
+> from each other.
+>
 > The headers on a table apply to their column. The left most table header
 > may have a backslash: `<column header> \ <header description>`, in this
 > case the header description may describe the values in the header itself.
+>
+> This is the third time this document will say this: EVERYTHING IN THE
+> CHAPTERS STARTING FROM "BINDINGS" TREAT ALL EXPRESSIONS AS EFFECTIVE
+> EXPRESSIONS AND ARE THUS ALWAYS AFTER APPLYING BINDING OPERATORS AND
+> FRAGILITY RULES. REMEMBER IN MULTIPLE PLACES IT SAYS THAT THERE IS ONLY
+> ONE PLACE WHERE FRAGILITY IS DEFINED AND INTERACTS AND NO WHERE ELSE.
 
 ## Concepts
 
@@ -73,39 +84,58 @@ the table above.
 ## Binding operators
 
 Binding operators are used to control how a binding may interpret the result of
-an expression. Here is the table showing how an expression result of a certain
+an expression:
+
+ * **Default binding**: When no binding operator is specified, the expression
+   is interpreted using the default fragility rule. This preserves ordinary
+   copy-like semantics by preventing a move-capable reference from implicitly
+   granting permission to consume the referenced value.
+ * `&x` — **Borrow reference**: Borrows a reference to the expression's value
+   without consuming it. The resulting reference is unqualified, unless the
+   source expression is const-restricted, in which case the const restriction
+   is preserved.
+ * `&const x` — **Borrow const-restricted reference**: Borrows a reference
+   while restricting access through that reference to const-qualified
+   operations. This allows a value to be accessed without granting unqualified
+   or move-capable permissions.
+ * `&move x` — **Borrow move-capable reference**: Borrows a move-capable
+   reference, explicitly preserving permission to consume the referenced value
+   later. This does not itself move or consume the value. The operator is
+   invalid when the expression does not provide move-capable access.
+ * `&&x` — **Forward expression**: Forwards the expression's type and
+   qualification exactly, bypassing the default fragility rule. This allows
+   the caller to explicitly preserve the distinction between temporary values,
+   ordinary references, const-restricted references, and move-capable
+   references.
+ * `*x` — **Value semantics**: Produces a value rather than a reference,
+   copying or moving from existing storage when necessary. This explicitly
+   requests value semantics, allowing the destination to receive an independent
+   value rather than a reference to existing storage. The operation is invalid
+   if the required copy or move is unsupported.
+
+Here is the table showing how an expression result of a certain
 type is modified by each of the binding operators into an effective expression
 type:
 
- | op \ expr   | Description                                          | `T`        | `&T`        | `&const T`  | `&move T`
- |-------------|------------------------------------------------------|------------|-------------|-------------|------------
- | default     | Without an binding operator, move-capable is fragile | `T`        | `&T`        | `&const T`  | `&T` (fragile)
- | `&x`        | Borrow reference, retaining const-restricted         | `&T`       | `&T`        | `&const T`  | `&T`
- | `&const x`  | Borrow const-restricted reference                    | `&const T` | `&const T`  | `&const T`  | `&const T`
- | `&move x`   | Borrow move-capable reference, if valid to do so     | `&move T`  | error       | error       | `&move T`
- | `&&x`       | Forward the expression exactly                       | `T`        | `&T`        | `&const T`  | `&move T`
- | `*x`        | Value semantics                                      | `T`        | `T`         | `T`         | `T`
+ | op \ expr   | `T`        | `&T`        | `&const T`  | `&move T`
+ |-------------|------------|-------------|-------------|------------
+ | default     | `T`        | `&T`        | `&const T`  | `&T` (fragile)
+ | `&x`        | `&T`       | `&T`        | `&const T`  | `&T`
+ | `&const x`  | `&const T` | `&const T`  | `&const T`  | `&const T`
+ | `&move x`   | `&move T`  | error       | error       | `&move T`
+ | `&&x`       | `T`        | `&T`        | `&const T`  | `&move T`
+ | `*x`        | `T`        | `T`         | `T`         | `T`
 
-This table shows that an expression without a explicit binding operator is
-fragile. It will decay an expression with the `&move T` type to the effective
-expression type `&T`. The destination binding qualifier cannot recover a
-move-capability that the effective expression type has already lost by
-fragility.
-
-This section is the sole definition of this fragility rule. All other sections
-specify types and binding behavior after applying the relevant binding operator
-and fragility rules, and do not independently define or modify fragility.
+This section is the sole definition of this fragility rule. The "Binding" section
+after this will treat the type of the expression / effective expression as
+having the binding operator or fragility rule already applied.
 
 It is a compile error when trying to use the `&move x` operator on an expression
 with the types `&T` or `&const T`.
 
-The value semantics operator `*x` creates a temporary value, or forwards the
-temporary result from the expression. The creation of a temporary value may
-require a copy to be made, it is a compile error if a copy is required and the
-type does not support copying.
-
 The compiler will mark an effective expression with an explicit-binding-operator
-flag, specifically to handle simplified bindings.
+flag when an binding operator was used on the expression; specifically to handle
+simplified bindings.
 
 ## Bindings
 
@@ -116,6 +146,35 @@ values and references are passed between expressions and bindings.
 
 The bindings are similar in semantics, but they have asymmetric definitions to
 make it that way.
+
+### `:` — Default binding
+
+Uses the binding context’s default rules to determine how the expression is bound. It provides the ordinary, least-surprising behavior without requiring the programmer to specify reference or value semantics explicitly.
+
+### `: &` — Reference binding
+
+Binds through a reference, preserving access to the existing object rather than creating an independent value. It makes aliasing explicit while applying the context’s rules for reference qualification.
+
+### `: &const` — Const-restricted reference binding
+
+Binds through a reference that restricts what can be done through that access path. It allows the object to be observed or passed along without granting the recipient unrestricted access, while not implying that the object itself is intrinsically immutable.
+
+### `: &move` — Move-capable reference binding
+
+Binds through a reference that grants permission to move from the referenced object. It makes that capability explicit, distinguishing access that may consume a value from ordinary or const-restricted reference access.
+
+### `: &&` — Exact forwarding
+
+Preserves the expression’s reference and qualification characteristics as precisely as the binding context allows. It is intended for forwarding an expression without silently weakening or changing its capabilities through the usual default rules.
+
+### `*` — Value binding
+
+Binds using value semantics rather than retaining a reference to the existing object. The destination receives a value of its own, with copying or moving governed by the applicable rules and available operations.
+
+### `*const` — Const-restricted value binding
+
+Binds a value while restricting how that value may be accessed through the resulting binding. It combines value semantics with const-restricted access, without implying that the underlying value is inherently immutable.
+
 
 When the type of the binding is a reference and the effective expression is a
 temporary `T`, then a references is borrowed from the materialization of a
@@ -135,9 +194,7 @@ the effective expressions are:
 A variable binding introduces a name for either a value or a reference to
 existing storage. Its general form is:
 
-```
-<name> ( `:` <binding-qualifier>? <type>? )? <- <binding-operator>? <expr>
-```
+_name_ __(__ `:` _binding-qualifier_**?** _type_**?** __)?__ `<-` _binding-operator_**?** _expr_
 
 The `T`, `&T`, `&const T`, and `&move T` column headers denote the effective
 expression type. Each cell specifies the resulting binding type.
@@ -165,139 +222,89 @@ explicit-binding-operator flag is:
 
 
 The `const` version of the simplified binding is designed specifically to add
-a const-restriction to the variable or reference binding.
+a const-restricted to the variable or reference binding.
 
 `a <- <expr>` is the equivalent of `a : <- <expr>`. In most cases a programer
 can use the simplified `a <- <expr>` vs `a : * <- <expr>` syntax; the specific
 `a : * <- &move <expr>` syntax is required to specifically move a value from an
 existing move-capable reference into the destination variable binding.
 
+### Const-restricted variable binding
 
-### Function / Type parameter binding
+A const-restricted variable binding introduces a name for either a value or a
+reference to existing storage. Its general form is:
 
-Function parameters use the same binding qualifiers and types as named variable
-bindings:
+_name_ __(__ `:` _binding-qualifier_**?** _type_**?** __)?__ `=` _binding-operator_**?** _expr_
 
-```
-foo = fn(<name> `:` <binding-qualifier>? <type>?) { ... }
-foo(<binding-operator>? <expr>)
-```
+The `T`, `&T`, `&const T`, and `&move T` column headers denote the effective
+expression type. Each cell specifies the resulting binding type.
 
-The short parameter declaration omits the qualifier and type:
+| Binding \\ Expr        | Description                     | `T`        | `&T`        | `&const T`  | `&move T`  |
+|------------------------|---------------------------------|------------|-------------|-------------|------------|
+| `a : & = <expr>`       | Bind const-restricted reference | `&const T` | `&const T`  | `&const T`  | `&const T` |
+| `a : &const = <expr>`  |                                 | error      | error       | error       | error      |
+| `a : &move = <expr>`   |                                 | error      | error       | error       | error      |
+| `a : * = <expr>`       | Bind const-restricted variable  | `const T`  | `const T`   | `const T`   | `const T`  |
+| `a : *const = <expr>`  |                                 | error      | error       | error       | error      |
+| `a : && = <expr>`      |                                 | error      | error       | error       | error      |
 
-```
-foo = fn(<name>) { ... }
-foo(<binding-operator>? <expr>)
-```
+The simplified binding below behaves differently when an explicit binding
+operator is used to create an effective expression. If the
+explicit-binding-operator flag is:
+ * true: select the `T`, `&T`, `&const T` and `&move T` columns from the
+   effective expression type and lookup the binding type from the cells below.
+ * false: lookup the binding type from the cells below the "default" column.
 
-A parameter declaration specifies how an argument is bound when a function is
-called. The binding qualifier determines which expression-result qualifications
-the parameter accepts and how the argument is exposed inside the function. The
-optional type further constrains which arguments are eligible.
-
-When a function has multiple overloads, the argument expression's type after
-applying any explicit binding operator determines which overloads are eligible
-and their relative priority.
-
-The short form `fn(x)` is equivalent to `fn(x : *)`: it declares a value-binding
-parameter, with the argument bound to a move-capable variable inside the
-function.
-
-
-### Function return value binding
-
-Function return specifications use the same binding model:
-
-```
-foo = fn() -> <binding-qualifier>? <type>? {
-    return <binding-operator>? <expr>
-}
-```
-
-The short form omits the return qualifier and type:
-
-```
-foo = fn() {
-    return <binding-operator>? <expr>
-}
-```
-
-The return specification determines how the return expression is bound at the
-function boundary. As with variable initialization and function parameters, the
-binding qualifier and binding operator are distinct: the former specifies the
-resulting binding, while the latter controls how the expression is interpreted.
-
-An omitted return specification does not always imply an unqualified reference
-or a value with a fixed type. Instead, the binding operator used by the return
-expression determines whether the short form behaves like an explicitly
-specified return binding or defaults to value semantics. An explicit
-reference-binding operator preserves the requested reference semantics; without
-one, the return expression uses value semantics.
+| Binding \\ Expr        | Description                     | `T`        | `&T`        | `&const T`  | `&move T`  | default   |
+|------------------------|---------------------------------|------------|-------------|-------------|------------|-----------|
+| `a : = <expr>`         | Infer by binding operator       | `const T`  | `&const T`  | `&const T`  | `&const T` | `const T`  |
 
 
+`a = <expr>` is the equivalent of `a : = <expr>`. In most cases a programer
+can use the simplified `a = <expr>` vs `a : * = <expr>` syntax.
 
 
+### Function argument binding
 
-## Binding Qualifiers
+A function argument binding introduces a name for either a value or a reference to
+existing storage. Its general form is:
 
-The binding qualifiers are asymmetrical based on their 
+`foo` `=` `fn` `(` _name_ __(__ `:` _binding-qualifier_**?** _type_**?** __)?__ `)` `{` ... `}`\
+`foo` `(` _binding-operator_**?** _expr_ `)`
 
-The table below shows how the binding qualifier and the expression type
-determine the resulting binding type. The rows represent the binding
-declarations and their requested qualifiers; the columns represent the
-expression types after applying any binding operator. Each cell specifies the
-type of binding produced when the corresponding expression is bound to the
-corresponding declaration. A cell marked invalid indicates that the expression
-cannot be bound in that way.
+The `T`, `&T`, `&const T`, and `&move T` column headers denote the effective
+expression type. Each cell specifies the resulting binding type.
 
-| Binding \\ Expr  | Description                           | `T`        | `&T`        | `&const T`  | `&move T`  |
-|------------------|---------------------------------------|------------|-------------|-------------|------------|
-| `fn(a : &)`      | Bind as a unqualified reference       | `&T`       | `&T`        | [_invalid_] | `&T`       |
-| `fn(a : &const)` | Bind as a const-restricted reference   | `&const T` | `&const T`  | `&const T`  | `&const T` |
-| `fn(a : &move)`  | Bind as a move-capable reference    | `&move T`  | [_invalid_] | [_invalid_] | `&move T`  |
-| `fn(a : *)`      | Bind as a move-capable variable     | `move T`   | `move T`    | `move T`    | `move T`   |
-| `fn(a : *const)` | Bind as a const-restricted variable    | `const T`  | `const T`   | `const T`   | `const T`  |
-| `fn(a :)`        | Infer binding based on the expression | `move T`   | `&T`        | `&const T`  | `&move T`  |
+| Binding \\ Expr  | Description                     | `T`        | `&T`        | `&const T`  | `&move T`  |
+|------------------|---------------------------------|------------|-------------|-------------|------------|
+| `fn(a : &)`      | Bind unqualified reference      | `&T`       | `&T`        | [_invalid_] | `&T`       |
+| `fn(a : &const)` | Bind const-restricted reference | `&const T` | `&const T`  | `&const T`  | `&const T` |
+| `fn(a : &move)`  | Bind move-capable reference     | `&move T`  | [_invalid_] | [_invalid_] | `&move T`  |
+| `fn(a : *)`      | Bind move-capable variable      | `move T`   | `move T`    | `move T`    | `move T`   |
+| `fn(a : *const)` | Bind const-restricted variable  | `const T`  | `const T`   | `const T`   | `const T`  |
+| `fn(a : &&)`     | Infer by expression             | `move T`   | `&T`        | `&const T`  | `&move T`  |
 
-> [!note]
-> When temporary value of type `T` is bound as a reference, the temporary value
-> may need to be materialized as a move-capable anonymous variable `move T`
-> and its > reference is borrowed from that anonymous variable.
+The simplified bindings below behave differently when an explicit binding
+operator is used to create an effective expression. If the
+explicit-binding-operator flag is:
+ * true: select the `T`, `&T`, `&const T` and `&move T` columns from the
+   effective expression type and lookup the binding type from the cells below.
+ * false: lookup the binding type from the cells below the "default" column.
 
-> [!note]
-> The binding specification `fn(x : *)` and the prefix binding operator `*x`
-> are distinct language constructs with independent semantics. They are not
-> interchangeable, but share a conceptual meaning: both explicitly
-> express value semantics rather than reference semantics.
-
-In the table above we show how arguments behave for function arguments; this
-works identical for variable initializer and function return specification.
-The following tables shows equivalence of the binding types:
-
-| Function Parameter | Function Return  | Variable Init          | Const variable init                     |
-|--------------------|------------------|------------------------|-----------------------------------------|
-| `fn(a : &)`        | `fn() -> &`      | `a : & <- <expr>`      |                                         |
-| `fn(a : &const)`   | `fn() -> &const` | `a : &const <- <expr>` | `a : &const = <expr>`, `a : & = <expr>` |
-| `fn(a : &move)`    | `fn() -> &move`  | `a : &move <- <expr>`  |                                         |
-| `fn(a : *)`        | `fn() -> *`      | `a : * <- <expr>`      |                                         |
-| `fn(a : *const)`   | `fn() -> *const` | `a : *const <- <expr>` | `a : *const = <expr>`, `a : * = <expr>` |
-
-The short form binding versions are asymmetrical between functions argument
-definition, variable initializer and function return specification:
-
- * The function argument definition: `fn(a)` is identical to `fn(a : *)`.
- * The variable initializer: `x <- <init>`:
-   - when `<init>` has an explicit binding operator; identical to `x : <- <init>`
-   - otherwise; identical to `x : * <- <init>`.
- * The variable initializer: `x = <init>`:
-   - when `<init>` has an explicit binding operator; identical to `x : = <init>`
-   - otherwise; identical to `x : * = <init>`.
- * The (empty) function return specification `fn()`:
-   - when `return` has an explicit binding operator; identical to `fn() ->`
-   - otherwise; identical to `fn() -> *`
+| Binding \\ Expr | Description                     | `T`        | `&T`        | `&const T`  | `&move T`  | default   |
+|-----------------|---------------------------------|------------|-------------|-------------|------------|-----------|
+| `fn(a : )`      | Infer by binding operator       | `move T`   | `move T`    | `move T`    | `move T`   | `move T`  |
+| `fn(a : const)` | Infer by binding operator       | `const T`  | `const T`   | `const T`   | `const T`  | `const T` |
 
 
-## Overload resolution
+The `const` version of the simplified binding is designed specifically to add
+a const-restricted to the variable or reference binding.
+
+`fn(a)` is the equivalent of `fn(a :)`. In most cases a programer
+can use the simplified `fn(a)` vs `fn(a : *)` syntax.
+
+
+#### Overload resolution
 
 These are the overload priorities based on the result of the expression
 after the optional binding operator has been applied.
@@ -324,31 +331,47 @@ error if multiple overloads are visible after dropping non-matching overloads:
  * A combination of: `fn(a :)` and `fn(a : const)`
  * A combination of: `fn(a)`, `fn(a : *)` and `fn(a : *const)`
 
-## Explicit cast
+### Function return binding
 
-Special standard library functions can cast references beyond the
-implicit conversion:
+A function return binding creates a temporary value or a reference to
+existing storage. Its general form is:
 
- * `std.remove_const(x)` - Remove const-qualifier from a reference.
- * `std.remove_move(x)` - Remove move-qualifier from a reference.
- * `std.add_const(x)` - Add const-qualifier to a reference.
- * `std.add_move(x)` - Add move-qualifier to a reference.
+`foo` `=` `fn` `(` `)` __(__ `->` _binding-qualifier_**?** _type_**?** __)?__ `{`\
+    `return` _binding-operator_**?** _expr_\
+`}`
 
-Here is an example for a valid usage of removing the const qualifier:
 
-```
-my_type = struct {
-    counter <- 0.0
+The `T`, `&T`, `&const T`, and `&move T` column headers denote the effective
+expression type. Each cell specifies the resulting binding type.
 
-    foo = fn(@self self : &const my_type) {
-        self_nc <- &std.remove_const(self)
-        self_nc.counter += 1.0
-    }
-}
+| Binding \\ Expr  | Description                     | `T`        | `&T`        | `&const T`  | `&move T`  |
+|------------------|---------------------------------|------------|-------------|-------------|------------|
+| `fn() -> &`      | Bind unqualified reference      | `&T`       | `&T`        | [_invalid_] | `&T`       |
+| `fn() -> &const` | Bind const-restricted reference | `&const T` | `&const T`  | `&const T`  | `&const T` |
+| `fn() -> &move`  | Bind move-capable reference     | `&move T`  | [_invalid_] | [_invalid_] | `&move T`  |
+| `fn() -> *`      | Bind move-capable variable      | `move T`   | `move T`    | `move T`    | `move T`   |
+| `fn() -> *const` | Bind const-restricted variable  | `const T`  | `const T`   | `const T`   | `const T`  |
+| `fn() -> &&`     | Infer by expression             | `move T`   | `&T`        | `&const T`  | `&move T`  |
 
-co : const <- my_type()
-co.foo()
-```
+The simplified bindings below behave differently when an explicit binding
+operator is used to create an effective expression. If the
+explicit-binding-operator flag is:
+ * true: select the `T`, `&T`, `&const T` and `&move T` columns from the
+   effective expression type and lookup the binding type from the cells below.
+ * false: lookup the binding type from the cells below the "default" column.
+
+| Binding \\ Expr  | Description                     | `T`        | `&T`        | `&const T`  | `&move T`  | default   |
+|------------------|---------------------------------|------------|-------------|-------------|------------|-----------|
+| `fn() ->`        | Infer by binding operator       | `move T`   | `&T`        | `&const T`  | `&move T`  | `move T`  |
+| `fn() -> const`  | Infer by binding operator       | `const T`  | `&const T`  | `&const T`  | `&const T` | `const T` |
+
+
+The `const` version of the simplified binding is designed specifically to add
+a const-restricted to the variable or reference binding.
+
+`fn()` is the equivalent of `fn() ->`. In most cases a programer
+can use the simplified `fn()` vs `fn() -> *` syntax.
+
 
 ## Constants
 
@@ -364,8 +387,7 @@ a : const <- 1.0
 b = 2.0
 ```
 
-Both `a` and `b` are const-restricted bindings. The second declaration is
-shorthand for the first form of binding, with the qualifier changed accordingly.
+Both `a` and `b` are const-restricted bindings.
 
 Const-restricted does not, by itself, make a value immutable. It restricts
 the operations available through the restricted access path. The same underlying
@@ -380,13 +402,13 @@ reference can receive values through const-restricted, unqualified, or
 move-capable references. A function requiring an unqualified reference cannot
 accept a const-restricted reference, because doing so would discard the access
 restriction. A function requiring a move-capable reference likewise cannot
-accept a const-restricted reference, because const qualification does not grant
+accept a const-restricted reference, because const-restricted does not grant
 permission to consume the value.
 
 Member access follows the same principle. A member variable accessed through a
 const-restricted expression can only be read from through that access path.
 
-Const qualification therefore describes the permitted access to a value, rather
+Const-restricted therefore describes the permitted access to a value, rather
 than an intrinsic property of the value itself. It allows the language to
 enforce read-only access where required while retaining the flexibility to
 support values whose state may change through other, appropriately qualified
@@ -407,7 +429,7 @@ determines the qualification of the resulting variable; the temporary expression
 itself does not determine whether the destination is a value or a reference.
 
 ```text
-a <- make_value()       // Initialize a move-capable value from a temporary.
+a <- make_value()       // Initialize a move-capable variable from a temporary.
 ```
 
 Here, `make_value()` produces a temporary of type `T`. The initializer uses
@@ -455,8 +477,8 @@ support copying.
 
 When a value is initialized from an expression that refers to an existing value,
 the binding rules determine whether the source is copied or consumed. An
-ordinary expression of a named move-capable variable loses its move
-qualification through fragility. Consequently, a value binding does not
+ordinary expression of a named move-capable variable loses its move-capable
+through fragility. Consequently, a variable binding does not
 implicitly consume a named source.
 
 ```text
@@ -466,7 +488,7 @@ b <- a
 
 The expression `a` initially has type `&move T`, because `a` is a move-capable
 variable binding. Without an explicit binding operator, fragility removes the
-move qualification, producing `&T`. The value binding for `b` therefore
+move-capable, producing `&T`. The value binding for `b` therefore
 initializes a new value by copying from `a`. The value of `a` remains unchanged.
 
 The same principle applies when the source is a reference binding:
@@ -516,11 +538,11 @@ b : * <- r           // Copies the referenced value.
 c : * <- &move r     // Consumes the value referenced by r.
 ```
 
-The expression `r` initially has type `&move T`, but its move qualification is
+The expression `r` initially has type `&move T`, but its move-capable is
 discarded through fragility when used without an explicit binding operator.
 Consequently, `b` is initialized by copying the referenced value, provided
-copying is supported. In contrast, `&move r` explicitly preserves the move
-qualification, allowing `c` to consume the value from `a`.
+copying is supported. In contrast, `&move r` explicitly preserves the move-capable,
+allowing `c` to consume the value from `a`.
 
 Copying therefore provides a non-destructive way to initialize values from named
 expressions. Fragility prevents an ordinary expression from implicitly granting
@@ -562,7 +584,7 @@ c : * <- &move a          // Initialize c by moving the value from a.
 ```
 
 The declaration `a` creates a move-capable value. The declaration of `b`
-creates a reference to the existing value and preserves its move qualification.
+creates a reference to the existing value and preserves its move-capable.
 The third declaration explicitly requests value semantics through the `*`
 binding qualifier. The initializer supplies a move-capable reference, so the
 destination can consume the referenced value. The string value is transferred to
@@ -579,12 +601,12 @@ c <- &move a               // Creates a move-capable reference.
 d : * <- &move a           // Explicitly requests a move from a.
 ```
 
-The distinction is intentional. The expression `a` does not preserve its move
-qualification when used without an explicit binding operator. By contrast,
+The distinction is intentional. The expression `a` does not preserve its move-capable
+when used without an explicit binding operator. By contrast,
 `&move a` explicitly preserves that qualification, allowing a destination that
 accepts a move-capable source to consume the value.
 
-Move qualification therefore expresses permission, not an operation. A
+Move-capable therefore expresses permission, not an operation. A
 move-capable reference identifies a value that may be consumed; a
 value-binding operation performs the move. This separation makes moving explicit
 for named values while allowing temporary values to be consumed naturally.
@@ -599,6 +621,57 @@ c : * <- &move a    // It is valid to move from a moved-from value
                     // `a` will be set/remain to a moved-from state.
 ```
 
+
+
+
+
+
+
+
+
+
+> [!note]
+> When temporary value of type `T` is bound as a reference, the temporary value
+> may need to be materialized as a move-capable anonymous variable `move T`
+> and its > reference is borrowed from that anonymous variable.
+
+> [!note]
+> The binding specification `fn(x : *)` and the prefix binding operator `*x`
+> are distinct language constructs with independent semantics. They are not
+> interchangeable, but share a conceptual meaning: both explicitly
+> express value semantics rather than reference semantics.
+
+
+
+
+
+## Explicit cast
+
+Special standard library functions can cast references beyond the
+implicit conversion:
+
+ * `std.remove_const(x)` - Remove const-qualifier from a reference.
+ * `std.remove_move(x)` - Remove move-qualifier from a reference.
+ * `std.add_const(x)` - Add const-qualifier to a reference.
+ * `std.add_move(x)` - Add move-qualifier to a reference.
+
+Here is an example for a valid usage of removing the const qualifier:
+
+```
+my_type = struct {
+    counter <- 0.0
+
+    foo = fn(@self self : &const my_type) {
+        self_nc <- &std.remove_const(self)
+        self_nc.counter += 1.0
+    }
+}
+
+co : const <- my_type()
+co.foo()
+```
+
+
 [_invalid_]: #invalid-binding
 ## Invalid Binding
 
@@ -608,96 +681,6 @@ for overload resolution.
 Invalid initialization of variables will cause a compile-time error.
 
 
-## Creating Bindings
-
-### Variables
-
-A variable binding associates a name with a value within a lexical scope.
-
-A new variable binding is created when its name is not visible in the current
-scope or any enclosing scope. Both `<-` and `=` can introduce a variable
-binding:
-
-```
-a <- 1.0          // move-capable variable binding; with type `move T`
-b : const <- 2.0  // const-restricted variable binding; with type `const T`
-c = 3.0           // Syntactic sugar for `c : const <- 3.0`.
-```
-
-A const qualifier applies to the access path to the value. It does not imply if
-the binding itself is modifiable, neither does it imply that the value is
-immutable.
-
-The const qualifier is used to select functions based on their binding
-qualifier, and restrict access to member variables. It is allowed to explicitly
-cast a const-restricted reference to a unqualified reference to bypass these
-restrictions.
-
-A binding name cannot be introduced when a binding with the same name is already
-visible in the current scope or any enclosing scope. Therefore, variables cannot
-shadow variables in an outer scope.
-
-```
-a <- 1.0
-{
-    a <- 2.0  // Updates the existing `a`.
-}
-```
-
-A variable binding definition can have annotations that affect the storage and
-ownership of its value. The `@shared` annotation stores the value in
-reference-counted heap storage. The binding automatically retains the value when
-initialized and releases it when the binding's lifetime ends.
-
-```
-@shared d <- "Hello"     // move-capable shared variable binding.
-                         // `d` owns a reference to heap storage.
-```
-
-Types and functions are treated as normal values, so the same variable
-binding definition syntax is used for these.
-
-```
-f = fn(a : *int)          // const-restricted variable binding containing
-                          // a function overload set with one function.
-
-t = enum (int[0...1]) {   // const-restricted variable binding containing an open enum.
-    foo
-}
-```
-
-### References
-
-A reference binding associates a name with the storage of an existing value
-within a lexical scope.
-
-A new reference binding is created when its name is not visible in the current
-scope or any enclosing scope. Both `<-` and `=` can introduce a reference
-binding when the initializer produces a reference:
-
-```text
-a <- 1.0
-
-r <- &a             // Unqualified reference binding.
-cr <- &const a      // const-restricted reference binding.
-mr <- &move a       // move-capable reference binding.
-```
-
-A reference binding does not copy or move the referenced value. It simply refers
-to the storage of that value.
-
-As with variable bindings, `=` creates a const-restricted binding. It does not
-make the referenced value const.
-
-```text
-a <- 1.0
-
-r : const <- &a     // const-restricted reference binding.
-r2 = &a             // Syntactic sugar for `r2 : const <- &a`.
-```
-
-`r` is const-restricted, while the referenced storage, owned by `a`, remains
-mutable.
 
 ## Updating Bindings
 
