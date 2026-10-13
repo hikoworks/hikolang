@@ -157,10 +157,9 @@ inferred from the binding operator alone.
    The effective expression type is `&move T`; this permission does not itself
    consume the value. The subsequent binding conversion determines whether the
    value is actually moved, copied, or accessed through a reference.
- * `&&x` — **Forward expression**: Preserves the initial expression's effective
-   type and qualification, except that a latent-move-capable reference becomes a
-   move-capable reference. This explicitly exposes move capability that ordinary
-   evaluation would otherwise suppress.
+ * `&&x` — **Forward expression**: Preserves the initial expression type and its
+   qualification, except that a latent-move-capable reference becomes a
+   move-capable reference.
  * `*x` — **Value semantics**: Requests value semantics rather than retaining
    reference semantics to existing storage. The effective expression type
    becomes `T`, allowing the subsequent binding rules to interpret the
@@ -376,8 +375,10 @@ expression type.
 | `fn() ->`        | `T`        | `&T`        | `&const T`  | `&move T`  | `T`       |
 | `fn() -> const`  | `T`        | `&const T`  | `&const T`  | `&const T` | `T`       |
 
-It is a compilation error when the matching cell is an "redundant". In this case
-it is caused by redundant syntax, because `const` is already implied.
+It is a compilation error when the matching cell is an "redundant". `-> *const`
+is redundant because const restriction is not part of the type of a by-value
+return expression. The caller determines the access qualification of any binding
+it creates from the returned value.
 
 
 ## Conversion
@@ -394,78 +395,41 @@ additionally consider the initial expression type, so an explicit transformation
 of the effective type does not necessarily discard every capability associated
 with the original source.
 
+Below is the conversion table, each conversion column represents a resulting
+binding qualifier; each row specifies an initial and effective expression type.
+The `T`, `const T` and `move T` binding qualifier share the same `T` column.
+"otherwise" means any other reachable effective expression type for that initial
+expression type, excluding effective types listed in other rows for the same
+initial expression type.
 
-### Conversion lookup
+| Initial     | Effective    | `T`  | `&T`                | `&const T`          | `&move T`           |
+|-------------|------------  |------|---------------------|---------------------|---------------------|
+| `T`         | always       | Pass | Materialize         | Materialize         | Materialize         |
+| `&T`        | `T`          | Copy | Copy -> Materialize | Copy -> Materialize | Copy -> Materialize |
+| `&T`        | otherwise    | Copy | Borrow              | Borrow              | -                   |
+| `&const T`  | `T`          | Copy | Copy -> Materialize | Copy -> Materialize | Copy -> Materialize |
+| `&const T`  | otherwise    | Copy | -                   | Borrow              | -                   |
+| `&move T`   | `T`          | Move | Move -> Materialize | Move -> Materialize | Move -> Materialize |
+| `&move T`   | `&move T`    | Move | Borrow              | Borrow              | Borrow              |
+| `&move T`   | otherwise    | Copy | Borrow              | Borrow              | -                   |
+| `&latent T` | `T`          | Copy | Copy -> Materialize | Copy -> Materialize | Copy -> Materialize |
+| `&latent T` | `&move T`    | Move | Borrow              | Borrow              | Borrow              |
+| `&latent T` | otherwise    | Copy | Borrow              | Borrow              | -                   |
 
-Select the conversion column using the following rules:
-
- * For an initial expression of type `T`, use the `T` column.
- * For an initial expression of type `&T` or `&const T`, use its initial
-   expression type.
- * For an initial expression of type `&move T`:
-    - If the effective expression type is `&T` or `&const T`, use that effective
-      expression type's column.
-    - Otherwise, use the `&move T` column. In particular, the `*` operator
-      requests value semantics without discarding the source's existing move
-      capability.
- * For an initial expression of type `&latent T`:
-    - If the effective expression type is `&move T`: use the `&move T` column.
-    - If the effective expression type is `T`: use the `T` column.
-    - Otherwise use the `&T` column.
-
-This lookup determines the conversion to perform; it does not change the
-effective expression type or the resulting binding type.
-
-
-### Conversion table
-
-Select the row using the resulting binding type and the column using the
-conversion lookup rules above.
-
-| Resulting binding type | `T`          | `&T`        | `&const T`  | `&move T` |
-| ---------------------- | -----------  | ----------- | ----------  | --------- |
-| `T`                    | pass-through | copy        | copy        | move      |
-| `const T`              | pass-through | copy        | copy        | move      |
-| `move T`               | pass-through | copy        | copy        | move      |
-| `&T`                   | materialize  | borrow      | [_invalid_] | borrow    |
-| `&const T`             | materialize  | borrow      | borrow      | borrow    |
-| `&move T`              | materialize  | [_invalid_] | [_invalid_] | borrow    |
-
-An "invalid" conversion is a compilation error. Binding-context rules may also
-reject an invalid qualification before conversion is considered.
-
-
-### Conversion operations
-
- * **pass-through:** - Uses the expression directly in the destination binding
-   without copying, moving, materializing a temporary, or creating a new borrow.
-   A temporary directly initializes a value binding; a compatible reference is
-   preserved as a reference.
- * **materialize:** - Materializes the temporary in storage, then borrows a
-   reference to that storage. Its lifetime is governed by the language's
-   lifetime rules.
- * **borrow:** - Establishes a reference to the existing storage, without
-   copying or moving the referenced value. When the source is already a
-   reference, the borrow targets the same underlying object and preserves the
-   destination's permitted access. It does not borrow the reference binding
-   itself.
- * **copy:** - Initializes a value by copying from the source. If the type does
-   not support copying, compilation fails.
- * **move:** - Initializes a value using the type's move operation if supported.
-   Otherwise, the value is copied if copying is supported; if neither operation
-   is supported, compilation fails.
- * **invalid:** - The conversion is not permitted and causes a compilation
-   error.
-
-The `T`, `const T`, and `move T` value-binding rows use the same conversion
-operations. Their differences concern the resulting binding's qualification, not
-whether the source conversion copies or moves.
-
-A move-capable source permits moving only when the conversion lookup retains its
-move capability. An effective `&T` or `&const T` derived from an initial `&move
-T` therefore permits copying, not moving. A latent-move-capable source permits
-moving only when the effective expression type is `&move T`; ordinary use
-otherwise retains copy-like semantics.
+Legend:
+ * **Pass (pass-through)**: Use the temporary value directly, without copying or
+   moving.
+ * **Materialize**: Materialize the temporary and borrow its storage.
+ * **Borrow**: Create a reference to existing storage, respecting the
+   destination's qualification.
+ * **Copy -> Materialize**: Copy the original referent into independent storage,
+   then borrow that storage.
+ * **Move**: Use the move operation if supported; otherwise copy if supported;
+   otherwise compilation fails.
+ * **Move -> Materialize**: Move (using the **Move** rule) the original referent
+   into independent storage, then borrow that storage.
+ * **—**: The initial/effective type combination is unreachable or previously
+   rejected under the binding-operator or binding-qualifier tables.
 
 
 ## Constants
