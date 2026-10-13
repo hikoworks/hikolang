@@ -24,20 +24,12 @@ Goals these binding rules:
 > may have a backslash: `<column header> \ <header description>`, in this
 > case the header description may describe the values in the header itself.
 >
-> This is the third time this document will say this: EVERYTHING IN THE
-> CHAPTERS STARTING FROM "BINDINGS" TREAT ALL EXPRESSIONS AS EFFECTIVE
-> EXPRESSIONS AND ARE THUS ALWAYS AFTER APPLYING BINDING OPERATORS AND
-> FRAGILITY RULES. REMEMBER IN MULTIPLE PLACES IT SAYS THAT THERE IS ONLY
-> ONE PLACE WHERE FRAGILITY IS DEFINED AND INTERACTS AND NO WHERE ELSE.
 
 ## Concepts
 
  * __Initial expression type__ - The type produced by evaluating an expression.
- * __Binding operator__ - The operation applied to an expression result,
-   including any applicable default behavior.
- * __Effective expression type__ - The expression type obtained after applying
-   the explicit binding operator, if present, or the default fragility rule
-   otherwise.
+ * __Binding operator__ - A syntactic modifier that transforms the initial expression type into an effective expression type and marks the binding as explicit.
+ * __Effective expression type__ - The type category supplied to the binding-context rules after applying the binding operator or default fragility rule. It does not imply that a binding conversion has already occurred.
  * __Binding qualifier__ - The restrictions or capabilities of the destination
    binding.
  * __Resulting binding type__ - The type of the binding after the applicable
@@ -45,14 +37,15 @@ Goals these binding rules:
 
 ## Types
 
- | Type       | Description                        | Storage  | Expression | Reference | Binding |
- |------------|------------------------------------|:--------:|:----------:|:---------:|:-------:|
- | `move T`   | Move-capable variable binding      |    +     |            |           |    +    |
- | `const T`  | Const-restricted variable binding  |    +     |            |           |    +    |
- | `T`        | Temporary value                    |          |      +     |           |         |
- | `&T`       | Unqualified reference binding      |          |      +     |     +     |    +    |
- | `&move T`  | Move-capable reference binding     |          |      +     |     +     |    +    |
- | `&const T` | Const-restricted reference binding |          |      +     |     +     |    +    |
+ | Type        | Description                           | Storage  | Expression | Reference | Binding |
+ |-------------|---------------------------------------|:--------:|:----------:|:---------:|:-------:|
+ | `move T`    | Move-capable variable binding         |    +     |            |           |    +    |
+ | `const T`   | Const-restricted variable binding     |    +     |            |           |    +    |
+ | `T`         | Temporary value                       |          |      +     |           |         |
+ | `&T`        | Unqualified reference binding         |          |      +     |     +     |    +    |
+ | `&move T`   | Move-capable reference binding        |          |      +     |     +     |    +    |
+ | `&const T`  | Const-restricted reference binding    |          |      +     |     +     |    +    |
+ | `&latent T` | Latent-move-capable reference binding |          |      +     |     +     |         |
 
 
 ## Initial Expressions
@@ -62,16 +55,17 @@ Every initial expression produces one of the following types:
  * unqualified reference - `&T`
  * const-restricted reference - `&const T`
  * move-capable reference - `&move T`
+ * latent-move-capable reference - `&latent T`
 
 The following initial expression kinds may result in the types:
 
 | Expression kind                            | Possible resulting initial expression types
 |--------------------------------------------|----------------
 | evaluation of a function-call              | `T`, `&T`, `&const T` or `&move T`
-| evaluation of a move-capable variable      | `&move T`
+| evaluation of a move-capable variable      | `&latent T`
 | evaluation of a const-restricted variable  | `&const T`
 | evaluation of an unqualified reference     | `&T`
-| evaluation of a move-capable reference     | `&move T`
+| evaluation of a move-capable reference     | `&latent T`
 | evaluation of a const-restricted reference | `&const T`
 
 Non-binding operators, like mathematics operators `1 + 2` are lowered to
@@ -80,51 +74,34 @@ the table above.
 
 ## Binding operators
 
-Binding operators are used to control how a binding qualifier may interpret the
-result of an expression:
+Binding operators are type transformations, not binding conversions.
 
- * **Default binding**: When no binding operator is specified, the initial
-   expression is interpreted using the default fragility rule. This preserves
-   ordinary copy-like semantics by preventing a move-capable reference from
-   implicitly granting permission to consume the referenced value.
- * `&x` — **Borrow reference**: Borrows a reference to the initial expression's
-   value without consuming it. The resulting reference is unqualified, unless
-   the initial expression is const-restricted, in which case the const
-   restriction is preserved.
- * `&const x` — **Borrow const-restricted reference**: Borrows a reference
-   while restricting access through that reference to const-qualified
-   operations. This allows a value to be accessed without granting unqualified
-   or move-capable permissions.
- * `&move x` — **Borrow move-capable reference**: Borrows a move-capable
-   reference, explicitly preserving permission to consume the referenced value
-   later. This does not itself move or consume the value. The operator is
-   invalid when the initial expression does not provide move-capable access.
- * `&&x` — **Forward expression**: Forwards the initial expression's type and
-   qualification exactly, bypassing the default fragility rule. This allows
-   the caller to explicitly preserve the distinction between temporary values,
-   ordinary references, const-restricted references, and move-capable
-   references.
- * `*x` — **Value semantics**: Produces a value rather than a reference, copying
-   from existing storage when necessary. This explicitly requests value
-   semantics, allowing the destination to receive an independent value rather
-   than a reference to existing storage. The operation is invalid if the
-   required copy or move is unsupported.
+A binding operator determines the effective expression type used by the subsequent binding rules. It does not, by itself, borrow a reference, create storage, materialize a temporary, copy a value, move a value, or extend a lifetime.
+
+The effective expression type is an input to the binding-context rules, not a description of an operation already performed. The binding context and binding qualifier, together with that effective expression type, determine the resulting binding type and the conversion to perform. The conversion tables define whether that conversion forwards, materializes, borrows, copies, moves, or is invalid.
+
+Consequently, the description of a binding operator in terms of reference or value semantics describes its effect on the binding rules, not an operation performed by the operator itself. No copy, move, or reference creation may be inferred from the binding operator alone.
+
+ * **Default**: When no binding operator is specified, the initial expression is interpreted using the default fragility rule. This preserves ordinary copy-like semantics by preventing a move-capable reference from implicitly granting permission to consume the referenced value.
+ * `&x` — **Borrow reference**: Requests reference semantics for the initial expression's value, rather than independent value semantics. The effective expression type is an unqualified reference, except that an existing const restriction is preserved. The actual reference binding is determined by the subsequent binding rules.
+ * `&const x` — **Borrow const-restricted reference**: Requests reference semantics with const-restricted access. The effective expression type is &const T, ensuring that subsequent binding resolution preserves the restriction on operations through that access path. The operator does not independently create a reference or make the underlying value immutable.
+ * `&move x` — **Borrow move-capable reference**: Requests reference semantics that explicitly preserve permission to consume the referenced value later. The effective expression type is `&move T`; this permission does not itself consume the value. The subsequent binding conversion determines whether the value is actually moved, copied, or accessed through a reference.
+ * `&&x` — **Forward expression**: Requests exact forwarding of the initial expression's type and qualification, bypassing the default fragility rule. This preserves the distinction between temporary values, ordinary references, const-restricted references, and move-capable references for subsequent binding resolution. The operator does not independently perform the binding conversion.
+ * `*x` — **Value semantics**: Requests value semantics rather than retaining reference semantics to existing storage. The effective expression type becomes `T`, allowing the subsequent binding rules to interpret the expression accordingly. The operator itself does not copy, move, or create a value; the binding qualifier and applicable conversion rules determine what actually happens.
+
 
 Here is the table showing how an initial expression of a certain type is
 modified by each of the binding operators into an effective expression type:
 
- | op \ expr   | `T`        | `&T`        | `&const T`  | `&move T`
- |-------------|------------|-------------|-------------|------------
- | default     | `T`        | `&T`        | `&const T`  | `&T` (fragile)
- | `&x`        | `&T`       | `&T`        | `&const T`  | `&T`
- | `&const x`  | `&const T` | `&const T`  | `&const T`  | `&const T`
- | `&move x`   | `&move T`  | error       | error       | `&move T`
- | `&&x`       | `T`        | `&T`        | `&const T`  | `&move T`
- | `*x`        | `T`        | `T`         | `T`         | `T`
+ | operator    | `T`        | `&T`        | `&const T`  | `&move T`  | `&latent T`
+ |-------------|------------|-------------|-------------|------------|-------------
+ | default     | `T`        | `&T`        | `&const T`  | `&move T`  | `&latent T`
+ | `&x`        | `&T`       | `&T`        | `&const T`  | `&T`       | `&T`
+ | `&const x`  | `&const T` | `&const T`  | `&const T`  | `&const T` | `&const T`
+ | `&move x`   | `&move T`  | error       | error       | `&move T`  | `&move T`
+ | `&&x`       | `T`        | `&T`        | `&const T`  | `&move T`  | `&move T`
+ | `*x`        | `T`        | `T`         | `T`         | `T`        | `T`
 
-This section is the sole definition of this fragility rule. The "Binding"
-section after this will treat the type of the effective expression as having the
-binding operator or fragility rule already applied.
 
 It is a compile error when trying to use the `&move x` operator on an initial
 expression with the types `&T` or `&const T`.
@@ -178,19 +155,46 @@ make it that way.
    combines value semantics with const-restricted access, without implying that
    the underlying value is inherently immutable.
 
+The binding operator and binding qualifier work together tp define how an
+initial expression is converted into a bindin. In the table below you select
+the columns `T`, `&T`, `&const T` or `&move T` from the initial expression
+type; the row is the result from the binding qualifier tables; the cell gives
+the type of conversion that happens.
 
-If the result of a binding is a reference `&`, `&const` or `&move` and the
-effective expression is a temporary `T`, then the references is borrowed from
-the materialization of a temporary. Materialization of temporaries is specified
-in: [Lifetime](lifetime.md).
+ | Binding    | `T`         | `&T`    | `&const T`   | `&move T`
+ |------------|-------------|---------|--------------|------------
+ | `T`        | forward     | copy    | copy         | move
+ | `const T`  | forward     | copy    | copy         | move
+ | `move T`   | forward     | copy    | copy         | move
+ | `&T`       | materialize | forward | invalid      | borrow
+ | `&const T` | materialize | borrow  | forward      | borrow
+ | `&move T`  | materialize | invalid | invalid      | forward
+ 
+The conversions are:
+ * forward: The value/reference of the initial expression is forwarded into the
+   binding
+ * materialize: The temporary is materialized, then a reference is borrowed from
+   the materialization.
+ * copy: The value is copied. It is a compilation error if the value does not
+   support copying.
+ * move: The value is moved or copied. It is a compilation error if the value
+   support neither moving or copying.
+ * invalid: This conversion is a compilation error.
 
-If the result of a binding is a variable `move T` or `const T` and the effective
-expressions are:
- * `&T` or `&const T`: Copy initialize the value. It is a compile error if
-   the type does not support copying.
- * `&move T` or `T`: Move initialize the value, or copy initialize the value.
-   It is a compile error if the type supports neither moving or copying.
+In the tables below:
+ * The `T`, `&T`, `&const T`, and `&move T` column headers denote the effective
+   expression type. Each cell specifies the resulting binding type.
+ * When the "default" column has "-" for a row, then only the `T`, `&T`,
+   `&const T`, and `&move T` columns should be used in the evaluation of the
+   resulting type of the binding.
+ * The simplified bindings listed in the bottom three rows behave differently
+   when the effective expression's explicit-binding-operator flag is:
+    - true: use only the `T`, `&T`, `&const T` and `&move T` columns from the
+      effective expression type and lookup the binding type from the cells
+      below.
+    - false: lookup the binding type from the cells below the "default" column.
 
+The operator table and binding-context tables must be applied as separate stages. First determine the effective expression type using the binding operator table. Then use that type and the binding qualifier to determine the resulting binding type. Finally, apply the corresponding conversion rule to perform the required operation. A conversion such as copy, move, or materialize is never performed merely because the binding operator's row produces a particular effective expression type.
 
 ### Variable binding
 
@@ -199,30 +203,19 @@ existing storage. Its general form is:
 
 > _name_ __(__ `:` _binding-qualifier_**?** _type_**?** __)?__ `<-` _binding-operator_**?** _expr_
 
-The `T`, `&T`, `&const T`, and `&move T` column headers denote the effective
-expression type. Each cell specifies the resulting binding type.
 
-When the "default" column has "-" for a row, then only the `T`, `&T`,
-`&const T`, and `&move T` columns should be used in the evaluation of the
-resulting type of the binding.
+| Binding                | `T`        | `&T`        | `&latent T` | `&const T`  | `&move T`  | default   |
+|------------------------|------------|-------------|-------------|-------------|------------|-----------|
+| `a : & <- <expr>`      | `&T`       | `&T`        | `&T`        | [_invalid_] | `&T`       | -         |
+| `a : &const <- <expr>` | `&const T` | `&const T`  | `&const T`  | `&const T`  | `&const T` | -         |
+| `a : &move <- <expr>`  | `&move T`  | [_invalid_] | [_invalid_] | [_invalid_] | `&move T`  | -         |
+| `a : * <- <expr>`      | `move T`   | `move T`    | `move T`    | `move T`    | `move T`   | -         |
+| `a : *const <- <expr>` | `const T`  | `const T`   | `const T`   | `const T`   | `const T`  | -         |
+| `a : && <- <expr>`     | `move T`   | `&T`        | `&T`        | `&const T`  | `&move T`  | -         |
+| `a <- <expr>`          | `move T`   | `&T`        | `&T`        | `&const T`  | `&move T`  | `move T`  |
+| `a : <- <expr>`        | `move T`   | `&T`        | `&T`        | `&const T`  | `&move T`  | `move T`  |
+| `a : const <- <expr>`  | `const T`  | `&const T`  | `&const T`  | `&const T`  | `&const T` | `const T` |
 
-| Binding                | `T`        | `&T`        | `&const T`  | `&move T`  | default   |
-|------------------------|------------|-------------|-------------|------------|-----------|
-| `a : & <- <expr>`      | `&T`       | `&T`        | [_invalid_] | `&T`       | -         |
-| `a : &const <- <expr>` | `&const T` | `&const T`  | `&const T`  | `&const T` | -         |
-| `a : &move <- <expr>`  | `&move T`  | [_invalid_] | [_invalid_] | `&move T`  | -         |
-| `a : * <- <expr>`      | `move T`   | `move T`    | `move T`    | `move T`   | -         |
-| `a : *const <- <expr>` | `const T`  | `const T`   | `const T`   | `const T`  | -         |
-| `a : && <- <expr>`     | `move T`   | `&T`        | `&const T`  | `&move T`  | -         |
-| `a <- <expr>`          | `move T`   | `&T`        | `&const T`  | `&move T`  | `move T`  |
-| `a : <- <expr>`        | `move T`   | `&T`        | `&const T`  | `&move T`  | `move T`  |
-| `a : const <- <expr>`  | `const T`  | `&const T`  | `&const T`  | `&const T` | `const T` |
-
-The simplified bindings listed in the bottom three rows behave differently when
-the effective expression's explicit-binding-operator flag is:
- * true: use only the `T`, `&T`, `&const T` and `&move T` columns from the
-   effective expression type and lookup the binding type from the cells below.
- * false: lookup the binding type from the cells below the "default" column.
 
 
 ### Const-restricted variable binding
@@ -232,30 +225,19 @@ reference to existing storage. Its general form is:
 
 > _name_ __(__ `:` _binding-qualifier_**?** _type_**?** __)?__ `=` _binding-operator_**?** _expr_
 
-The `T`, `&T`, `&const T`, and `&move T` column headers denote the effective
-expression type. Each cell specifies the resulting binding type.
 
-When the "default" column has "-" for a row, then only the `T`, `&T`,
-`&const T`, and `&move T` columns should be used in the evaluation of the
-resulting type of the binding.
+| Binding                | `T`        | `&T`        | `&latent T` | `&const T`  | `&move T`  | default   |
+|------------------------|------------|-------------|-------------|-------------|------------|---------  |
+| `a : & = <expr>`       | `&const T` | `&const T`  | `&const T`  | `&const T`  | `&const T` | -         |
+| `a : &const = <expr>`  | redundant  | redundant   | redundant   | redundant   | redundant  | -         |
+| `a : &move = <expr>`   | error      | error       | error       | error       | error      | -         |
+| `a : * = <expr>`       | `const T`  | `const T`   | `const T`   | `const T`   | `const T`  | -         |
+| `a : *const = <expr>`  | redundant  | redundant   | redundant   | redundant   | redundant  | -         |
+| `a : && = <expr>`      | error      | error       | error       | error       | error      | -         |
+| `a = <expr>`           | `const T`  | `&const T`  | `&const T`  | `&const T`  | `&const T` | `const T` |
+| `a : = <expr>`         | `const T`  | `&const T`  | `&const T`  | `&const T`  | `&const T` | `const T` |
+| `a : const = <expr>`   | redundant  | redundant   | redundant   | redundant   | redundant  | redundant |
 
-| Binding                | `T`        | `&T`        | `&const T`  | `&move T`  | default   |
-|------------------------|------------|-------------|-------------|------------|---------  |
-| `a : & = <expr>`       | `&const T` | `&const T`  | `&const T`  | `&const T` | -         |
-| `a : &const = <expr>`  | redundant  | redundant   | redundant   | redundant  | -         |
-| `a : &move = <expr>`   | error      | error       | error       | error      | -         |
-| `a : * = <expr>`       | `const T`  | `const T`   | `const T`   | `const T`  | -         |
-| `a : *const = <expr>`  | redundant  | redundant   | redundant   | redundant  | -         |
-| `a : && = <expr>`      | error      | error       | error       | error      | -         |
-| `a = <expr>`           | `const T`  | `&const T`  | `&const T`  | `&const T` | `const T` |
-| `a : = <expr>`         | `const T`  | `&const T`  | `&const T`  | `&const T` | `const T` |
-| `a : const = <expr>`   | redundant  | redundant   | redundant   | redundant  | redundant |
-
-The simplified bindings listed in the bottom three rows behave differently when
-the effective expression's explicit-binding-operator flag is:
- * true: use only the `T`, `&T`, `&const T` and `&move T` columns from the
-   effective expression type and lookup the binding type from the cells below.
- * false: lookup the binding type from the cells below the "default" column.
 
 It is a compilation error when the matching cell is an "redundant" or "error".
 In this case it is caused by redundant syntax, or where the meaning of such a
@@ -270,30 +252,19 @@ to existing storage. Its general form is:
 > `foo` `=` `fn` `(` _name_ __(__ `:` _binding-qualifier_**?** _type_**?** __)?__ `)` `{` ... `}`\
 > `foo` `(` _binding-operator_**?** _expr_ `)`
 
-The `T`, `&T`, `&const T`, and `&move T` column headers denote the effective
-expression type. Each cell specifies the resulting binding type.
 
-When the "default" column has "-" for a row, then only the `T`, `&T`,
-`&const T`, and `&move T` columns should be used in the evaluation of the
-resulting type of the binding.
+| Binding          | `T`        | `&T`        | `&latent T` | `&const T`  | `&move T`  | default   |
+|------------------|------------|-------------|-------------|-------------|------------|-----------|
+| `fn(a : &)`      | `&T`       | `&T`        | `&T`        | [_invalid_] | `&T`       | -         |
+| `fn(a : &const)` | `&const T` | `&const T`  | `&const T`  | `&const T`  | `&const T` | -         |
+| `fn(a : &move)`  | `&move T`  | [_invalid_] | [_invalid_] | [_invalid_] | `&move T`  | -         |
+| `fn(a : *)`      | `move T`   | `move T`    | `move T`    | `move T`    | `move T`   | -         |
+| `fn(a : *const)` | `const T`  | `const T`   | `const T`   | `const T`   | `const T`  | -         |
+| `fn(a : &&)`     | `move T`   | `&T`        | `&T`        | `&const T`  | `&move T`  | -         |
+| `fn(a)`          | `move T`   | `move T`    | `move T`    | `move T`    | `move T`   | `move T`  |
+| `fn(a : )`       | `move T`   | `move T`    | `move T`    | `move T`    | `move T`   | `move T`  |
+| `fn(a : const)`  | `const T`  | `const T`   | `const T`   | `const T`   | `const T`  | `const T` |
 
-| Binding          | `T`        | `&T`        | `&const T`  | `&move T`  | default   |
-|------------------|------------|-------------|-------------|------------|-----------|
-| `fn(a : &)`      | `&T`       | `&T`        | [_invalid_] | `&T`       | -         |
-| `fn(a : &const)` | `&const T` | `&const T`  | `&const T`  | `&const T` | -         |
-| `fn(a : &move)`  | `&move T`  | [_invalid_] | [_invalid_] | `&move T`  | -         |
-| `fn(a : *)`      | `move T`   | `move T`    | `move T`    | `move T`   | -         |
-| `fn(a : *const)` | `const T`  | `const T`   | `const T`   | `const T`  | -         |
-| `fn(a : &&)`     | `move T`   | `&T`        | `&const T`  | `&move T`  | -         |
-| `fn(a)`          | `move T`   | `move T`    | `move T`    | `move T`   | `move T`  |
-| `fn(a : )`       | `move T`   | `move T`    | `move T`    | `move T`   | `move T`  |
-| `fn(a : const)`  | `const T`  | `const T`   | `const T`   | `const T`  | `const T` |
-
-The simplified bindings listed in the bottom three rows behave differently when
-the effective expression's explicit-binding-operator flag is:
- * true: use only the `T`, `&T`, `&const T` and `&move T` columns from the
-   effective expression type and lookup the binding type from the cells below.
- * false: lookup the binding type from the cells below the "default" column.
 
 
 #### Overload resolution
@@ -330,74 +301,28 @@ existing storage. Its general form is:
 >      `return` _binding-operator_**?** _expr_\
 > `}`
 
-The `T`, `&T`, `&const T`, and `&move T` column headers denote the effective
-expression type. Different from the previous binding a function return value is
+
+Different from the previous binding a function return value is
 an expression used by the outer expression; each cell thus specifies the initial
 expression type.
 
-When the "default" column has "-" for a row, then only the `T`, `&T`,
-`&const T`, and `&move T` columns should be used in the evaluation of the
-resulting type of the binding.
+| Binding          | `T`        | `&T`        | `&latent T` | `&const T`  | `&move T`  | default   |
+|------------------|------------|-------------|-------------|-------------|------------|-----------|
+| `fn() -> &`      | `&T`       | `&T`        | `&T`        | [_invalid_] | `&T`       | -         |
+| `fn() -> &const` | `&const T` | `&const T`  | `&const T`  | `&const T`  | `&const T` | -         |
+| `fn() -> &move`  | `&move T`  | [_invalid_] | [_invalid_] | [_invalid_] | `&move T`  | -         |
+| `fn() -> *`      | `T`        | `T`         | `T`         | `T`         | `T`        | -         |
+| `fn() -> *const` | redundant  | redundant   | redundant   | redundant   | redundant  | -         |
+| `fn() -> &&`     | `T`        | `&T`        | `&T`        | `&const T`  | `&move T`  | -         |
+| `fn()`           | `T`        | `&T`        | `&T`        | `&const T`  | `&move T`  | `T`       |
+| `fn() ->`        | `T`        | `&T`        | `&T`        | `&const T`  | `&move T`  | `T`       |
+| `fn() -> const`  | `T`        | `&const T`  | `&const T`  | `&const T`  | `&const T` | `T`       |
 
-| Binding          | `T`        | `&T`        | `&const T`  | `&move T`  | default   |
-|------------------|------------|-------------|-------------|------------|-----------|
-| `fn() -> &`      | `&T`       | `&T`        | [_invalid_] | `&T`       | -         |
-| `fn() -> &const` | `&const T` | `&const T`  | `&const T`  | `&const T` | -         |
-| `fn() -> &move`  | `&move T`  | [_invalid_] | [_invalid_] | `&move T`  | -         |
-| `fn() -> *`      | `T`        | `T`         | `T`         | `T`        | -         |
-| `fn() -> *const` | redundant  | redundant   | redundant   | redundant  | -         |
-| `fn() -> &&`     | `T`        | `&T`        | `&const T`  | `&move T`  | -         |
-| `fn()`           | `T`        | `&T`        | `&const T`  | `&move T`  | `T`       |
-| `fn() ->`        | `T`        | `&T`        | `&const T`  | `&move T`  | `T`       |
-| `fn() -> const`  | `T`        | `&const T`  | `&const T`  | `&const T` | `T`       |
-
-The simplified bindings listed in the bottom three rows behave differently when
-the effective expression's explicit-binding-operator flag is:
- * true: use only the `T`, `&T`, `&const T` and `&move T` columns from the
-   effective expression type and lookup the binding type from the cells below.
- * false: lookup the binding type from the cells below the "default" column.
-
-When the function return type is `T` and the input's effective expression
-type is:
- * `&T` or `&const T` the input's value is copied; it is a compilation error if
-   the value can not be copied. 
- * `&move T` the input's value is moved or copied; it is a compilation error if
-   the value can neither be moved or copied.
- * `T` the input's value is forwarded.
 
 It is a compilation error when the matching cell is an "redundant". In this case
 it is caused by redundant syntax, because `const` is already implied.
 
-## Combined type conversion
 
-The binding operator and binding qualifier together define how an initial
-expression is converted. In the table below you select the columns `T`, `&T`,
-`&const T` or `&move T` from the initial expression type; the row is the result
-from the binding qualifier tables; the cell gives the type of conversion that
-happens.
-
- | Binding    | `T`         | `&T`    | `&const T`   | `&move T`
- |------------|-------------|---------|--------------|------------
- | `T`        | forward     | copy    | copy         | move
- | `const T`  | forward     | copy    | copy         | move
- | `move T`   | forward     | copy    | copy         | move
- | `&T`       | materialize | forward | invalid      | borrow
- | `&const T` | materialize | borrow  | forward      | borrow
- | `&move T`  | materialize | invalid | invalid      | forward
- 
-Function return values can be `T`, while other value semantic bindings are
-`const T` or `move T`.
-
-The conversions are:
- * forward: The value/reference of the initial expression is forwarded into the
-   binding
- * materialize: The temporary is materialized, then a reference is borrowed from
-   the materialization.
- * copy: The value is copied. It is a compilation error if the value does not
-   support copying.
- * move: The value is moved or copied. It is a compilation error if the value
-   support neither moving or copying.
- * invalid: This conversion is a compilation error.
 
 
 ## Constants
@@ -486,7 +411,7 @@ independently of whether the temporary is copied, moved, or bound by reference.
 
 Temporaries therefore provide a natural source of values for initialization and
 function calls. They can be consumed without an explicit move operator, while
-named variables retain the protection of fragile expression semantics. This
+named variables retain the protection of latent expression semantics. This
 distinction allows temporary values to be used efficiently without implicitly
 granting ordinary expressions permission to consume existing named values.
 
