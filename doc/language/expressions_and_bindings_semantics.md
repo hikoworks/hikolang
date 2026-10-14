@@ -1,4 +1,6 @@
-# Bindings
+# Expressions and Binding Semantics
+
+[Object and Lifetime Semantics]: object_and_liftime_semantics.md
 
 This document defines how expressions initialize variable bindings, function
 parameters, and return values, and how existing bindings are updated. It
@@ -55,11 +57,6 @@ Goals:
 
 ## Concepts
 
- * **Object** - An instance of a type with storage and a lifetime. An object may
-   be associated with a named variable or created by materializing a temporary.
- * **Value** - The data or state represented by an object, or produced by
-   evaluating an  expression. A value has no independent storage, identity, or
-   lifetime. An object may own resources associated with its value.
  * **Initial expression type** — The type category produced by evaluating an
    expression before applying a binding operator.
  * **Binding operator** — A syntactic modifier that determines the effective
@@ -436,6 +433,10 @@ Legend:
    compiler should not read an unsupported conversion as a request to try
    a less restrictive conversion.
 
+When a conversion requires materializing a temporary, its materialization
+location and lifetime are determined by the [Object and Lifetime Semantics]
+specification.
+
 When a function's return binding requires a reference and the original return
 expression has initial expression type `T`, the conversion materializes the
 temporary in the caller's code-block. This applies even when an explicit binding
@@ -518,39 +519,6 @@ but modifying their runtime values cannot alter the frozen compile-time
 definitions or change the program's types and overload resolution.
 
 
-## Temporaries
-
-A temporary is a value produced by an expression rather than accessed through an
-existing binding. Its initial expression type is `T`.
-
-A temporary can initialize a variable binding directly and can be consumed
-without an explicit move operator. When a reference binding requires
-materialization, the temporary is materialized in the code-block scope where the
-expression requiring the reference is evaluated.
-
-The materialized temporary remains alive until that scope exits. A reference to
-it is valid only while the temporary's object remains alive; binding a
-reference does not extend the temporary's lifetime.
-
-```text
-r <- &make_value()    // Materializes the result in the current scope.
-use(r)                // Valid while that scope remains active.
-```
-
-When the return-binding conversion requires materialization, the temporary is
-materialized in the caller's code-block. This applies even when an explicit
-binding operator changes the effective expression type to a reference type, as
-in `return &make_value()`. The binding operator does not itself materialize the
-temporary; the return-binding conversion determines whether materialization
-occurs.
-
-This rule does not apply to a reference to an object that already exists in the
-callee's code-block, such as a local variable. Returning a reference to an
-object whose lifetime ends when the callee's code-block exits is invalid.
-
-Temporaries therefore support direct initialization and consumption while
-allowing references to them only for the lifetime of their materialized
-object.
 
 
 ## Copying
@@ -611,101 +579,6 @@ explicit `&move` or `&&` operators preserve that capability, while temporaries
 can be consumed without it.
 
 
-# Lifetime
-
-An object has a lifetime that begins when it is defined and ends when its
-lifetime-ending conditions are met. The object's destructor is called directly
-when its lifetime ends. Values do not have independent lifetimes; they are
-represented by objects or produced by evaluating expressions.
-
-The lifetime of a local object begins at the point of its variable definition
-and ends at the end of its enclosing code-block. When a code-block exits, its
-local objects are destroyed in reverse order of their definitions. The lifetime
-of a global object begins when its definition is processed during compilation.
-Its initialized state and lifetime are transferred to the generated executable,
-where its lifetime ends at program termination. Global objects are destroyed in
-reverse order of their definitions.
-
-Updating an existing variable does not, by itself, end the lifetime of its
-associated object. The `<-` operator calls `__assign__()`, while `=` calls
-`__merge__()`. These operations determine how the object's value is changed;
-their implementations are responsible for managing the lifetimes of any objects
-they replace or destroy.
-
-References do not extend the lifetimes of the objects they refer to. A reference
-is valid only while its referent remains alive. Reseating a reference does not
-change the lifetime of either the previously referenced object or the newly
-referenced object.
-
-A temporary is a value produced by an expression rather than accessed through an
-existing binding. A temporary value can initialize a destination object directly
-without creating a separate temporary object. When a reference binding requires
-materialization, an anonymous object is created and initialized with the
-temporary value, as if it were an anonymous variable defined in the code-block
-where the expression requiring materialization is evaluated. The object remains
-alive until that code-block exits, and its destructor is called when its
-lifetime ends.
-
-Temporaries materialized while evaluating function arguments belong to the
-code-block where the function call occurs. The argument list does not introduce
-a separate scope. When a function's return binding requires materializing a
-temporary value, the object is materialized in the code-block containing the
-function call. However, if the return expression produces a reference to a
-temporary object created in the callee's code-block, returning that reference is
-invalid because the object's lifetime ends when the callee's code-block exits.
-
-When the compiler can determine that a reference is used after the lifetime of
-its referent has ended, compilation fails.
-
-
-# Multithreading / Hardware-I/O
-
-The language adopts the C++ memory model for data races, atomic operations,
-memory ordering, synchronization, and thread lifetimes, extended to include
-hardware as an external execution agent accessing shared state.
-
-A data race occurs when conflicting accesses to the same memory location execute
-in different threads or hardware agents, at least one access is non-atomic, and
-neither access happens-before the other. A data race results in undefined
-behavior.
-
-Concurrent access to shared mutable state must use atomic operations,
-hardware-I/O operations where applicable, or appropriate synchronization.
-
-The language provides the C++ memory-ordering semantics, including `relaxed`,
-`acquire`, `release`, `acq_rel`, and `seq_cst` ordering for atomic and
-hardware-I/O operations, subject to the constraints of each operation.
-Hardware-I/O operations may establish synchronization with a device according to
-their specified semantics.
-
-Atomic operations are indivisible and participate in the modification order of
-their atomic object. Hardware-I/O operations perform the prescribed device
-interaction, which may require specific instructions or sequences of accesses to
-multiple I/O ports or MMIO (Memory Mapped I/O). Their contracts define access
-width, ordering, synchronization, and completion guarantees. Such operations
-must not be eliminated, duplicated, combined, or replaced by cached values
-unless explicitly permitted by their contracts.
-
-Hardware may access ordinary memory through DMA. Such accesses participate in
-the extended memory model, and synchronization must ensure the required
-visibility and ordering between software and the device. Non-coherent DMA may
-additionally require explicit cache maintenance.
-
-In the absence of applicable ordering constraints, the compiler and execution
-environment may optimize ordinary memory accesses as permitted by the memory
-model. In particular, multiple reads from the same memory location may reuse a
-previously loaded value, and multiple writes may be combined or eliminated.
-Memory accesses may also be reordered.
-
-Fences constrain the ordering of ordinary-memory, atomic, and hardware-I/O
-operations according to their specified semantics. A fence does not
-independently establish a happens-before relationship between agents;
-synchronization must be established through the atomic operation, hardware-I/O
-operation, or synchronization primitive defined by the memory model.
-
-Ordering alone does not guarantee device-operation completion, device
-acknowledgement, or DMA visibility. These guarantees are provided only by
-operations or platform contracts that explicitly define them.
 
 
 ## Explicit Casts
@@ -762,105 +635,3 @@ valid-but-unspecified state after an actual move, subject to any stronger
 guarantee provided by the type's move operation.
 
 
-## Updating Variable Bindings
-
-When the name already resolves to an existing binding, the statement updates
-that binding rather than defining a new one. Binding qualifiers and type
-annotations are permitted only when defining a binding and must not be
-specified when updating one. The existing binding's type and qualification
-remain unchanged; the update operator determines the operation to perform.
-
-The `<-` and `=` operators determine which operation is called:
-* `<-` calls `__assign__()`.
-* `=` calls `__merge__()`.
-
-```text
-a <- 1.0
-a <- 2.0       // Calls a.__assign__(2.0).
-
-b = 1.0        // Creates a const-restricted binding.
-// b = 2.0     // Error: f64 does not support __merge__().
-
-f = fn(a : *int) {}     // Creates an overload-set.
-f = fn(a : *string) {}  // Merges the overload-sets, std.overload_set supports __merge__().
-```
-
-Although both operators introduce or update bindings, their update semantics
-differ. `<-` assigns a new value, while `=` merges a definition or value
-according to the type's semantics.
-
-The operations use binding qualifiers that reflect their permitted access:
-
-```text
-__assign__ = fn(@self self : &, other : &const)
-__merge__  = fn(@self self : &const, other : &const)
-```
-
-Consequently, `<-` cannot update a const-restricted binding through
-`__assign__`, because that operation requires unqualified access. The `=`
-operator can invoke `__merge__` through const-restricted access, but only when
-the type supports merging.
-
-An implementation of `__merge__()` may explicitly remove the const restriction
-from its receiver's access path to perform the merge. Any resulting mutation is
-authorized by that explicit cast, not by the `=` operator itself. As with other
-explicit qualification casts, the implementation is responsible for ensuring
-that the resulting operations are valid.
-
-Very few types support `__merge__()`, examples that do support it:
- - Function overload-sets allow new functions to be added.
- - Types allow member functions and member variables, or enum names to be
-   merged.
- - Templated types, functions and global variables also creates an overload-set
-   of types, functions and variables.
-
-The semantics of `__assign__()` and `__merge__()` are defined by the type. An
-update is invalid when the required operation is unsupported or its binding
-qualifications cannot be satisfied.
-
-
-### Updating References
-
-When updating an existing reference binding, the update must not specify a
-binding qualifier or type annotation. An explicit binding operator that produces
-a reference reseats the existing reference, preserving its qualification. This
-rule takes precedence over the normal `<-` /` =` update dispatch. Otherwise:
- * `<-` calls `__assign__()` on the referenced object, and
- * `=` calls `__merge__()` on the referenced object.
-
-```text
-a <- 1.0
-b <- 2.0
-
-r <- &a
-r <- 2.0              // Calls r.__assign__(2.0), modifying a.
-r <- &b               // Binding operator resolves to a reference: reseats `r`.
-r <- get_reference()  // Modifies `b` with the referenced object's value
-r <- &get_reference() // Binding operator resolved to a reference: reseats `r`.
-```
-
-Reseating does not copy or move either referenced object's value, nor does it
-change the reference binding's qualification. The new reference must be
-implicitly convertible to the existing binding's reference qualification.
-
-```text
-cr = &a
-cr <- &b             // Reseats cr; it remains const-restricted.
-
-mr <- &move a
-mr <- &move b        // Reseats mr; it remains move-capable.
-// mr <- &b           // Error: cannot implicitly grant move capability.
-```
-
-A move-capable reference grants permission to consume its referenced object's
-value but does not itself perform a move. Consumption occurs only when a
-subsequent variable-binding conversion moves from the referenced object.
-
-```text
-a <- "Hello World"
-r <- &move a         // Creates a reference; `a` remains unchanged.
-c : * <- &move r     // Moves the value from `a` into `c`.
-```
-
-Reference bindings alias existing objects. Creating or reseating a reference
-does not itself copy, move, or modify the referenced object's value.
