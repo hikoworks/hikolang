@@ -7,8 +7,8 @@ reseating, copying, moving, const-restricted access, and explicit casts.
 
 Binding resolution proceeds in three stages:
 
- 1. Determine the effective expression type by applying the binding operator or
-    default fragility rule.
+ 1. Determine the effective expression type by applying the binding operator or,
+    by default, treating `&latent T` as `&T`.
  2. Determine the resulting binding type from the binding context and qualifier.
  3. Apply the corresponding conversion to initialize or update the binding.
 
@@ -60,10 +60,10 @@ Goals:
  * **Binding operator** — A syntactic modifier that determines the effective
    expression type and whether the binding operator was explicit. It does not
    itself perform a conversion.
- * **Effective expression type** — The expression type after applying the
-   binding operator or default fragility rule. It determines the access
-   capabilities considered during binding resolution but does not imply that a
-   conversion has occurred.
+ * **Effective expression type** - The expression type resulting from applying
+   the binding operator or, by default, treating `&latent T` as `&T`. It
+   determines the access capabilities considered during binding resolution,
+   without implying a conversion.
  * **Binding qualifier** — A modifier on the destination that determines whether
    the binding uses value or reference semantics and what access capabilities it
    provides.
@@ -77,9 +77,10 @@ Goals:
    (`&move T`), or latent-move-capable (`&latent T`). Qualifications govern
    access through a particular path, not intrinsic properties of the underlying
    value.
- * **Explicit-binding-operator flag** — A flag indicating whether a binding
-   operator was specified on the initial expression. Simplified binding forms
-   use this flag to determine which binding-context rules apply.
+ * **Explicit-binding-operator flag** — Records whether a binding operator was
+   explicitly applied to the initial expression. Simplified binding forms use
+   this flag to select the applicable binding-context rule.
+
 
 ## Types
 
@@ -118,6 +119,7 @@ Non-binding operators, like mathematics operators `1 + 2` are lowered to
 function-calls, therefore should be treated as function calls in respect of
 the table above.
 
+
 ## Binding operators
 
 Binding operators are type transformations, not binding conversions.
@@ -138,8 +140,8 @@ value semantics describes its effect on the binding rules, not an operation
 performed by the operator itself. No copy, move, or reference creation may be
 inferred from the binding operator alone.
 
- * **Default**: When no binding operator is specified, the initial expression is
-   interpreted using the default fragility rule. This preserves ordinary
+ * **Default** - When no binding operator is specified, the initial expression
+   is interpreted treating `&latent T` as `&T`. This preserves ordinary
    copy-like semantics by preventing a move-capable reference from implicitly
    granting permission to consume the referenced value.
  * `&x` — **Borrow reference**: Requests reference semantics for the initial
@@ -167,7 +169,6 @@ inferred from the binding operator alone.
    value; the binding qualifier and applicable conversion rules determine what
    actually happens.
 
-
 Here is the table showing how an initial expression of a certain type is
 modified by each of the binding operators into an effective expression type:
 
@@ -180,13 +181,13 @@ modified by each of the binding operators into an effective expression type:
  | `&&x`       | `T`        | `&T`        | `&const T`  | `&move T`  | `&move T`
  | `*x`        | `T`        | `T`         | `T`         | `T`        | `T`
 
-
 It is a compile error when trying to use the `&move x` operator on an initial
 expression with the types `&T` or `&const T`.
 
 The compiler will mark an effective expression with an explicit-binding-operator
-flag when an binding operator was used on the initial expression; specifically
+flag when a binding operator was used on the initial expression; specifically
 to handle simplified bindings.
+
 
 ## Bindings
 
@@ -207,19 +208,15 @@ make it that way.
    operations through the resulting binding without necessarily creating a
    reference or an independent value, and without implying that the underlying
    object is intrinsically immutable.
- * `: &` - **Reference binding**: Binds through a reference, preserving access
-   to the existing object rather than creating an independent value. It makes
-   aliasing explicit while applying the context’s rules for reference
-   qualification.
- * `: &const` - **Const-restricted reference binding**: Binds through a
-   reference that restricts what can be done through that access path. It allows
-   the object to be observed or passed along without granting the recipient
-   unrestricted access, while not implying that the object itself is
+ * `: &` - **Reference binding**: Binds through a reference. If the effective
+   expression is a reference, borrows its referent; if it is a value, may
+   materialize the value and borrow that storage.
+ * `: &const` - **Const-restricted reference binding**: Like `: &`, but restricts
+   operations through the resulting reference without making the referent
    intrinsically immutable.
- * `: &move` - **Move-capable reference binding**: Binds through a reference
-   that grants permission to move from the referenced object. It makes that
-   capability explicit, distinguishing access that may consume a value from
-   ordinary or const-restricted reference access.
+ * `: &move` - **Move-capable reference binding**: Like `: &`, but grants
+   permission to move from the referent through the resulting reference without
+   itself moving the value.
  * `: &&` - **Inferred binding**: Infers value or reference semantics from the
    effective expression type, preserving its qualification. The binding context
    determines the resulting binding type and conversion.
@@ -253,6 +250,7 @@ required operation. A conversion such as copy, move, or materialize is never
 performed merely because the binding operator's row produces a particular
 effective expression type.
 
+
 ### Variable binding
 
 A variable binding introduces a name for either a value or a reference to
@@ -274,14 +272,12 @@ existing storage. Its general form is:
 | `a : const <- <expr>`  | `const T`  | `&const T`  | `&const T`  | `&const T` | `const T` |
 
 
-
 ### Const-restricted variable binding
 
 A const-restricted variable binding introduces a name for either a value or a
 reference to existing storage. Its general form is:
 
 > _name_ __(__ `:` _binding-qualifier_**?** _type_**?** __)?__ `=` _binding-operator_**?** _expr_
-
 
 | Binding                | `T`        | `&T`        | `&const T`  | `&move T`  | default   |
 |------------------------|------------|-------------|-------------|------------|---------  |
@@ -295,8 +291,7 @@ reference to existing storage. Its general form is:
 | `a : = <expr>`         | `const T`  | `&const T`  | `&const T`  | `&const T` | `const T` |
 | `a : const = <expr>`   | redundant  | redundant   | redundant   | redundant  | redundant |
 
-
-It is a compilation error when the matching cell is an "redundant" or "error".
+It is a compilation error when the matching cell is a "redundant" or "error".
 In this case it is caused by redundant syntax, or where the meaning of such a
 syntax is not really clear.
 
@@ -323,11 +318,9 @@ to existing storage. Its general form is:
 | `fn(a : const)`  | `const T`  | `const T`   | `const T`   | `const T`  | `const T` |
 
 
-
 #### Overload resolution
 
-These are the overload priorities based on the result of the effective expression
-after the optional binding operator has been applied.
+These are the overload priorities based on the result of the effective expression.
 
 Overload priority:
  1. exact match with effective expression (see below)
@@ -335,19 +328,20 @@ Overload priority:
  3. `fn(a : &move)`
  4. `fn(a : &)`
  5. `fn(a : &const)`
- 6. `fn(a : *)`, `fn(a : *const)`, `fn(a)`, `fn(a :)`, `fn(a : const)`
+ 6. one of: `fn(a : *)`, `fn(a : *const)`, `fn(a)`, `fn(a :)`, `fn(a : const)`
 
 Exact match of the binding qualifier with the type of the effective expression
 after applying the binding operator has priority above this list:
  * `T` matches exactly with `fn(a : *)`, `fn(a : *const)`, `fn(a)`, `fn(a :)` or
    `fn(a : const)`
  * `&T` matches exactly with `fn(a : &)`
- * `&const T` matches exactly with `fn(a : &const T)`
- * `&move T` matches exactly with `fn(a : &move T)`
+ * `&const T` matches exactly with `fn(a : &const)`
+ * `&move T` matches exactly with `fn(a : &move)`
 
-It is a compilation when, after dropping non-matching overloads, multiple
+It is a compilation error when, after dropping non-matching overloads, multiple
 overloads of the following are visible: `fn(a : *)`, `fn(a : *const)`, `fn(a)`,
 `fn(a :)`, `fn(a : const)`
+
 
 ### Function return binding
 
@@ -358,10 +352,9 @@ existing storage. Its general form is:
 >      `return` _binding-operator_**?** _expr_\
 > `}`
 
-
-Different from the previous binding a function return value is
-an expression used by the outer expression; each cell thus specifies the initial
-expression type.
+Unlike the previous binding contexts a function return value is an expression
+used by the outer expression; each cell thus specifies the initial expression
+type.
 
 | Binding          | `T`        | `&T`        | `&const T`  | `&move T`  | default   |
 |------------------|------------|-------------|-------------|------------|-----------|
@@ -397,24 +390,23 @@ with the original source.
 
 Below is the conversion table, each conversion column represents a resulting
 binding qualifier; each row specifies an initial and effective expression type.
-The `T`, `const T` and `move T` binding qualifier share the same `T` column.
 "otherwise" means any other reachable effective expression type for that initial
 expression type, excluding effective types listed in other rows for the same
 initial expression type.
 
-| Initial     | Effective    | `T`  | `&T`                | `&const T`          | `&move T`           |
-|-------------|------------  |------|---------------------|---------------------|---------------------|
-| `T`         | always       | Pass | Materialize         | Materialize         | Materialize         |
-| `&T`        | `T`          | Copy | Copy -> Materialize | Copy -> Materialize | Copy -> Materialize |
-| `&T`        | otherwise    | Copy | Borrow              | Borrow              | -                   |
-| `&const T`  | `T`          | Copy | Copy -> Materialize | Copy -> Materialize | Copy -> Materialize |
-| `&const T`  | otherwise    | Copy | -                   | Borrow              | -                   |
-| `&move T`   | `T`          | Move | Move -> Materialize | Move -> Materialize | Move -> Materialize |
-| `&move T`   | `&move T`    | Move | Borrow              | Borrow              | Borrow              |
-| `&move T`   | otherwise    | Copy | Borrow              | Borrow              | -                   |
-| `&latent T` | `T`          | Copy | Copy -> Materialize | Copy -> Materialize | Copy -> Materialize |
-| `&latent T` | `&move T`    | Move | Borrow              | Borrow              | Borrow              |
-| `&latent T` | otherwise    | Copy | Borrow              | Borrow              | -                   |
+| Initial     | Effective    | `T`   | `const T` | `move T` | `&T`                | `&const T`          | `&move T`           |
+|-------------|--------------|-------|-----------|----------|---------------------|---------------------|---------------------|
+| `T`         | always       | Pass  | Pass      | Pass     | Materialize         | Materialize         | Materialize         |
+| `&T`        | `T`          | Copy  | Copy      | Copy     | Copy -> Materialize | Copy -> Materialize | Copy -> Materialize |
+| `&T`        | otherwise    | Copy  | Copy      | Copy     | Borrow              | Borrow              | -                   |
+| `&const T`  | `T`          | Copy  | Copy      | Copy     | Copy -> Materialize | Copy -> Materialize | Copy -> Materialize |
+| `&const T`  | otherwise    | Copy  | Copy      | Copy     | -                   | Borrow              | -                   |
+| `&move T`   | `T`          | Move  | Move      | Move     | Move -> Materialize | Move -> Materialize | Move -> Materialize |
+| `&move T`   | `&move T`    | Move  | Move      | Move     | Borrow              | Borrow              | Borrow              |
+| `&move T`   | otherwise    | Copy  | Copy      | Copy     | Borrow              | Borrow              | -                   |
+| `&latent T` | `T`          | Copy  | Copy      | Copy     | Copy -> Materialize | Copy -> Materialize | Copy -> Materialize |
+| `&latent T` | `&move T`    | Move  | Move      | Move     | Borrow              | Borrow              | Borrow              |
+| `&latent T` | otherwise    | Copy  | Copy      | Copy     | Borrow              | Borrow              | -                   |
 
 Legend:
  * **Pass (pass-through)**: Use the temporary value directly, without copying or
@@ -424,12 +416,14 @@ Legend:
    destination's qualification.
  * **Copy -> Materialize**: Copy the original referent into independent storage,
    then borrow that storage.
- * **Move**: Use the move operation if supported; otherwise copy if supported;
-   otherwise compilation fails.
- * **Move -> Materialize**: Move (using the **Move** rule) the original referent
-   into independent storage, then borrow that storage.
+ * **Move**: Use the move operation if supported; otherwise fallback to copy if
+   supported; otherwise compilation fails.
+ * **Move -> Materialize**: Move the referent into independent storage using
+   the **Move** rule, including its copy fallback, then borrow that storage.
  * **—**: The initial/effective type combination is unreachable or previously
-   rejected under the binding-operator or binding-qualifier tables.
+   rejected under the binding-operator or binding-qualifier tables. The
+   compiler should not read an unsupported conversion as a request to try
+   a less restrictive conversion.
 
 
 ## Constants
@@ -460,6 +454,32 @@ implicitly satisfy a destination requiring unqualified or move-capable access.
 Explicit qualification casts may bypass these restrictions.
 
 
+## Immutability
+
+Immutability in the language is a compile-time property, not a guarantee that a
+value occupies read-only memory at runtime.
+
+All variables, including `const`-qualified variables, are mutable at the
+storage level. The `const` qualification restricts operations through a binding
+path; it does not make the underlying variable intrinsically immutable.
+
+Types, templates, and function overload-sets become frozen when they are first
+used. Once frozen, their compile-time definitions cannot be changed. Evaluation
+is lazy: these entities are evaluated only when needed, such as when generating
+the executable code for `main()` or another required symbol.
+
+Variables that hold types or function overload-sets are still stored in the
+executable's read-write segment. Their values represent compile-time entities
+whose definitions have already been frozen. Modifying their runtime storage
+cannot alter those definitions or change the program's types and overload
+resolution.
+
+The compiler may place storage in a read-only segment as an optimization when
+it can establish that doing so preserves observable program behavior under the
+as-if rule. Such placement is not guaranteed by the language's immutability
+rules.
+
+
 ## Temporaries
 
 A temporary is a value produced by an expression rather than accessed through an
@@ -479,9 +499,18 @@ r <- &make_value()    // Materializes the result in the current scope.
 use(r)                // Valid while that scope remains active.
 ```
 
-For a function return binding that converts a temporary into a reference,
-materialization must occur at the caller's call site; the returned reference
-must not refer to temporary storage that expires when the callee returns.
+A temporary value returned by a function may be materialized in the block
+containing the function call. A reference to the returned temporary borrows
+from this materialized storage.
+
+When a function's return binding converts a temporary value into a reference,
+the temporary is materialized in the block containing the function call, and
+the returned reference borrows from this materialized storage.
+
+This rule does not apply when the return expression itself produces a reference
+to a temporary, such as return &make_value(). In this case, the temporary is
+materialized in the callee's block, and returning a reference to it is invalid
+because its storage expires when that block exits.
 
 Temporaries therefore support direct initialization and consumption while
 allowing references to them only for the [_lifetime_] of their materialized
@@ -494,29 +523,21 @@ Copying initializes an independent value from an existing value without changing
 the source. It requires the type to support copying.
 
 When a value is initialized from a named variable or reference, the default
-fragility rule prevents implicit consumption. A move-capable expression
-therefore loses its move capability unless an explicit binding operator
-preserves it.
+no-binding operator rule prevents implicit consumption. A move-capable
+expression therefore loses its move capability unless an explicit binding
+operator preserves it.
 
 ```text
 a <- "Hello World"
-b <- a                 // Copies the value; a remains unchanged.
+b <- a                 // Copies the value; `a` remains unchanged.
 
-r <- &a                // Borrows a.
+r <- &a                // Borrows `a`.
 c <- r                 // Copies the referenced value.
 
-m <- &move a           // Creates a move-capable reference to a.
+m <- &move a           // Creates a move-capable reference to `a`.
 d : * <- m             // Copies; ordinary use loses move capability.
-e : * <- &move m       // Moves from a through m.
+e : * <- &move m       // Moves from `a` through `m`.
 ```
-
-Copying a value is distinct from borrowing a reference to it. An explicit
-reference binding aliases existing storage, while a value binding initializes an
-independent value.
-
-The default fragility rule therefore preserves copy-like semantics for ordinary
-use of named values, while explicit `&move` permits a subsequent value-binding
-conversion to move when supported.
 
 
 ## Moving
@@ -536,9 +557,9 @@ consumes the referenced value.
 ```text
 a <- "Hello World"
 
-b <- a                   // Copies; a remains unchanged.
-r <- &move a             // Creates a reference; does not move.
-c : * <- &move a         // Moves a into c.
+b <- a                   // Copies; `a` remains unchanged.
+r <- &move a             // Creates `a` reference; does not move.
+c : * <- &move a         // Moves `a` into `c`.
 d : * <- &move r         // Moves from a again through r.
 ```
 
@@ -550,57 +571,71 @@ explicit `&move` or `&&` operators preserves that capability, while temporaries
 can be consumed without it.
 
 
+## Explicit Casts
 
+The standard library provides functions for explicitly changing the
+qualification of a reference when the corresponding transformation is not
+permitted by implicit conversion.
 
-## Explicit casts
+| Function                      | Effect                                                             |
+|-------------------------------|--------------------------------------------------------------------|
+| `std.make_unqualified_ref(x)` | Returns an unqualified reference, `&T`, to the same referent.      |
+| `std.make_move_ref(x)`        | Returns a move-capable reference, `&move T`, to the same referent. |
 
-Special standard library functions allow explicit casts between reference
-qualifications that are not permitted by implicit conversion:
+These functions change the qualification of the resulting reference, not the
+underlying value. They do not themselves copy, move, or modify the referent.
 
-| Function              | Effect                         |
-| --------------------- | ------------------------------ |
-| `std.remove_const(x)` | Removes the const restriction. |
-| `std.remove_move(x)`  | Removes move capability.       |
-| `std.add_const(x)`    | Adds a const restriction.      |
-| `std.add_move(x)`     | Grants move capability.        |
+The resulting reference has the qualification specified by the function.
+Qualifications are not combined: `std.make_unqualified_ref` does not preserve
+move capability, and `std.make_move_ref` does not preserve a const restriction.
+In particular, `std.make_move_ref` can explicitly remove a const restriction
+while granting move capability.
 
-These casts change the qualification of the resulting reference, not the
-underlying value. In particular, `std.add_move` grants permission to move but
-does not perform a move, while `std.remove_const` permits modification through
-the resulting access path without making the value intrinsically mutable or
-immutable.
-
-Explicit casts bypass the normal qualification rules. The programmer is
-responsible for ensuring that operations through the resulting reference are
-valid.
+These functions bypass the normal implicit qualification rules. The programmer
+is responsible for ensuring that operations performed through the resulting
+reference are valid. Removing a const restriction does not make the underlying
+value intrinsically mutable, and granting move capability does not itself
+consume the value.
 
 For example, a method receiving a const-restricted reference can explicitly
-remove the restriction to modify the underlying value:
+remove the restriction from its access path to modify the underlying object:
 
 ```text
 my_type = struct {
     counter <- 0.0
 
     foo = fn(@self self : &const my_type) {
-        self_nc <- &std.remove_const(self)
+        self_nc <- &&std.make_unqualified_ref(self)
         self_nc.counter += 1.0
     }
 }
 
-co : const <- my_type()
+co = my_type()
 co.foo()
 ```
 
-Although `co` is const-restricted, `foo` explicitly removes the restriction on
-its access path, allowing it to modify `counter`.
+Although `co` is const-restricted, `foo` explicitly obtains an unqualified
+reference to the same object. This permits modification through `self_nc`
+without changing the qualification of `co` or making the underlying object
+intrinsically mutable.
 
+Similarly, `std.make_move_ref` grants permission to consume the referenced
+value, but does not itself perform a move. A subsequent value-binding
+conversion may move from the referent when the applicable conversion rules
+permit it. The source binding remains alive in a valid-but-unspecified state
+after an actual move, subject to any stronger guarantee provided by the type's
+move operation.
 
 
 ## Updating Variable Bindings
 
-When a binding already exists, `<-` and `=` update it instead of introducing a
-new binding. The operator determines which operation is called:
+When the name already resolves to an existing binding, the statement updates
+that binding rather than defining a new one. Binding qualifiers and type
+annotations are permitted only when defining a binding and must not be
+specified when updating one. The existing binding's type and qualification
+remain unchanged; the update operator determines the operation to perform.
 
+The `<-` and `=` operators determines which operation is called:
 * `<-` calls `__assign__()`.
 * `=` calls `__merge__()`.
 
@@ -649,12 +684,13 @@ update is invalid when the required operation is unsupported or its binding
 qualifications cannot be satisfied.
 
 
-
 ### Updating References
 
-When updating an existing reference binding, an explicit binding operator that
-produces a reference reseats the reference. Otherwise, `<-` calls `__assign__()`
-and `=` calls `__merge__()` on the referenced value.
+When updating an existing reference binding, the update must not specify a
+binding qualifier or type annotation. An explicit binding operator that
+produces a reference reseats the existing reference, preserving its
+qualification. Otherwise, `<-` calls `__assign__()` and `=` calls `__merge__()`
+on the referenced value.
 
 ```text
 a <- 1.0
