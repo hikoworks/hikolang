@@ -3,17 +3,18 @@
 ## Syntax
 
 _variable-definition_ :=\
-    [_fqname_]\
-    __(__ `[` [_argument_declaration_list_](argument_declaration_list.md) `]` __)?__
-    [_type-specifier_]__?__ _initializer_
+      [_fqname_] [_type-specifier_]__?__ `=` _initializer_\
+    __|__ [_fqname_] [_type-specifier_]__?__ `<-` _initializer_\
+    __|__ [_fqname_] [_type-specifier_]__?__ `=` `global` `(` [_argument_declaration_list_](argument_declaration_list.md) `)` _initializer_\
+    __|__ [_fqname_] [_type-specifier_]__?__ `<-` `global` `(` [_argument_declaration_list_](argument_declaration_list.md) `)` _initializer_
+
 
 
 _initializer_ :=\
-      `=` [_expression_]\
-    __|__ `<-` [_expression_]\
-    __|__ `<-` `unintialized`\
-    __|__ `<-` `extern`
-    __|__ `<-` `default`
+      [_expression_]\
+    __|__ `unintialized`\
+    __|__ `extern`\
+    __|__ `default`
 
 
 [_attribute_]: attribute.md

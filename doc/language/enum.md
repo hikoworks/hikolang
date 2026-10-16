@@ -1,41 +1,26 @@
-# enum-definition
+# Enum
 
-[_annotation_]: annotation.md
-[_expression_]: expression.md
-[_fqname_]: fqname.md
-[_identifier_]: identifier.md
-[_underlying_]: underlying.md
-[_unit-expression_]: unit_expression.md
-[_string-literal_]: string_literal.md
-
-## Syntax
-
-_enum-definition_ := [_annotation_]__*__ `enum` [_underlying_]__?__ `{`\
-    _enum-member_ `;`__*__\
-`}`
-
-_enum-member_ := [_annotation_]__*__ [_identifier_] __(__ `=` [_expression_] __)?__\
-
-
-## Semantics
+[_annotation_]: syntax/annotation.md
+[_expression_]: syntax/expression.md
+[_fqname_]: syntax/fqname.md
+[_identifier_]: syntax/identifier.md
+[_unit-expression_]: syntax/unit_expression.md
+[_string-literal_]: syntax/string_literal.md
 
 An `enum` is a built-in meta-type; it defines enum-types. An instance of an
 enum-type is a value represented by one of its members. A _enum-member_ is
 a unique name with a unique integral value, together with optional
 annotations.
 
-If no [_underlying_] `int[min...max]` type is specified, the compiler
-determines the underlying type when the enum freezes. Its range is the
-minimum and maximum values of all members at that point.
+If no underlying `int[min...max]` type is specified, the compiler determines the
+interval of the underlying `int` when the enum freezes. Its range is the minimum
+and maximum values of all members at that point.
 
 > [!note]
 > Freezing happens when a type becomes concrete when it is being used.
 > The compiler tries to be as lazy as possible to delay making types
 > concrete. When a type becomes frozen the data layout of instances
 > can no longer be changed.
-
-The name of a member may be any [_string-literal_]. A [_identifier_] may
-be used instead of a [_string-literal_] as a short hand.
 
 Every enum member has a distinct integral value. It is a compilation
 error for two members with different names to have the same value.
