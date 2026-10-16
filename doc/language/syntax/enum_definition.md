@@ -14,7 +14,7 @@ _enum-definition_ := [_annotation_]__*__ `enum` [_underlying_]__?__ `{`\
     _enum-member_ `;`__*__\
 `}`
 
-_enum-member_ := [_annotation_]__*__ __(__ [_identifier_] | [_string-literal_] __)__ __(__ `=` [_expression_] __)?__\
+_enum-member_ := [_annotation_]__*__ [_identifier_] __(__ `=` [_expression_] __)?__\
 
 
 ## Semantics
@@ -245,43 +245,48 @@ from the type.
 
 ```
 .std.operator = enum u32 {
-    @suffix(2000, __post_increment__)   "++"
-    // duplicate definition merges the annotations.
-    @prefix(3000, __increment__)        "++"
-    @prefix(3000, __pos__)              "+"
-    @left(6000, __add__)                "+"
-    @right(16000, __inplace_add__)      "+="
-    @right(15100)                       catch
+    @suffix(2000, ++)       __post_increment__
+    @prefix(3000, ++)       __increment__
+    @prefix(3000, +)        __pos__
+    @left(6000, +)          __add__
+    @right(16000, +=)       __inplace_add__
+    @right(15100, catch)    __builtin_catch__
 }
 ```
 
+The enum members are the functions to call when evaluating the expression
+represented by the operator in the annotation.
 
-#### @prefix(precedence [, function ])
+There are several special functions that are not called but represent a special
+implementation, such as `__builtin_catch__`.
+
+
+#### @prefix(precedence, operator)
 
 Prefix operator
  - precedence: An integer priority, lower numbers bind closer.
- - function: The name of the function call that implements the operator.
+ - operator: The name or syntax-pattern of the operator.
 
 
-#### @suffix(precedence [, function])
+#### @suffix(precedence, operator)
 
 Suffix operator
 
  - precedence: An integer priority, lower numbers bind closer.
- - function: The name of the function call that implements the operator.
+ - operator: The name or syntax-pattern of the operator.
 
 
-#### @right(precedence [, function])
+#### @right(precedence, operator)
 
 Right associative
 
  - precedence: An integer priority, lower numbers bind closer.
- - function: The name of the function call that implements the operator.
+ - operator: The name or syntax-pattern of the operator.
 
 
-#### @left(precedence [, function])
+#### @left(precedence [, operator])
 
 Left associative
 
  - precedence: An integer priority, lower numbers bind closer.
- - function: The name of the function call that implements the operator.
+ - operator: The name or syntax-pattern of the operator.
