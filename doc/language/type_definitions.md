@@ -9,7 +9,7 @@ interpreted to construct a type.
 The general form of a type definition is:
 
 ```text
-name = metatype : underlying-type {
+name = metatype : underlying-types {
     definition
 }
 ```
@@ -33,7 +33,7 @@ members are created and what properties those members have.
 A function is declared as a metatype using the `@metatype` annotation:
 
 ```text
-@metatype my_metatype = fn(definition) {
+@metatype my_metatype = fn(definition, underlying_types) {
     ...
     return type_from_definition
 }
