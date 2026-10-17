@@ -428,7 +428,7 @@ Legend:
    supported; otherwise compilation fails.
  * **Move -> Materialize**: Initialize an anonymous object using the Move rule,
    including its copy fallback, then borrow a reference to that object.
- * **—**: The initial/effective type combination is unreachable or previously
+ * **-**: The initial/effective type combination is unreachable or previously
    rejected under the binding-operator or binding-qualifier tables. The
    compiler should not read an unsupported conversion as a request to try
    a less restrictive conversion.
@@ -519,8 +519,6 @@ but modifying their runtime values cannot alter the frozen compile-time
 definitions or change the program's types and overload resolution.
 
 
-
-
 ## Copying
 
 Copying initializes an independent object from an existing object's value
@@ -577,8 +575,6 @@ Initializing `d` from `r` is still permitted, and `a` remains valid afterward.
 Ordinary use of a named variable does not implicitly grant move capability. The
 explicit `&move` or `&&` operators preserve that capability, while temporaries
 can be consumed without it.
-
-
 
 
 ## Explicit Casts

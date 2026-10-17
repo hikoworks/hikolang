@@ -111,7 +111,6 @@ declared to have the type `int[0...10]`.
 The expression `int[0...10]` denotes an integer type constrained to the
 inclusive range from `0` to `10`.
 
-
 ### Function members
 
 A function member declares a function associated with a type or its instances.
@@ -150,26 +149,26 @@ A name member without a type-tuple consists only of its name. A name member with
 a type-tuple can carry associated values, similar to associated-value cases in
 Swift enumerations.
 
-A type-tuple has the following form:
+A type-tuple has the following forms:
 
 ```text
-bar = name 3
-foo = name(labelA : TypeA, labelB : TypeB, labelC : TypeC)
+// Just an identifier is a member name with an automatic index.
+bar
+
+// An identifier with an explicit index.
+baz = 1
+
+// A name with a struct type definition in an enum definition
+// is used for enum members that carry associated values.
+foo = struct{a : int[0...10]; b : f64; c : string}
+
+// A name with a string that holds the associated value.
+// This `,` syntax is special for variable definitions and does not indicate
+// a tuple.
+qux = string, 4
 ```
 
-Each element of the type-tuple declares the type of an associated value.
-
-An element written as `: Type` declares an unlabeled associated value. An
-element written as `label : Type` declares an associated value with the
-specified label.
-
-For example:
-
-```text
-foo = name(: int[0...10], : f64, x : string)
-```
-
-This declares the name member `foo` with three associated values: an unlabeled
+This declared the name member `foo` with three associated values: an unlabeled
 value of type `int[0...10]`, an unlabeled value of type `f64`, and a value
 labeled `x` of type `string`.
 

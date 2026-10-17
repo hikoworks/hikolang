@@ -1,22 +1,5 @@
 # variable-definition
 
-## Syntax
-
-_variable-definition_ :=\
-      [_fqname_] [_type-specifier_]__?__ `=` _initializer_\
-    __|__ [_fqname_] [_type-specifier_]__?__ `<-` _initializer_\
-    __|__ [_fqname_] [_type-specifier_]__?__ `=` `global` `(` [_argument_declaration_list_](argument_declaration_list.md) `)` _initializer_\
-    __|__ [_fqname_] [_type-specifier_]__?__ `<-` `global` `(` [_argument_declaration_list_](argument_declaration_list.md) `)` _initializer_
-
-
-
-_initializer_ :=\
-      [_expression_]\
-    __|__ `unintialized`\
-    __|__ `extern`\
-    __|__ `default`
-
-
 [_attribute_]: attribute.md
 [_expression_]: expression.md
 [_body_]: body.md
@@ -27,7 +10,27 @@ _initializer_ :=\
 [_code-block_]: code-block.md
 [_condition-expression_]: condition_expression.md
 [_type-specifier_]: type_specifier.md
+[_type-expression_]: type_expression.md
+[_type-definition_]: type_definition.md
 
+## Syntax
+
+_variable-definition_ :=\
+      [_fqname_] [_type-specifier_]__?__ `=` _initializer_\
+    __|__ [_fqname_] [_type-specifier_]__?__ `<-` _initializer_\
+    __|__ [_fqname_] [_type-specifier_]__?__ `=` `global` `(` [_argument_declaration_list_](argument_declaration_list.md) `)` _initializer_\
+    __|__ [_fqname_] [_type-specifier_]__?__ `<-` `global` `(` [_argument_declaration_list_](argument_declaration_list.md) `)` _initializer_\
+    __|__ [_fqname_] [_type-specifier_]__?__ `=` [_type-expression_] __(__ `,` _index-expression_ __)?__\
+    __|__ [_fqname_] [_type-specifier_]__?__ `<-` [_type-expression_] __(__ `,` _index-expression_ __)?__
+
+
+_initializer_ :=\
+      [_expression_]\
+    __|__ `unintialized`\
+    __|__ `extern`\
+    __|__ `default`
+
+_index-expression_ := [_expression_]
 
 ## Semantics
 
@@ -40,6 +43,9 @@ Variable declarations may appear in the following contexts:
  - In a [_init-expression_] of a control-expression; the variable is then
    declared in the scope of all following [_condition-expression_]s and
    [_code-block_]s of that control-expression.
+ - In a [_type-definition_]'s [_code-block_] where it becomes part of the
+   definition, resulting in: a member-variable in a `struct`-like type or
+   member-name in an `enum`-like type, or something else.
 
 If the type is not explicitly set, the exact type of the first assigned value is
 used as the type of the variable.
@@ -86,6 +92,22 @@ Special types, like functions, have overload sets that may be merged.
 > Technically any type can implement the `__merge__()` method,
 > but it should be extremely rare. As we want `=` to mean immutable.
 
+
+### enum member
+
+A variable definition is also used for declaring enum members by the `enum`
+metatype. The `,` _index-expression_ syntax allows both a type for the
+associated data and an index to the enum name to be supplied: They looks like:
+
+```
+my_enum = enum {
+    foo                     // a single literal (not a variable definition)
+    bar <- 3                // An `int` is used for the enum index
+    baz <- (:f64, :string)  // A tuple for associated values
+    qux <- string, 6        // A string as associated value and index.
+}
+```
+
 ## annotations
 
 A variable definition consumes the pending-annotations.
@@ -94,6 +116,7 @@ A variable definition consumes the pending-annotations.
 ### @alignas(integer-expression)
 
 Make the allocation for this objects aligned to the given expression.
+
 
 ### [[deprecated(message)]]
 
