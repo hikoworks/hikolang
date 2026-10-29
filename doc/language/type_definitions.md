@@ -111,7 +111,6 @@ declared to have the type `int[0...10]`.
 The expression `int[0...10]` denotes an integer type constrained to the
 inclusive range from `0` to `10`.
 
-
 ### Function members
 
 A function member declares a function associated with a type or its instances.
@@ -152,7 +151,6 @@ A name-member has the following forms:
  * **type variable definition* - A name with a type for associated data
  * **type variable definition + index** - A name with a type for associated data
    with explicit index
-
 
 ```text
 foo                                 // No index
