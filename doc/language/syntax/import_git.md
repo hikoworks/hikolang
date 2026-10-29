@@ -2,7 +2,7 @@
 
 ## Syntax
 
-`import` `git` _git-url_ *git-rev*__?__
+_import-git_ := [_annotation_]__*__ `import` `git` _git-url_ *git-rev*__?__
     [_build-quard_](build_guard.md)__?__ `;`
 
 git-url := [_string-literal_](string_literal.md)

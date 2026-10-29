@@ -1,5 +1,8 @@
 # tuple-literal
 
+[_expression_]: expression.md
+
+
 ## Syntax
 
 _tuple-literal_ :=\
@@ -7,7 +10,6 @@ _tuple-literal_ :=\
     __|__ `(` [_expression_] `,` `)`\
     __|__ `(` [_expression_] __(__ `,` [_expression_] __)+__ `,`__?__ `)`
 
-[_expression_]: expression.md
 
 ## Semantics
 

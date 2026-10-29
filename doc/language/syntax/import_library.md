@@ -2,7 +2,7 @@
 
 ## Syntax
 
-`import` `library` _lib-name_
+_import-lib_ := [_annotation_]__*__ `import` `library` _lib-name_
     [_version-literal_](version_literal.md)__?__
     [_build-quard_](build_guard.md)__?__ `;`
 

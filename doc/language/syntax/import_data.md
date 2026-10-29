@@ -2,11 +2,11 @@
 
 ## Syntax
 
-`import` `data` _file-path_ `in` _variable-name_ [_build-quard_](build_guard.md)__?__ `;`
+_import-data_ := [_annotation_]__*__ `import` `data` _file-path_ `in` _variable-name_ [_build-quard_](build_guard.md)__?__ `;`
 
-file-path := [_string-literal_](string_literal.md)
+_file-path_ := [_string-literal_](string_literal.md)
 
-variable-name := [_relative-fqname_](relative_fqname.md)
+_variable-name_ := [_relative-fqname_](relative_fqname.md)
 
 ## Semantics
 

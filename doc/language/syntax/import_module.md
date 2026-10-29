@@ -1,11 +1,12 @@
 # import-module
 
-## Syntax
-
-_import-module_ := `import` [_relative-fqname_] `public`__?__ [_build-quard_]__?__ `;`
-
 [_build-quard_]: build_guard.md
 [_relative-fqname_]: relative_fqname.md
+
+
+## Syntax
+
+_import-module_ := [_annotation_]__*__ `import` [_relative-fqname_] `public`__?__ [_build-quard_]__?__ `;`
 
 ## Semantics
 

@@ -2,7 +2,7 @@
 
 ## Syntax
 
-`import` `zip` _zip-url_
+_import-zip_ := [_annotation_]__*__ `import` `zip` _zip-url_
     [_build-quard_](build_guard.md)__?__ `;`
 
 zip-url := [_string-literal_](string_literal.md)

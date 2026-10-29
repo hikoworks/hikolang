@@ -2,8 +2,7 @@
 
 ## Syntax
 
-`import`
-    `eval` [_expression_](expression.md)
+_import-eval_ := [_annotation_]__*__ `import` `eval` [_expression_](expression.md)
     [_build-quard_](build_guard.md)__?__ `;`
 
 

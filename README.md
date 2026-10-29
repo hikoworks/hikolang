@@ -168,6 +168,12 @@ qux = fn(x, y) {
 }
 ```
 
+## Separate data-stack
+
+Local variables are allocated on a separate data-stack, this data-stack can
+grow much larger than a standard combined call-data-stack. Variable grow-only
+allocations on the data-stack are allowed from the current function.
+
 
 ## Universal call syntax
 

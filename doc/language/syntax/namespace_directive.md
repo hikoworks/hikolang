@@ -1,12 +1,14 @@
 # namespace-directive
 
+[_annotation_]: annotation.md
+[_fqname_]: fqname.md
+
 ## Syntax
 
 namespace-directive :=\
-      `namespace` [_fqname_] `;`\
+      [_annotation_]__*__ `namespace` [_fqname_] `;`\
     __|__ `namespace` `;`
 
-[_fqname_]: fqname.md
 
 
 ## Semantics

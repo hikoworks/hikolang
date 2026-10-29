@@ -1,5 +1,11 @@
 # argument-declaration
 
+[_type-specifier_]: type_specifier.md
+[_expression_]: expression.md
+[_literal_]: literal.md
+[_name_]: name.md
+
+
 ## Syntax
 
 _argument-declaration_ :=\
@@ -7,11 +13,6 @@ _argument-declaration_ :=\
     __|__ [_name_] `...` [_type-specifier_]__?__
     __|__ [_literal_] [_type-specifier_]__?__\
     __|__ `(` [_expression_] `)` [_type-specifier_]__?__\
-
-[_type-specifier_]: type_specifier.md
-[_expression_]: expression.md
-[_literal_]: literal.md
-[_name_]: name.md
 
 
 ## Semantics

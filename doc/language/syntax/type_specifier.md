@@ -1,11 +1,13 @@
 # type-specifier
 
+[_type-operator]: type_operator.md
+[_type-expression_]: type_expression.md
+
+
 ## Syntax
 
 _type-specifier_ := [_type-operator_] [_type-expression_]
 
-[_type-operator]: type_operator.md
-[_type-expression_]: type_expression.md
 
 ## Semantics
 

@@ -18,6 +18,7 @@ _meta_type_ := [_fqname_](fqname.md)
 
 _underlying_ := [_fqname_] __|__ `(` [_type-list_] `)`
 
+
 ## Semantics
 
 A function with the `meta_type` attribute will add the name of the function

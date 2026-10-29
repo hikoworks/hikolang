@@ -1,11 +1,12 @@
 # argument
 
+[_name_]: name.md
+[_expression_]: expression.md
+
+
 ## Syntax
 
 _argument_ := __(__ `$`__?__ [_name_] `=` __)?__ [_expression_]
-
-[_name_]: name.md
-[_expression_]: expression.md
 
 
 ## Semantics

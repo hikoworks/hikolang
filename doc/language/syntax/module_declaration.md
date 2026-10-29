@@ -1,17 +1,22 @@
 # module-declaration
 
+[_annotation_]: annotation.md
+[_build-guard_]: build_guard.md
+[_fqname_]: fqname.md
+[_build-guard-expression_]: build_guard_expression.md
+[_version-literal_]: version_literal.md
+
 ## Syntax
 
-[_documentation_](documentation.md)__?__
-`module` [_fqname_](fqname.md)
-    [_version-literal_](version_literal.md)__?__
-    [_build-guard_](build_guard.md)__?__
+_module-declaration_ := [_annotation_]__*__ `module` [_fqname_]
+    [_version-literal_]__?__
+    [_build-guard_]__?__
     `;`
 
 
 ## Semantics
 
-A module has a [_fqname_](fqname.md), the name forms a tree structure. The
+A module has a [_fqname_], the name forms a tree structure. The
 module tree structure does not have to follow the on-disk directory structure.
 
 Each module will automatically open the namespace with the name of the
@@ -44,8 +49,8 @@ project.
 
 ### Build guard (optional)
 
-The optional [_guard_expression_](guard_expression.md) is evaluated during the
+The optional [_build-guard-expression_] is evaluated during the
 prologue-scan phase of compilation, this checks if the file should be compiled.
-If no [_guard_expression_](guard_expression.md) is specified then the file
-is compiled when all other [_guard_expression_](guard_expression.md) fail.
+If no [_build-guard-expression_] is specified then the file
+is compiled when all other [_build-guard-expression_] fail.
 

@@ -96,29 +96,3 @@ available:
   * The arguments by name from the argument list
   * The arguments by index using the `$` [_integer_literal_]
 
-
-## Annotations
-
-### [[abi(x)]]
-
-On a type this will change how the memory layout is for an object.
- 
- abi         | Description
- :---------- | :---------
- `c`         | Use the C calling convention.
-
-### [[discard]]
-
-The function's return value maybe discarded.
-
-
-### @effect([_effect-list_])
-
-See: [_code-block_]
-
-
-### [[no_return]]
-
-This function will not return, used for functions like `std.terminate()`.
-Meaning code after this function call will never execute.
-

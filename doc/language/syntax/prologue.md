@@ -1,11 +1,5 @@
 # Prologue
 
-## Syntax
-
-prologue :=\
-    __(__ [_import-module_] __|__ [_import-git_] __|__ [_import-lib_] __|__ [_import-zip_] __)*__\
-    __(__ [_module-declaration_] __|__ [_program-declaration_] __|__ [_library-declaration_] __)__
-
 [_import-module_]: import_module.md
 [_import-git_]: import_git.md
 [_import-lib_]: import_lib.md
@@ -13,6 +7,14 @@ prologue :=\
 [_module-declaration_]: module_declaration.md
 [_program-declaration_]: program_declaration.md
 [_library-declaration_]: library_declaration.md
+
+
+## Syntax
+
+prologue :=\
+    __(__ [_import-module_] __|__ [_import-git_] __|__ [_import-lib_] __|__ [_import-zip_] __)*__\
+    __(__ [_module-declaration_] __|__ [_program-declaration_] __|__ [_library-declaration_] __)__
+
 
 ## Semantic
 

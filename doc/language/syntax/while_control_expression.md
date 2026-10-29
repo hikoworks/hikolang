@@ -20,6 +20,7 @@ _while-control-expression_ :=\
 
 
 ## Semantics
+
 The `while` control-expression is a loop that executes the body of the
 loop as long as the [_condition-expression_] is true.
 
@@ -63,18 +64,4 @@ b = do {
    break with "no result"
 }
 ```
-
-## Annotations
-
-### [[fast]]
-
-See: [_if-control-expression_]
-
-A `[[fast]]` annotation on a else-clause would reorder instructions, this
-improves the performance of retry loops.
-
-
-### [[lean]]
-
-See: [_if-control-expression_]
 

@@ -1,12 +1,15 @@
 # condition-expression
 
+[_expression_]: expression.md
+
+
 ## Syntax
 
 _condition-expression_ := [_expression_]
 
-[_expression_]: expression.md
 
 ### condition-expression
+
 A _condition-expression_ is an [_expression_] which
 results in a value that is convertible to a boolean value.
 

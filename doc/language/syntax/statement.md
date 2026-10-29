@@ -1,5 +1,13 @@
 # Statement
 
+[_return_statement_]: return_statement.md
+[_yield_statement_]: yield_statement.md
+[_break_statement_]: break_statement.md
+[_continue_statement_]: continue_statement.md
+[_goto_statement_]: goto_statement.md
+[_throw_statement_]: throw_statement.md
+
+
 ## Syntax
 
 _statement_ :=\
@@ -10,13 +18,6 @@ _statement_ :=\
     __|__ [_continue_statement_]\
     __|__ [_goto_statement_]\
     __|__ [_throw_statement_]
-
-[_return_statement_]: return_statement.md
-[_yield_statement_]: yield_statement.md
-[_break_statement_]: break_statement.md
-[_continue_statement_]: continue_statement.md
-[_goto_statement_]: goto_statement.md
-[_throw_statement_]: throw_statement.md
 
 
 ## Semantics

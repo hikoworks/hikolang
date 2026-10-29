@@ -8,6 +8,7 @@ _statement-list_ := __(__ __(__ [_label_](label.md) `:` __)?__ [_statement_](sta
 > For a discussion on the use of semicolons in statement lists see
 > [tokenizer; Semicolon and comma handling](../tokenizer.md#semicolon-and-comma-handling). 
 
+
 ## Semantics
 
 Each statement may be preceded by a [_label_](label.md) to use as a target for a

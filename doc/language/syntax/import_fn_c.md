@@ -2,8 +2,11 @@
 
 ## Syntax
 
-`import` `fn` `c` [_name_](name.md) `(` [_argument-list_](argument_list.md) `)` [_result-type-declaration_](result_type_declaration.md)
+_import-fn_ := [_annotation_]__*__ `import` `fn` `c` [_name_](name.md)
+    `(` [_argument-list_](argument_list.md) `)`
+    [_result-type-declaration_](result_type_declaration.md)
     [_build-quard_](build_guard.md)__?__ `;`
+
 
 ### Build guard (optional)
 

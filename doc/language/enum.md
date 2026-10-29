@@ -129,10 +129,6 @@ Error codes that can be thrown and caught from functions.
 ```
 
 
-#### @auto_rethrow
-
-The compiler will synthesize a catch-rethrow for any
-flow-control-expression that does not explicitly catch this error.
 
 
 ### std.effect
@@ -166,12 +162,6 @@ runtime with the following exceptions:
  - A call to this function has an explicit `@fold` annotation.
 
 
-#### @implies(effect, ...)
-
-Following the example above; when the annotation `@effect(+io)` is used,
-it is as-if `@effect(+phase_variant)` is also implied.
-
-
 ### std.unit
 
 Units can be attached to types like a tag to do domain analysis on those types.
@@ -203,27 +193,6 @@ Units can be attached to types like a tag to do domain analysis on those types.
 }
 ```
 
-#### @domain(domain, index)
-
- - domain: A `std.unit` to be used as a domain,
- - index: An exponation index inside this domain.
-
-
-#### @unit(unit-expression)
-
-The [_unit-expression_] for conversion to the new unit.
-
-
-#### @tag
-
-`@tag` declares a unit whose domain contains exactly one dimension and whose
-conversion factor is 1. The resulting unit behaves algebraically like any other
-unit, but is intended for nominal type tagging rather than physical measurement.
-
-A `@tag` does not introduce a scaling factor like `@unit()` does. A tagged value
-therefore retains its underlying scalar type and may be used where its
-non-tagged scalar type is expected. In such cases, the tag is implicitly dropped
-from the type.
 
 
 ### std.operator
@@ -246,32 +215,3 @@ There are several special functions that are not called but represent a special
 implementation, such as `__builtin_catch__`.
 
 
-#### @prefix(precedence, operator)
-
-Prefix operator
- - precedence: An integer priority, lower numbers bind closer.
- - operator: The name or syntax-pattern of the operator.
-
-
-#### @suffix(precedence, operator)
-
-Suffix operator
-
- - precedence: An integer priority, lower numbers bind closer.
- - operator: The name or syntax-pattern of the operator.
-
-
-#### @right(precedence, operator)
-
-Right associative
-
- - precedence: An integer priority, lower numbers bind closer.
- - operator: The name or syntax-pattern of the operator.
-
-
-#### @left(precedence [, operator])
-
-Left associative
-
- - precedence: An integer priority, lower numbers bind closer.
- - operator: The name or syntax-pattern of the operator.

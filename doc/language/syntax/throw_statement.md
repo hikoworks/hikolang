@@ -1,10 +1,12 @@
 # throw statement
 
+[_identifier_]: identifier.md
+
+
 ## Syntax
 
 _throw-statement_ := `throw` [_identifier_]__?__ `;`
 
-[_identifier_]: identifier.md
 
 ## Semantics
 

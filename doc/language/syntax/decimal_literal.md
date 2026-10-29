@@ -4,6 +4,7 @@
 
 _decimal-literal_ := [0-9]+
 
+
 ## Semantics
 A decimal literal is a constant value that is directly represented in the source
 code. The decimal literal is a sequence of one or more digits (0-9) that

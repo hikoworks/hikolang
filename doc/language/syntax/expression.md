@@ -1,5 +1,38 @@
 # Expression
 
+[_annotation_]: annotation.md
+[_binding-operator_]: binding_operator.md
+[_code-block_]: code_block.md
+[_context-argument_]: context_argument.md
+[_identifier_]: identifier.md
+[_float-literal_]: float_literal.md
+[_integer-literal_]: integer_literal.md
+[_string-literal_]: string_literal.md
+[_tuple-literal_]: tuple_literal.md
+[_type-expression_]: type_expression.md
+[_simple-unit-expression_]: unit_expression.md
+[_unit-expression_]: unit_expression.md
+[_if-control-expression_]: if_control_expression.md
+[_for-control-expression_]: for_control_expression.md
+[_while-control-expression_]: while_control_expression.md
+[_iterative-for-control-expression_]: iterative_for_control_expression.md
+[_ranged-for-control-expression_]: ranged_for_control_expression.md
+[_switch-control-expression_]: switch_control_expression.md
+[_await-operator_]: await_operator.md
+[_binding-selector_]: binding_selector.md
+[_catch-operator_]: catch_operator.md
+[_call-operator_]: call_operator.md
+[_empty-operator_]: empty_operator.md
+[_error-list_]: error_list.md
+[_index-operator_]: index_operator.md
+[_member-access_]: member_access.md
+[_namespace-traversal-operator_]: namespace_traversal_operator.md
+[_type-operator_]: type_operator.md
+[_shortcut-operator_]: shortcut_operator.md
+[_try-operator_]: try_operator.md
+[_type-member-access_]: type_member_access.md
+[_variable-definition_]: variable_definition.md
+
 
 ## Primary Expression
 
@@ -121,7 +154,6 @@
 >    different namespace depending on the number of prefix dots.
 
 
-
 ## Semantics
 
 An _expression_ is a sequence of symbols that can be evaluated to produce a
@@ -133,35 +165,3 @@ Yard](https://en.wikipedia.org/wiki/Shunting-yard_algorithm) is used.
 The other expressions listed in this document are terminal expressions which
 are parsed outside of the shunting yard.
 
-[_annotation_]: annotation.md
-[_binding-operator_]: binding_operator.md
-[_code-block_]: code_block.md
-[_context-argument_]: context_argument.md
-[_identifier_]: identifier.md
-[_float-literal_]: float_literal.md
-[_integer-literal_]: integer_literal.md
-[_string-literal_]: string_literal.md
-[_tuple-literal_]: tuple_literal.md
-[_type-expression_]: type_expression.md
-[_simple-unit-expression_]: unit_expression.md
-[_unit-expression_]: unit_expression.md
-[_if-control-expression_]: if_control_expression.md
-[_for-control-expression_]: for_control_expression.md
-[_while-control-expression_]: while_control_expression.md
-[_iterative-for-control-expression_]: iterative_for_control_expression.md
-[_ranged-for-control-expression_]: ranged_for_control_expression.md
-[_switch-control-expression_]: switch_control_expression.md
-[_await-operator_]: await_operator.md
-[_binding-selector_]: binding_selector.md
-[_catch-operator_]: catch_operator.md
-[_call-operator_]: call_operator.md
-[_empty-operator_]: empty_operator.md
-[_error-list_]: error_list.md
-[_index-operator_]: index_operator.md
-[_member-access_]: member_access.md
-[_namespace-traversal-operator_]: namespace_traversal_operator.md
-[_type-operator_]: type_operator.md
-[_shortcut-operator_]: shortcut_operator.md
-[_try-operator_]: try_operator.md
-[_type-member-access_]: type_member_access.md
-[_variable-definition_]: variable_definition.md

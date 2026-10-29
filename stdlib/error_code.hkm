@@ -1,0 +1,372 @@
+
+module std.error_code
+
+/**
+ *
+ * The following annotations can be made on an error_code:
+ *  * `@isa(parent...)` - Inherint from one or more parents.
+ *  * `@auto_rethrow` - Automatic synthesize an error handler that retrows the error.
+ *  * `@auto_abort` - This error causes the program to abort. In unit-tests this is
+ *                    turned into `@auto_rethrow`.
+ */
+error_code = enum : u32 {
+    /** No value returned. (not really an error)
+     */
+    empty = 0
+
+    /** Any error.
+     */
+    error
+
+    /** An IO error.
+     */
+    @isa(error)
+    io_error
+
+    /** An error caused by the network system
+     */
+    @isa(io_error)
+    network_error
+
+    /** The requested address family is not supported by the operation.
+     */
+    @isa(network_error)
+    address_family_not_supported
+
+    /** The requested address is already in use by another resource.
+     */
+    @isa(network_error)
+    address_in_use
+
+    /** The requested address is not available for the operation.
+     */
+    @isa(network_error)
+    address_not_available
+
+    /** The resource is already connected.
+     */
+    @isa(network_error)
+    already_connected
+
+    /** The requested argument list exceeds the maximum supported size.
+     */
+    argument_list_too_long
+
+    /** An argument has a value outside the domain accepted by the operation.
+     */
+    argument_out_of_domain
+
+    /** An assert statement failed.
+     */
+    @auto_rethrow assertion_failed
+
+    /** The supplied address or memory location is invalid or inaccessible.
+     */
+    bad_address
+
+    /** The supplied file descriptor or resource handle is invalid.
+     */
+    bad_file_descriptor
+
+    /** The supplied message is malformed or otherwise invalid.
+     */
+    bad_message
+
+    /** The communication channel has been closed or broken, preventing the operation
+     * from completing.
+     */
+    broken_pipe
+
+    /** The connection was terminated before the operation could complete.
+     */
+    connection_aborted
+
+    /** A connection attempt is already in progress for the requested endpoint.
+     */
+    connection_already_in_progress
+
+    /** The remote endpoint refused the connection attempt.
+     */
+    connection_refused
+
+    /** The connection was unexpectedly terminated or reset by the remote endpoint.
+     */
+    connection_reset
+
+    /** The operation requires the source and destination to reside on the same
+     * filesystem or resource domain, but they do not.
+     */
+    cross_device_link
+
+    /** The operation requires a destination address, but none was provided.
+     */
+    destination_address_required
+
+    /** The requested resource is busy and cannot currently be used for the operation.
+     */
+    device_or_resource_busy
+
+    /** The requested directory contains entries and therefore cannot be removed.
+     */
+    directory_not_empty
+
+    /** The requested executable or program file has an invalid or unsupported format.
+     */
+    executable_format_error
+
+    /** A resource with the requested name already exists, preventing its creation.
+     */
+    file_exists
+
+    /** The file or resource exceeds the maximum size supported by the operation.
+     */
+    file_too_large
+
+    /** A filename or path component exceeds the maximum supported length.
+     */
+    filename_too_long
+
+    /** The requested functionality has not been implemented.
+     */
+    function_not_supported
+
+    /** The remote host cannot be reached through the available network paths.
+     */
+    host_unreachable
+
+    /** The requested identifier refers to a resource that has been removed.
+     */
+    identifier_removed
+
+    /** The input contains a byte sequence that is invalid for the required encoding.
+     */
+    illegal_byte_sequence
+
+    /** The requested input/output control operation is not applicable to the
+     * specified resource.
+     */
+    inappropriate_io_control_operation
+
+    /** The operation was interrupted before it could complete, potentially by an
+     * external event or signal.
+     */
+    interrupted
+
+    /** One or more arguments supplied to the operation are invalid or inconsistent
+     * with its requirements.
+     */
+    @auto_rethrow invalid_argument
+
+    /** The requested seek operation is invalid for the resource or stream.
+     */
+    invalid_seek
+
+    /** An internal invariant required for correct execution was violated.
+     * Continuing execution may produce incorrect results or corrupt state.
+     */
+    @auto_rethrow invariant_violation
+
+    /** An input/output operation failed for a reason not represented by a more
+     * specific error condition.
+     */
+    io_error
+
+    /** The operation requires a non-directory resource, but the specified resource
+     * is a directory.
+     */
+    is_a_directory
+
+    /** The message exceeds the maximum size supported by the receiving operation.
+     */
+    message_size
+
+    /** The network is unavailable or inactive, preventing communication.
+     */
+    network_down
+
+    /** The network connection or network state has been reset, preventing the
+     * operation from continuing.
+     */
+    network_reset
+
+    /** The destination network cannot be reached through the available network paths.
+     */
+    network_unreachable
+
+    /** Insufficient buffering capacity is available to complete the operation.
+     */
+    no_buffer_space
+
+    /** The requested child process does not exist or cannot be accessed.
+     */
+    no_child_process
+
+    /** The requested link or linking capability is unavailable.
+     */
+    no_link
+
+    /** No lock is available for the requested operation.
+     */
+    no_lock_available
+
+    /** No message is available to receive from the requested message source.
+     */
+    no_message
+
+    /** The requested protocol option is not supported or is unavailable.
+     */
+    no_protocol_option
+
+    /** Insufficient storage space is available on the target device or resource.
+     */
+    no_space_on_device
+
+    /** The requested device or device address does not exist or cannot be accessed.
+     */
+    no_such_device_or_address
+
+    /** The requested device does not exist or is unavailable.
+     */
+    no_such_device
+
+    /** The requested file, directory, or other named resource does not exist.
+     */
+    no_such_file_or_directory
+
+    /** The requested process does not exist.
+     */
+    no_such_process
+
+    /** A path component that must identify a directory does not identify a directory.
+     */
+    not_a_directory
+
+    /** The specified resource is not a socket or equivalent communication endpoint.
+     */
+    not_a_socket
+
+    /** The resource is not connected, but the requested operation requires a
+     * connection.
+     */
+    not_connected
+
+    /** Insufficient memory is available to complete the operation.
+     */
+    @auto_rethrow not_enough_memory
+
+    /** The requested operation or capability is not supported by the implementation
+     * or resource.
+     */
+    not_supported
+
+    /** The operation was canceled before it could complete.
+     */
+    operation_canceled
+
+    /** Another instance of the requested operation is already in progress.
+     */
+    operation_in_progress
+
+    /** The operation is not permitted in the current context or under the applicable
+     * execution or security policy.
+     */
+    operation_not_permitted
+
+    /** The requested operation is not supported for the specified resource or
+     * protocol.
+     */
+    operation_not_supported
+
+    /** The operation would block while waiting for a resource or condition to become
+     * available, and cannot proceed immediately.
+     */
+    operation_would_block
+
+    /** The previous owner of a protected resource terminated while holding it
+     * potentially leaving the resource in an inconsistent state.
+     */
+    owner_dead
+
+    /** The caller lacks the required permissions to access the resource or perform
+     * the requested operation.
+     */
+    @auto_rethrow permission_denied
+
+    /** A postcondition required of the operation was not satisfied.
+     * The operation completed without fulfilling a guarantee specified by its
+     * documented requirements.
+     */
+    @auto_rethrow post_condition_failure
+
+    /** A precondition required for the operation was not satisfied.
+     * The operation was invoked in a state or with arguments that violate its
+     * documented requirements.
+     */
+    @auto_rethrow pre_condition_failure
+
+    /** A protocol-level error occurred while processing or communicating data.
+     */
+    protocol_error
+
+    /** The requested communication protocol is not supported by the implementation
+     * or address family.
+     */
+    protocol_not_supported
+
+    /** The requested modification cannot be performed because the filesystem or
+     * resource is read-only.
+     */
+    read_only_file_system
+
+    /** The requested operation would cause a deadlock involving one or more resources.
+     */
+    resource_deadlock_would_occur
+
+    /** A required resource is temporarily unavailable. Retrying the operation later
+     * may allow it to succeed.
+     */
+    resource_unavailable_try_again
+
+    /** The operation produced a result outside the range of representable or valid
+     * values.
+     */
+    result_out_of_range
+
+    /** A protected resource cannot be recovered to a consistent, usable state.
+     */
+    state_not_recoverable
+
+    /** The requested operation cannot be performed because the file is currently
+     * being used in a way that prevents the operation.
+     */
+    text_file_busy
+
+    /** The operation did not complete within the permitted time.
+     */
+    timed_out
+
+    /** The system has exhausted its capacity for opening files or other resources.
+     */
+    too_many_files_open_in_system
+
+    /** The current process has exhausted its permitted capacity for opening files
+     * or other resources.
+     */
+    too_many_files_open
+
+    /** The operation would exceed the permitted number of links to a resource.
+     */
+    too_many_links
+
+    /** The path contains too many symbolic-link traversals to resolve successfully.
+     */
+    too_many_symbolic_link_levels
+
+    /** The value cannot be represented by the destination type or storage format.
+     */
+    value_too_large
+
+    /** The requested protocol type is incompatible with the selected protocol.
+     */
+    wrong_protocol_type
+}

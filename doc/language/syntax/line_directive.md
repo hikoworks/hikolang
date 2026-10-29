@@ -5,6 +5,7 @@
 `#line` [_decimal-literal_](decimal_literal.md) __(__ [_string-literal_](string_literal.md) __)__
 
 ## Semantics
+
 The `#line` directive is used to set the path, file name, and line number for
 the next line of code. It must be located at the start of the line.
 

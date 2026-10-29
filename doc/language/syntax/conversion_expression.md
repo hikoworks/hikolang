@@ -1,14 +1,16 @@
 # conversion-expression
 
+[_expression_]: expression.md
+[_type-expression_]: type_expression.md
+[_type-operator_]: type_operator.md
+
+
 ## Syntax
 
 _conversion-expression_ :=\
       [_expression_] [_type-operator_] __(__ `&` __|__ `&&` __|__ `*` __)__\
     __|__ [_expression_] [_type-operator_] [_type-expression_]\
 
-[_expression_]: expression.md
-[_type-expression_]: type_expression.md
-[_type-operator_]: type_operator.md
 
 ## Semantics
 

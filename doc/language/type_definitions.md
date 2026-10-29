@@ -21,7 +21,7 @@ A type definition may also be parameterized, allowing template arguments to
 modify its definition before the metatype processes it.
 
 The language provides built-in metatypes, including `struct`, and supports
-user-defined metatypes through the `@metatype` annotation.
+user-defined metatypes.
 
 
 ## Metatypes
@@ -143,38 +143,26 @@ my_obj <- my_type(5)
 ### Name members
 
 A name member declares a named alternative within a type. It is similar to an
-enumeration case and may optionally specify a type-tuple describing the values
+enumeration case and may optionally specify a type describing the values
 associated with that alternative.
 
-A name member without a type-tuple consists only of its name. A name member with
-a type-tuple can carry associated values, similar to associated-value cases in
-Swift enumerations.
+A name-member has the following forms:
+ * **lone identifier** - A name without an index
+ * **integer variable definition** - A name with explicit index
+ * **type variable definition* - A name with a type for associated data
+ * **type variable definition + index** - A name with a type for associated data
+   with explicit index
 
-A type-tuple has the following form:
-
-```text
-bar = name 3
-foo = name(labelA : TypeA, labelB : TypeB, labelC : TypeC)
-```
-
-Each element of the type-tuple declares the type of an associated value.
-
-An element written as `: Type` declares an unlabeled associated value. An
-element written as `label : Type` declares an associated value with the
-specified label.
-
-For example:
 
 ```text
-foo = name(: int[0...10], : f64, x : string)
+foo                                 // No index
+bar = 3                             // Explicit index
+baz = (: string, : f64, : int8)     // No index, type for associated data
+qux = string, 6                     // Explicit index, type for associated data
 ```
 
-This declares the name member `foo` with three associated values: an unlabeled
-value of type `int[0...10]`, an unlabeled value of type `f64`, and a value
-labeled `x` of type `string`.
-
-The associated values supplied for a name member must conform to the types and
-labels declared by its type-tuple.
+The variable definition forms were already mentioned in a previous chapter,
+but it is interpreted different by an enum-like metatype.
 
 
 ## Member annotations
@@ -245,26 +233,10 @@ For example:
 my_type = my_template[int[0...5], 3]
 ```
 
-This binds `T` to `int[0...5]` and `N` to `3`.
-
 Template arguments are applied to the definition before it is passed to the
 metatype function that constructs the type. Consequently, the metatype receives
 the definition with its template parameters substituted by the supplied
 arguments.
-
-In this example, the resulting definition contains the following effective
-declarations:
-
-```text
-int_member : int[0...5] <- 3
-
-__init__(x : int[0...5]) {
-    int_member <- x
-}
-```
-
-The metatype processes this modified definition and produces the resulting type,
-which is associated with `my_type`.
 
 A template argument must satisfy the corresponding parameter's type constraint.
 Instantiation must also produce a valid definition and a valid resulting type.
@@ -292,10 +264,10 @@ its constituent definitions, subject to the merging rules of the language.
 
 ### The merge operation
 
-The special function `__merge()__` defines how two definitions bound to the same
+The special function `__merge__()` defines how two definitions bound to the same
 variable name are merged.
 
-When multiple definitions are bound to the same variable name, `__merge()__` is
+When multiple definitions are bound to the same variable name, `__merge__()` is
 invoked to combine them. The resulting definition is used as the input to the
 metatype responsible for constructing the type.
 
@@ -369,8 +341,8 @@ are valid after freezing.
 ## Type Identity and Interning
 
 Types are interned according to a canonical name and their template arguments.
-The canonical name is established by the name of the first variable to which the
-type is assigned.
+The canonical name is established by the name of the first variable to which
+the type is assigned.
 
 The canonical name and template arguments together determine the type's
 interning identity. Definitions contributing to the same named type are merged
@@ -379,51 +351,51 @@ under that identity, subject to the type's lifecycle and merging rules.
 Distinct canonical names produce distinct type identities, even when the
 resulting types have otherwise identical members and structure.
 
+Distinct types that have identical structure can be converted between, using
+an explicit cast.
+
 
 ### Canonical names and aliases
 
-The canonical name belongs to the type identity rather than to each variable
-referring to the type.
+A type or type-template definition receives its canonical name from the
+variable to which it is first assigned. This name becomes part of the
+identity of the type or type-template and remains unchanged when the
+definition is assigned to other variables.
 
-When a type is assigned to another variable, the new variable becomes an alias
-for the existing type. This assignment does not change the canonical name or
-establish a new type identity.
-
-For example:
-
-```text
-my_type = my_template[int[0...5], 3]
-my_alias = my_type
-```
-
-Here, `my_type` establishes the canonical name of the resulting type. The
-assignment to `my_alias` preserves that identity and does not cause the type's
-definition to be merged under a new name.
-
-A subsequent definition bound to the original variable name contributes to the
-same named type and is subject to the applicable merging rules. Assigning an
-alias alone does not constitute such a contribution.
-
-
-### Template arguments and type identity
-
-Template arguments form part of the type's interning identity. Consequently,
-different template argument lists produce different interning identities, even
-when they originate from the same parameterized definition.
+Type-template instantiations derive their identity from the canonical
+name of the type-template and the arguments supplied during instantiation.
+The instantiation does not acquire a new canonical name from the variable
+to which it is assigned. Instead, its identity is determined by the
+type-template's canonical name and its template arguments.
 
 For example:
 
 ```text
+my_template = my_metatype[T : type, N : int] {
+    value : T <- N
+}
+
+my_alias = my_template
+
 small_int = my_template[int[0...5], 3]
+another_small_int = my_template[int[0...5], 3]
 large_int = my_template[int[0...10], 3]
 ```
 
-The resulting types have distinct identities because their canonical names and
-template arguments differ.
+Here, `my_template` establishes the canonical name of the type-template,
+and `my_alias` refers to the same type-template without establishing a new
+identity.
 
-Repeated requests for a type with the same canonical name and template arguments
-refer to the same interned type rather than creating independent types with the
-same identity.
+Both `small_int` and `another_small_int` refer to the same interned type
+because they instantiate the same type-template with identical arguments.
+The variable names do not distinguish these instantiations. In contrast,
+`large_int` refers to a distinct type because its template arguments differ.
+
+Consequently, a type-template instantiation is identified by the canonical
+name of its type-template and its template arguments, rather than by the
+variable to which the instantiation is assigned. Repeated instantiations with
+the same identity refer to the same type, while instantiations with different
+identities produce distinct types.
 
 
 ## Interaction Between Merging, Templates, and Metatypes
@@ -573,9 +545,6 @@ automatically cause `B` to be re-evaluated. The constructed type retains the
 result of its completed evaluation, subject to the rules for extensions of
 frozen types.
 
-
-### Const restrictions on definition dependencies
-
 To limit the effects of changes to global variables, a global variable must be
 const-qualified before it can be referenced in a type definition that depends on
 its value.
@@ -591,20 +560,4 @@ when the definition is evaluated.
 
 The rules governing const qualification, aliases, and permitted modifications
 determine which changes are possible after a type definition has been declared.
-
-
-### Evaluation consistency
-
-The evaluation of a type must resolve its dependencies according to the
-language's rules for type evaluation and freezing. Once the type has been
-frozen, its constructed representation must remain stable except where the rules
-explicitly permit extensions.
-
-Implementations must ensure that dependency resolution and type interning
-respect the established identity of each type and do not create conflicting
-representations of the same interned type.
-
-The precise evaluation order, handling of cyclic dependencies, and timing of
-const-restriction checks are governed by the language's evaluation and
-type-checking rules.
 

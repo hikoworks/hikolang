@@ -1,5 +1,12 @@
 # build-guard-expression
 
+[_boolean-literal_]: boolean_lite
+[_fqname_]: fqname.md
+[_integer-literal_]: integer_literal.md
+[_string-literal_]: string_literal.md
+[_version-literal_]: version_literal.md
+
+
 ## Syntax
 
 _build-guard-expression_ :=\
@@ -21,11 +28,6 @@ _build-guard-expression_ :=\
     __|__ [_integer-literal_]\
     __|__ [_boolean-literal_]
 
-[_boolean-literal_]: boolean_lite
-[_fqname_]: fqname.md
-[_integer-literal_]: integer_literal.md
-[_string-literal_]: string_literal.md
-[_version-literal_]: version_literal.md
 
 ### Operators
 

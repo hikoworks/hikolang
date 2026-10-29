@@ -1,8 +1,10 @@
 # module-declaration
 
+[_annotation_]: annotation.md
+
 ## Syntax
 
-[_documentation_](documentation.md)__?__
+[_annotation_]__*?*__
 `program` [_string_literal_](string_literal.md)
     [_version_literal_](version_literal.md)__?__
     [_build-guard_](build_guard.md)__?__ `;`
@@ -34,4 +36,5 @@ The optional [_guard_expression_](guard_expression.md) is evaluated during the
 prologue-scan phase of compilation, this checks if the file should be compiled.
 If no [_guard_expression_](guard_expression.md) is specified then the file
 is compiled when all other [_guard_expression_](guard_expression.md) fail.
+
 

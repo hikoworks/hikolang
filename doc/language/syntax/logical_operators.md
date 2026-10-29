@@ -2,11 +2,14 @@
 
 ## Syntax
 
-[_expression_](expression.md) `and` [_expression_](expression.md) __|__
-[_expression_](expression.md) `or` [_expression_](expression.md) __|__
-`not` [_expression_](expression.md)
+logical-operators :=\
+  [_expression_](expression.md) `and` [_expression_](expression.md) __|__
+  [_expression_](expression.md) `or` [_expression_](expression.md) __|__
+  `not` [_expression_](expression.md)
+
 
 ## Semantics
+
 The logical operators `and`, `or` and `not` are used to combine boolean
 expressions.
 

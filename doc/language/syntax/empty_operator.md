@@ -1,11 +1,12 @@
 # empty-operator
 
+[_expression_]: expression.md
+
+
 ## Syntax
 
-_empty-operator_ :=\
-      [_expression_] `empty` [_expression_]
+_empty-operator_ := [_expression_] `empty` [_expression_]
 
-[_expression_]: expression.md
 
 ## Semantics
 The `empty` operator is used to catch any empty value returned by the left-hand side expression.
