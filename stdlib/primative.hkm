@@ -1,0 +1,101 @@
+module std.primitive
+
+@public
+void = enum {
+    @keyword nil
+}
+
+@public
+bool = enum {
+    @keyword false
+    @keyword true
+}
+
+@public
+optional = enum(T: type) {
+    none,
+    some(:T)
+}
+
+/**
+ */
+@public
+enum string_representation {
+    /** String literal
+     *
+     * String literals are unencoded and may be implicitly converted to:
+     *  - `string[raw]`
+     */
+    string_literal
+    
+    /** Integer literal
+     *
+     * A valid integer number containing the following characters:
+     *  [+-bBoOdDxX0-9a-fA-F'_]
+     */
+    integer_literal
+    
+    /** Floating point literal
+     *
+     * A valid floating point number containing the following characters:
+     *  [+-bBoOdDxX0-9a-fA-F'_.gG]
+     */
+    float_literal
+
+    /** Unencoded string of bytes.
+     */
+    raw
+
+    /** Well formed UTF-8.
+     */
+    utf8
+
+    /** Well formed UTF-8, encoding unicode string in NFC normalization form.
+     */
+    utf8_nfc
+
+    /** Native Operating System strings 
+     *
+     * This is the encoding that the operating system API uses for text, for
+     * example filesystem paths, but also could include other functionality.
+     *
+     * Modern operating systems use Unicode for API string, but because of
+     * legacy systems like file systems may include other values that are
+     * incompatible with valid UTF-16 or UTF-8.
+     *
+     * A representation of text used by operating system APIs. The encoding
+     * is UTF-8-compatible where possible, but permits values that are not
+     * valid UTF-8. Conversion to and from the platform's native string
+     * representation is lossless.
+     *
+     * Encoding for the different operating systems:
+     *  - Windows: WTF-8, preserving UTF-16 code units.
+     *  - Linux: Convert to UTF-8, but preserve non-encodable bytes.
+     *
+     * For non-text operating system API will use `string[raw]`.
+     */
+    native
+
+    /** Well formed generic path (utf8).
+     *
+     * `string[path]` can be converted from `string[native]`.
+     * `string[path]` can be converted to a `string[url]`.
+     *
+     * For representable filesystem paths, conversion between native paths,
+     * generic paths, and file URLs is reversible. Values outside the supported
+     * filesystem-path subset cause conversion to fail.
+     *
+     * Conversion from `string[native]`:
+     *  - All `\` are normalized to `/`.
+     *  - Bytes that are invalid in an UTF-8 string are converted to percent encoding
+     *  - `%` is encoded as `%25`
+     *
+     * The standard library will use `string[path]` for all API, while
+     * `string[native]` is used in the non-public implementation.
+     */
+    path
+
+    /** Well formed URL (utf8).
+     */
+    url
+}

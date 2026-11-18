@@ -1,9 +1,12 @@
 # import
 
+[_annotation_]: annotation.md
+[_build-guard_]: build_guard.md
+[_expression_]: expression.md
+
 ## Syntax
 
-_import-eval_ := [_annotation_]__*__ `import` `eval` [_expression_](expression.md)
-    [_build-quard_](build_guard.md)__?__ `;`
+_import-eval_ := [_annotation_]__*__ `import` `eval` [_expression_] `;`
 
 
 ## Semantics
@@ -27,15 +30,7 @@ A generated module cannot:
 > It is the generator function's responsibility to cache results of an expensive
 > generation.
 
-
 If the module is located in a different repository, then that repository must be
 imported using a `import git` or `import zip`, by at least one file in the
 current repository.
 
-
-
-### Build guard (optional)
-
-The optional [_guard_expression_](guard_expression.md) is evaluated during the
-prologue-scan phase of compilation, this checks if the `import` statment
-should be processed or ignored.

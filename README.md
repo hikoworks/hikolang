@@ -104,8 +104,8 @@ The `int` template type infers based on interval arithmatic to fit
 the full result of an operation: 
 
 ```
-foo = fn(x : int[10...20], y : int[2...4]) {
-    // return type is infered as int[20...80]
+foo = fn(x : int(10...20), y : int(2...4)) {
+    // return type is infered as int(20...80)
     return x * y
 }
 ```
@@ -184,17 +184,21 @@ Functions and member functions may be called in two different ways:
 Functions and members are handled together in a single overload resolution
 algorithm.
 
+Chained call:
+ * `<name>(a, b; c)` desugared as: `<name>(a, b)(c)`
+ * `a.<name>(b; c)` desugared as: `a.<name>(b)(c)`
 
-## Variant with associated values
+
+## Enum with associated values
 
 Enums members have zero or more associated values, like the following
 optional type, which is a template. Template arguments use the bracketed
 argument syntax.
 
 ```
-.std.optional[T : type] = variant {
+.std.optional = enum(T : type) {
     none
-    some(T)
+    some(:T)
 }
 ```
 
@@ -281,6 +285,7 @@ Types are modifiable until they are used as a type, at this point they become
 frozen. Only enums are special, because members can be added as long as their
 values are previous unused values of the underling `int` type.
 
+
 ## Builtin Package Manager
 
 The compiler will automatically clone and update git repositories that
@@ -334,7 +339,7 @@ class = fn(definition, arguments) {
   return new_type
 }
 
-T[template_argument: type] = class {
+T = class(template_argument: type) {
   ...
 }
 ```

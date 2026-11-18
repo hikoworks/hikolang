@@ -1,15 +1,21 @@
-# argument
+# argument-chain
 
 [_name_]: name.md
 [_expression_]: expression.md
 
-
 ## Syntax
+
+_argument-chain_ := _argument-list_**?** __(__ `;` _argument-list_**?** __)*__
+
+_argument-list := _argument_ __(__ `,` _argument_ __)*__
 
 _argument_ := __(__ `$`__?__ [_name_] `=` __)?__ [_expression_]
 
 
 ## Semantics
+
+
+
 
 There are three forms of argument:
  - A positional argument.

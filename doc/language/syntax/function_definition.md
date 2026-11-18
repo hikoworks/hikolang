@@ -1,5 +1,6 @@
 # function-definition
 
+[_annotation_]: annotation.md
 [_argument-declaration-list_]: argument_declaration_list.md
 [_attribute_]: attribute.md
 [_build-guard-expression_]: build_guard_expression.md
@@ -27,11 +28,11 @@ _function-definition_ :=\
 _constraint_ :=\
       `expect` `(` [_expression_] `)` \
     __|__ `build_guard` `(` [_build-guard-expression_] `)`\
-    __|__ `pre` `(` [_expression_] `)`\
-    __|__ `post` `(` [_expression_] `)`
+    __|__ [_annotation_]__*__ `pre` `(` [_expression_] `)`\
+    __|__ [_annotation_]__*__ `post` `(` [_expression_] `)`
 
 _specifier_ :=\
-      [_code-block_]\
+      [_annotation_]__*__ [_code-block_]\
     __|__ `=` `default` `;`\
     __|__ `=` `delete` `;`\
     __|__ `=` `extern` `;`\

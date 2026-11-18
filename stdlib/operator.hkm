@@ -1,0 +1,122 @@
+
+module std.operator
+
+@public
+operator = enum @precedence(0) {
+    @prefix(.)      __builtin_namespace_up__
+}
+
+operator = enum @precedence(1000) {
+    @suffix(++)     __post_increment__
+    @suffix(--)     __post_decrement__
+    @suffix(())     __builtin_call__
+    @suffix([])     __builtin_index__
+    @left(.)        __builtin_member_access__
+    @left(::)       __builtin_type_member_access__
+}
+
+operator = enum @precedence(2000) {
+    @prefix(@A)     __builtin_add_modifier__
+    @prefix([[A]])  __builtin_add_attribute__
+    @prefix(++)     __increment__
+    @prefix(--)     __decrement__
+    @prefix(+)      __pos__
+    @prefix(-)      __neg__
+    @prefix(~)      __inv__
+    @prefix(not)    __not__
+    @prefix(await)  __builtin_await__
+    @prefix(try)    __builtin_try__
+    @prefix(&)      __builtin_ref_bind_op__
+    @prefix(&move)  __builtin_move_ref_bind_op__
+    @prefix(&const) __builtin_const_ref_bind_op__
+    @prefix(&&)     __builtin_forward_bind_op__
+    @prefix(*)      __builtin_value_bind_op__
+}
+
+operator = enum @precedence(3000) {
+    @left(#)        __builtin_unit__
+    @left(#-)       __builtin_remove_unit__
+}
+
+operator = enum @precedence(4000) {
+    @left(*)        __mul__
+    @left(/)        __div__
+    @left(%)        __mod__
+    @left(&*)       __mod_mul__
+    @left(&/)       __mod_div__
+}
+
+operator = enum @precedence(5000) {
+    @left(+)        __add__
+    @left(-)        __sub__
+    @left(&+)       __mod_add__
+    @left(&-)       __mod_sub__
+}
+
+operator = enum @precedence(6000) {
+    @left(<<)       __sal__
+    @left(>>)       __sar__
+    @left(&>>)      __slr__
+}
+
+operator = enum @precedence(7000) {
+    @left(...)       __closed_interval__
+    @left(..<)       __half_open_interval__
+}
+
+operator = enum @precedence(8000) {
+    @left(<=>)       __cmp__
+}
+
+operator = enum @precedence(9000) {
+    @left(<)         __lt__
+    @left(>)         __gt__
+    @left(<=)        __le__
+    @left(>=)        __ge__
+}
+
+operator = enum @precedence(10000) {
+    @left(==)        __eq__
+    @left(!=)        __ne__
+    @left(in)        __in__
+    @left(not in)    __not_in__
+}
+
+operator = enum {
+    @precedence(11000) @left(&)     __bit_and__
+    @precedence(12000) @left(^)     __bit_xor__
+    @precedence(13000) @left(|)     __bit_or__
+    @precedence(14000) @left(and)   __builtin_and__
+    @precedence(15000) @left(or)    __builtin_or__
+}
+
+operator = enum @precedence(16000) {
+    @right(catch)    __builtin_catch__
+    @right(empty)    __builtin_catch__
+}
+
+operator = enum @precedence(17000) {
+    @left(:~+)      __convert_wide__
+    @left(:~!)      __convert_truncate__
+    @left(:~?)      __convert_narrow__
+    @left(:+)       __builtin_check_wide__
+    @left(:!)       __builtin_check_truncate__
+    @left(:?)       __builtin_check_narrow__
+    @left(:)        __builtin_check__
+}
+
+operator = enum @precedence(18000) {
+    @right(=)       __builtin_merge__
+    @right(<-)      __builtin_assign__
+    @right(+=)      __inplace_add__
+    @right(-=)      __inplace_sub__
+    @right(*=)      __inplace_mul__
+    @right(/=)      __inplace_div__
+    @right(%=)      __inplace_mod__
+    @right(<<=)     __inplace_sll__
+    @right(>>=)     __inplace_sar__
+    @right(&>>=)    __inplace_slr__
+    @right(&=)      __inplace_bit_and__
+    @right(^=)      __inplace_bit_xor__
+    @right(|=)      __inplace_bit_or__
+}

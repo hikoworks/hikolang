@@ -184,18 +184,21 @@ from the error-handling mechanism.
 
 If a function can return an error, it uses the error-aware ABI. The result is
 communicated primarily through `RAX` and `RDX`. `RDX[63]` acts as a
-discriminator: a `1` bit indicates a successful value, while a `0` bit indicates
-an error.
+discriminator:
+ - a `0` bit indicates a successful value,
+ - while a `1` bit indicates an error.
 
 On success, values up to 127 bits can be returned directly in
 `RDX[62:0]:RAX[63:0]`. Larger values are returned indirectly through a pointer
 passed as the first argument.
 
 On error, the remaining bits of `RDX` contain the error metadata:
- - `RDX[62:32]`: The error code identifies the kind of error,
- - `RDX[31:8]`:  the throw ID identifies the source throw site,
- - `RDX[7:0]`:   and the throw depth records how many rethrows have contributed
-                 to the error trace.
+ - `RDX[63:63]`: error-flag = `1`
+ - `RDX[62:32]`: unused
+ - `RDX[31:8]`: The error code
+ - `RDX[7:0]`:  The throw depth
+ - `RAX[63:0]`: the instruction point identifies the source throw site,
+                to the error trace.
 
 
 ### Initial throw
@@ -206,7 +209,8 @@ the common case of throwing an error as cheap as possible. The initial throw
 always starts with a throw depth of zero:
 
 ```asm
-        mov rdx, <error-code, throw-id, throw-depth=0>
+        mov rdx, <error-code << 8>
+        lea rax, [rip + 0]
         ret
 ```
 
@@ -228,14 +232,15 @@ code:
 ```asm
         call foo
         test rdx, rdx
-        jns catch_handlers          ; value-flag == '0'
+        js catch_handlers           ; error-flag == '1'
         ...
 
 catch_handlers:
-        mov rax, rdx
-        shr rax, 32                 ; extract error-code
+        mov rcx, rdx
+        shr rcx, 8
+        test ecx, ecx               ; check error-code
         jz empty_handler
-        cmp eax, out_of_bounds
+        cmp ecx, out_of_bounds
         je out_or_bound_handler
         ud2                         ; unreachable
 
@@ -264,17 +269,13 @@ The old error code is preserved during an ordinary rethrow, while the throw ID
 is replaced:
 
 ```asm
-        mov fs:[throw_table + dl * 4], edx  ; entry 255 may get clobbered
+        mov fs:[throw_table + dl * 8], rax  ; entry 255 may get clobbered
         add dl, 1
         sbb dl, 0                           ; saturate to 255
 
-        mov rax, 0xffffffff000000ff
-        and rdx, rax
-        or rdx, <throw_id, throw-depth=0>
+        lea rax, [rip + 0]
+        jmp unwind
 ```
-
-The mask clears the old throw ID and preserves the error code and current depth.
-The final `or` inserts the new throw ID and resets the throw depth.
 
 
 ### Rethrow with new error
@@ -287,13 +288,16 @@ Only the newly accumulated depth needs to survive from the old error. Clearing
 code and throw ID can be inserted as a complete error value.
 
 ```asm
-        mov fs:[trace_table + dl * 4], edx  ; entry 255 may get clobbered
+        mov fs:[trace_table + dl * 8], rax  ; entry 255 may get clobbered
         add dl, 1
         sbb dl, 0                           ; saturate to 255
 
-        and edx, 0xff                       ; clear top 56 bits
-        mov rax, <error-code, throw-id, throw-depth=0>
-        or rdx, rax
+        and edx, 0xff                       ; clear top
+        or edx, <error-code << 8>
+        bts rdx, 63
+
+        lea rax, [rip + 0]
+        jmp unwind
 ```
 
 This also means that creating a new error does not require individually clearing

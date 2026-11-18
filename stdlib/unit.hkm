@@ -1,0 +1,323 @@
+
+module std.unit
+
+/** This enum defines units that is used dymensional analysis of types.
+ *
+ * This is a *blessed* enum that is used by the parser to add keywords to
+ * unit-expressions.
+ *
+ * The following annotations are available:
+ *  - @prefix(<prefix>, <scale>)
+ *     * <prefix> - The letter that prefixes a base or unit.
+ *     * <scale> - How much this prefix scales the base or unit.
+ *  - @prefix - This base or unit will be duplicated by all prefixes
+ *              defined on the domain.
+ *  - @domain - Create a new domain with its own units.
+ *  - @base(<domain>) - Add a new base-unit / dimension to the domain
+ *  - @base(<domain>, <canonical>)
+ *     * <canonical> - The canonical unit, which may include a prefix
+ *  - @base(<domain>, <dimensionless>)
+ *     * <dimensionless> - A dimensionless expression (may be from another domain)
+ *  - @unit(<expression>) - Add a new derived-unit
+ *     * <expression> - A unit expression which may be cross-domain
+ *  - @affine(<expression>) - Create a new affine-unit.
+ *     * <expression> - Defines how to convert from a unit to the affine-unit,
+ *                      and by implication the inverse conversion.
+ *  
+ * Internally the compiler will combine all dimensions of each domain together
+ * into a single exponent-tuple that is attached to a type, each exponent can
+ * have a value between -128 and 127.
+ *
+ * The combined exponent-tuple allows for conversion between units accross
+ * domains, for example pixels-per-inch (px/in).
+ */
+@public
+unit = enum {
+    /** International System of Units (SI)
+     *
+     * This defines the SI unit-space including its base-units.
+     * This forms a exponent-tuple which is used to handle derived units.
+     */ 
+    @prefix(Q,  10³⁰ )
+    @prefix(R,  10²⁷ )
+    @prefix(Y,  10²⁴ )
+    @prefix(Z,  10²¹ )
+    @prefix(E,  10¹⁸ )
+    @prefix(P,  10¹⁵ )
+    @prefix(T,  10¹² )
+    @prefix(G,  10⁹  )
+    @prefix(M,  10⁶  )
+    @prefix(k,  10³  )
+    @prefix(h,  10²  )
+    @prefix(da, 10¹  )
+    @prefix(d,  10⁻¹ )
+    @prefix(c,  10⁻² )
+    @prefix(m,  10⁻³ )
+    @prefix(μ,  10⁻⁶ )
+    @prefix(n,  10⁻⁹ )
+    @prefix(p,  10⁻¹²)
+    @prefix(f,  10⁻¹⁵)
+    @prefix(a,  10⁻¹⁸)
+    @prefix(z,  10⁻²¹)
+    @prefix(y,  10⁻²⁴)
+    @prefix(r,  10⁻²⁷)
+    @prefix(q,  10⁻³⁰)
+    @domain si
+
+    /** Duration
+     */
+    @prefix
+    @base(si) s
+
+    /** Length
+     */
+    @prefix
+    @base(si) m
+
+    /** Mass
+     */
+    @prefix
+    @base(si, kg) g
+
+    /** Electrical current
+     */
+    @prefix
+    @base(si) A
+
+    /** Temperature
+     */
+    @prefix
+    @base(si) K
+
+    /** Amount of substance
+     */
+    @prefix
+    @base(si) mol
+
+    /** Luminous intensity
+     */
+    @prefix
+    @base(si) cd
+}
+
+
+unit = enum {
+    /** These are the SI-supplementary units.
+     *
+     * The supplemtary units were abandoned in 1995, but it still
+     * is a useful abstraction for domain analysis.
+     */
+    @prefix(Q,  10³⁰ )
+    @prefix(R,  10²⁷ )
+    @prefix(Y,  10²⁴ )
+    @prefix(Z,  10²¹ )
+    @prefix(E,  10¹⁸ )
+    @prefix(P,  10¹⁵ )
+    @prefix(T,  10¹² )
+    @prefix(G,  10⁹  )
+    @prefix(M,  10⁶  )
+    @prefix(k,  10³  )
+    @prefix(h,  10²  )
+    @prefix(da, 10¹  )
+    @prefix(d,  10⁻¹ )
+    @prefix(c,  10⁻² )
+    @prefix(m,  10⁻³ )
+    @prefix(μ,  10⁻⁶ )
+    @prefix(n,  10⁻⁹ )
+    @prefix(p,  10⁻¹²)
+    @prefix(f,  10⁻¹⁵)
+    @prefix(a,  10⁻¹⁸)
+    @prefix(z,  10⁻²¹)
+    @prefix(y,  10⁻²⁴)
+    @prefix(r,  10⁻²⁷)
+    @prefix(q,  10⁻³⁰)
+    @domain si_supplementary
+
+    /** Radian
+     */
+    @prefix
+    @base(si_supplementary, m / m) rad
+
+    /** Steradian
+     */
+    @prefix
+    @base(si_supplementary, m² / m²) sr
+}
+
+// The SI derived units.
+unit = enum {
+    /** Frequency
+     */
+    @prefix
+    @unit(s⁻¹) Hz
+
+    /** Force
+     */
+    @prefix
+    @unit(kg m s⁻²) N
+
+    /** Pressure
+     */
+    @prefix
+    @unit(kg m⁻¹ s⁻²) Pa
+
+    /** Energy
+     */
+    @prefix
+    @unit(kg m² s⁻²) J
+
+    /** Power
+     */
+    @prefix
+    @unit(kg m² s⁻³) W
+
+    /** Electric charge
+     */
+    @prefix
+    @unit(s A) C
+
+    /** Electric potential difference
+     */
+    @prefix
+    @unit(kg m² s⁻³ A⁻¹) V
+
+    /** Capacitance.
+     */
+    @prefix
+    @unit(kg⁻¹ m⁻² s⁴ A²) F
+
+    /** Electrical Resistance
+     */
+    @prefix
+    @unit(kg m² s⁻³ A⁻²) Ω
+
+    /** Electrical Conductance
+     */
+    @prefix
+    @unit(kg⁻¹ m⁻² s³ A²) S
+
+    /** Magnetic flux
+     */
+    @prefix
+    @unit(kg m² s⁻² A⁻¹) Wb
+
+    /** Magnetic flux density
+     */
+    @prefix
+    @unit(kg s⁻² A⁻¹) T
+
+    /** Inductance
+     */
+    @prefix
+    @unit(kg m² s⁻² A⁻²) H
+
+    /** Celsius temperature
+     */
+    @affine(K - 273.15) °C
+
+    /** Luminous flux
+     */
+    @prefix
+    @unit(cd sr) lm
+
+    /** Illuminance
+     */
+    @prefix
+    @unit(cd sr m⁻²) lx
+
+    /** Activity referred to a radionuclide
+     */
+    @prefix
+    @unit(s⁻¹) Bq
+
+    /** Absorbed dose
+     */
+    @prefix
+    @unit(m² s⁻²) Gy
+
+    /** Dose equivalent
+     */
+    @prefix
+    @unit(m² s⁻²) Sv
+
+    /** Catalytic activity
+     */
+    @prefix
+    @unit(mol s⁻¹) kat
+}
+
+// US customary system units; derived from SI.
+unit = enum {
+    /** inch
+     */
+    @unit(25.4 mm) in
+
+    /** foot
+     */
+    @unit(12 in) ft
+
+    /** yard
+     */
+    @unit(3 ft) yd
+
+    /** mile
+     */
+    @unit(1760 yd) mi
+
+    /** league
+     */
+    @unit(3 mi) le
+
+    /** Nautical mile
+     */
+    @unit(1852 m) nmi
+
+    /** Typographical point
+     */
+    @unit(1/72 in) point
+
+    /** Typographical pica
+     */
+    @unit(12 point) pica
+
+    /** twentieth of a point
+     */
+    @unit(1/20 point) twip
+
+    /** thousandth of an inch
+     */
+    @unit(1/1000 in) mil
+}
+
+unit = enum {
+    /** This defines the screen domain.
+     *
+     * Pixels do not have a fixed size and therefor need a runtime
+     * conversion.
+     */
+    @domain screen
+
+    /** Pixel
+     */
+    @base(screen) px
+
+    /** Pixel density: pixels per inch.
+     */
+    @unit(px / in) ppi
+}
+
+unit = enum {
+    /** Distances of a font.
+     *
+     * Text is displayed at different sizes, so distances within glyphs
+     * are measured with a free dimension.
+     */
+    @domain font
+
+    @base(font) em
+
+    @unit(point / em) font_size
+}
+
+
+

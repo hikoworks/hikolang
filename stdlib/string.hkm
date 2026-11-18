@@ -1,56 +1,56 @@
-
-import std.string_encoding
+import std.primitive
+import std.string_representation
+import std.primitive
 module std.string
 
-class string[encoding : string_encoding] {
-    ref _ptr : __i8
-    var _size : __size
-    var _capacity : __size
-
-    fn short_string() -> bool
-    {
-        if (std.config.endian == "little") {
-            return _capacity < 0
+@public
+string = class (encoding : string_representation) {
+    @class _sso_capacity = fn() -> __size {
+        if ($$target.is_64bit) {
+            return __size_constant_23
         } else {
-            return _capacity & 1 == 1
+            return __size_constant_11
         }
     }
 
-    fn capacity() -> __size
-    {
-        if (short_string()) {
-            if (std.config.cpu_bits == 64) {
-                return 23
-            } else {
-                return 11
-            }
+    _ptr : optional<&char> = nil
+    _size = __size_constant_0
+    _cap = sso_capacity()
 
-        } else if (std.config.endian == "little") {
-            return _capacity << 1
 
+    _short_string = fn() -> bool {
+        if config (endian == "little") {
+            return _cap < __size_constant_0
         } else {
-            return _capacity - 1
+            return _cap & __size_constant_1 == __size_constant_1
         }
     }
 
-    fn size() -> __size
-    {
+    _capacity = fn() -> __size {
+        if (_short_string()) {
+            return sso_capacity()
+
+        } else if config (endian == "little") {
+            return _cap << __size_constant_1
+
+        } else {
+            return _ca_cappacity - __size_constant_1
+        }
+    }
+
+    _size = fn() -> __size {
         if (not short_string()) {
             return _size;
 
-        } else if (std.config.endian == "little") {
-            if (std.config.cpu_bits == 64) {
-                return 23 - (_capacity >> 56)
+        } else if config (endian == "little") {
+            if config (cpu_bits == 64) {
+                return _sso_capacity() - (_cap >> __size_constant_56)
             } else {
-                return 11 - (_capacity >> 24)
+                return _sso_capacity() - (_cap >> __size_constant_24)
             }
 
         } else {
-            if (std.config.cpu_bits == 64) {
-                return 23 - ((_capacity & 0xff) >> 1)
-            } else {
-                return 11 - ((_capacity & 0xff) >> 1)
-            }
+            return _sso_capacity() - ((_cap & __size_constant_255) >> __size_constant_1)
         }
     }
 

@@ -1,0 +1,58 @@
+
+module std.effect
+
+/** These are effects a piece of code has on the system. 
+ */
+effect = enum {
+    /** This code behaves differently between elaboration and runtime.
+     *
+     * This is a special built-in effect used by the compiler.
+     *
+     * When `phase_variant` is not an effect of a function, then this function
+     * can be called during elaboration as an optimization.
+     *
+     * If `phase_variant` is an effect, then this function is by default
+     * delayed until runtime with the following exceptions:
+     *  - A call to this function is done during elaboration of types that
+     *    are needed during compilation.
+     *  - A call to this function has an explicit `@fold` annotation.
+     */
+    phase_variant
+
+    /** This code performs input/output operations.
+     */
+    @implies(phase_variant)
+    io
+
+    /** This code has no guaranteed finite upper bound on execution time.
+     *
+     * This makes executing this code incompatible with hard real-time
+     * guarantees.
+     */
+    blocking
+
+    /** Allocates memory on the heap.
+     */
+    allocating
+    @implied(blocking)
+
+    /** This code performs operations that are not guaranteed to preserve
+     * the language's safety invariants by themselves.
+     *
+     * Such operations require additional safety guarantees that are not
+     * enforced by the compiler.
+     *
+     * The caller or enclosing unsafe context is responsible for ensuring
+     * that all required preconditions and invariants are satisfied.
+     */
+    unsafe
+
+    /** The result of the function is non-deterministic 
+     */
+    random
+
+    /** The code may trap at language or system level.
+     */
+    trapping
+}
+

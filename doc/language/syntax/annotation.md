@@ -1,6 +1,6 @@
 # annotation
 
-[_argument-list_]: argument_list.md
+[_argument-list_]: argument_chain.md
 [_code-block_]: code_block.md
 [_call-operator_]: call_operator.md
 [_documentation_]: documentation.md

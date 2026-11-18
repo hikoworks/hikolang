@@ -1,7 +1,10 @@
-
+import std.int
 module std.error_code
 
-/**
+/** The error_codes that can be thrown.
+ *
+ * This is a *blessed* enum that adds keywords to the compiler that
+ * can be used with `throw` statements and `catch` clauses.
  *
  * The following annotations can be made on an error_code:
  *  * `@isa(parent...)` - Inherint from one or more parents.
@@ -9,6 +12,7 @@ module std.error_code
  *  * `@auto_abort` - This error causes the program to abort. In unit-tests this is
  *                    turned into `@auto_rethrow`.
  */
+@public
 error_code = enum : u32 {
     /** No error: value-less return from a function.
      */
