@@ -104,8 +104,8 @@ The `int` template type infers based on interval arithmatic to fit
 the full result of an operation: 
 
 ```
-foo = fn(x : int(10...20), y : int(2...4)) {
-    // return type is infered as int(20...80)
+foo = fn(x : int[10...20], y : int[2...4]) {
+    // return type is infered as int[20...80]
     return x * y
 }
 ```
@@ -114,7 +114,7 @@ foo = fn(x : int(10...20), y : int(2...4)) {
 of integer literals. `int` values are ABI compatible with the equal or
 next larger signed or unsigned C++ integer.
 
-The range of an `int` is arbitrarilly long, but static. The memory size
+The range of an `int` is arbitrarily long, but static. The memory size
 of an `int` is based on the range.
 
 The second integer type is `long`, this integer dynamically scales in size
@@ -183,11 +183,6 @@ Functions and member functions may be called in two different ways:
 
 Functions and members are handled together in a single overload resolution
 algorithm.
-
-Chained call:
- * `<name>(a, b; c)` desugared as: `<name>(a, b)(c)`
- * `a.<name>(b; c)` desugared as: `a.<name>(b)(c)`
-
 
 ## Enum with associated values
 
@@ -334,12 +329,12 @@ A function marked with `metatype` becomes a keyword that returns a type.
 
 ```
 @metatype
-class = fn(definition, arguments) {
+class = fn(definition, underlying) {
   ...
   return new_type
 }
 
-T = class(template_argument: type) {
+T = class[template_argument: type] {
   ...
 }
 ```

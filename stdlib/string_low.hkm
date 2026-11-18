@@ -1,0 +1,85 @@
+import std.primitive
+import std.string_representation
+import std.primitive
+module std.string_low
+
+@public
+string = struct[encoding : string_representation] {
+    @class __alloc_alignment() -> __is {
+        if (std.target.register_bits == 64) {
+            return __is_8
+        } else {
+            return __is_4
+        }
+    }
+
+    @class __alloc_size() -> __is {
+        return __alloc_alignment() * __is_3
+    }
+
+    @class _sso_capacity = fn() -> __is {
+        return __alloc_size() - __is_1
+    }
+
+    _pointer_member = fn() -> __ptr {
+        return make_ref(self, __ptr, 0)
+    }
+
+    _size_member = fn() -> __is {
+        return make_ref(self, __is, 1)
+    }
+
+    _capacity_member = fn() -> __is {
+        return make_ref(self, __is, 2)
+    }
+
+    _is_short_string = fn() -> bool {
+        if (std.target.endian == little) {
+            return _capacity_member() < __is_0
+        } else {
+            return _capacity_member() & __is_1 == __is_1
+        }
+    }
+
+    _capacity = fn() -> __is {
+        if (_is_short_string()) {
+            return _sso_capacity()
+
+        } else if (std.target.endian == little) {
+            return _capacity_member() << __size_constant_1
+
+        } else {
+            return _capacity_member() - __size_constant_1
+        }
+    }
+
+    _size = fn() -> __is {
+        if (not _is_short_string()) {
+            return _size_member();
+
+        } else if (std.target.endian == little) {
+            if (std.target.register_bits == 64) {
+                return _sso_capacity() - (_capacity_member() >> __is_56)
+            } else {
+                return _sso_capacity() - (_capacity_member() >> __is_24)
+            }
+
+        } else {
+            return _sso_capacity() - ((_capacity_member() & __is_255) >> __is_1)
+        }
+    }
+
+    /** The pointer to where the characters of the string are located.
+     */
+    _pointer = fn() -> __ptr
+    {
+        if (_is_short_string()) {
+            return __make_ptr(self, 0)
+        } else {
+            return __make_ref(self, __ptr, 0)
+        }
+    }
+
+    
+}
+

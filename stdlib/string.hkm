@@ -1,86 +1,14 @@
-import std.primitive
-import std.string_representation
-import std.primitive
+
+import std.string_low
+import std.int
 module std.string
 
-@public
-string = class (encoding : string_representation) {
-    @class _sso_capacity = fn() -> __size {
-        if ($$target.is_64bit) {
-            return __size_constant_23
-        } else {
-            return __size_constant_11
-        }
+string = struct[encoding : string_representation] {
+    capacity = fn() -> size_t {
+        return _capacity()
     }
 
-    _ptr : optional<&char> = nil
-    _size = __size_constant_0
-    _cap = sso_capacity()
-
-
-    _short_string = fn() -> bool {
-        if config (endian == "little") {
-            return _cap < __size_constant_0
-        } else {
-            return _cap & __size_constant_1 == __size_constant_1
-        }
+    size = fn() -> size_t {
+        return _size()
     }
-
-    _capacity = fn() -> __size {
-        if (_short_string()) {
-            return sso_capacity()
-
-        } else if config (endian == "little") {
-            return _cap << __size_constant_1
-
-        } else {
-            return _ca_cappacity - __size_constant_1
-        }
-    }
-
-    _size = fn() -> __size {
-        if (not short_string()) {
-            return _size;
-
-        } else if config (endian == "little") {
-            if config (cpu_bits == 64) {
-                return _sso_capacity() - (_cap >> __size_constant_56)
-            } else {
-                return _sso_capacity() - (_cap >> __size_constant_24)
-            }
-
-        } else {
-            return _sso_capacity() - ((_cap & __size_constant_255) >> __size_constant_1)
-        }
-    }
-
-    fn _ptr(ref self : string, return ?&__i8[])
-    {
-
-    }
-
-    fn _sso() -> __builtin_i1
-    {
-        return __builtin_eq_i32(__builtin_and_i32(_flags, 0x80), 0);
-    }
-
-    pub fn size() -> __builtin_i32
-    {
-        if (_sso()) {
-            return __builtin_sub_i32(0x0f, __builtin_and_i32(_flags, 0x0f));
-        } else {
-            return _size;
-        }
-    }
-
-    pub fn data() -> ref? __builtin_i8
-    {
-        if (__sso()) {
-            return _sso.data();
-        } else {
-            return _ptr;
-        }
-    }
-
 }
-
