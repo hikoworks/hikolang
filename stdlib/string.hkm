@@ -3,12 +3,15 @@ import std.string_low
 import std.int
 module std.string
 
-string = struct[encoding : string_representation] {
-    capacity = fn() -> size_t {
+@merge
+struct string[encoding : string_representation] {
+    @public
+    fn capacity() -> size_t {
         return _capacity()
     }
 
-    size = fn() -> size_t {
+    @public
+    fn size() -> size_t {
         return _size()
     }
 }

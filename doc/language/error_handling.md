@@ -176,6 +176,7 @@ d = foo() empty 69
 > A `return try foo()` statement is compatible with tail-call optimization.
 
 
+
 ## ABI x86
 
 If a function is guaranteed to return a value and cannot throw an error, it uses
@@ -195,10 +196,9 @@ passed as the first argument.
 On error, the remaining bits of `RDX` contain the error metadata:
  - `RDX[63:63]`: error-flag = `1`
  - `RDX[62:32]`: unused
- - `RDX[31:8]`: The error code
- - `RDX[7:0]`:  The throw depth
- - `RAX[63:0]`: the instruction point identifies the source throw site,
-                to the error trace.
+ - `RDX[31:8]`: The error code.
+ - `RDX[7:0]`:  Throw depth.
+ - `RAX[63:0]`: The instruction pointer.
 
 
 ### Initial throw
@@ -209,8 +209,9 @@ the common case of throwing an error as cheap as possible. The initial throw
 always starts with a throw depth of zero:
 
 ```asm
-        mov rdx, <error-code << 8>
+        mov edx, imm:<error-code shl 8>
         lea rax, [rip + 0]
+        bts rdx, 63
         ret
 ```
 
@@ -221,13 +222,11 @@ populated when an error is rethrown.
 ### Catch
 
 A caller first invokes the function normally and then checks the value flag in
-`RDX`. Because the flag occupies the sign bit, `test rdx, rdx` followed by `jns`
+`RDX`. Because the flag occupies the sign bit, `test rdx, rdx` followed by `js`
 provides a compact way to distinguish errors from successful values.
 
-For an error, the error code occupies `RDX[62:32]`. Since the value flag is
-known to be zero in this case, shifting the value right by 32 bits extracts the
-error code without requiring a mask. The handler can then dispatch on the error
-code:
+For an error, the error code occupies `RDX[31:8]`. The error-code is only 24
+bits so that a shift right by 8, will allow `jz` to check for a zero error-code.
 
 ```asm
         call foo
@@ -236,11 +235,10 @@ code:
         ...
 
 catch_handlers:
-        mov rcx, rdx
-        shr rcx, 8
-        test ecx, ecx               ; check error-code
+        movzx rcx, dl
+        shr edx, 8                  ; check error-code
         jz empty_handler
-        cmp ecx, out_of_bounds
+        cmp edx, out_of_bounds
         je out_or_bound_handler
         ud2                         ; unreachable
 
@@ -269,11 +267,14 @@ The old error code is preserved during an ordinary rethrow, while the throw ID
 is replaced:
 
 ```asm
-        mov fs:[throw_table + dl * 8], rax  ; entry 255 may get clobbered
-        add dl, 1
-        sbb dl, 0                           ; saturate to 255
-
+        mov fs:[throw_table + rcx * 8], rax  ; entry 255 may get clobbered
+        add cl, 1
+        sbb cl, 0                           ; saturate to 255
         lea rax, [rip + 0]
+
+        shl rdx, 8
+        mov dl, cl
+        bts rdx, 63
         jmp unwind
 ```
 
@@ -288,18 +289,14 @@ Only the newly accumulated depth needs to survive from the old error. Clearing
 code and throw ID can be inserted as a complete error value.
 
 ```asm
-        mov fs:[trace_table + dl * 8], rax  ; entry 255 may get clobbered
-        add dl, 1
-        sbb dl, 0                           ; saturate to 255
-
-        and edx, 0xff                       ; clear top
-        or edx, <error-code << 8>
-        bts rdx, 63
-
+        mov fs:[throw_table + rcx * 8], rax  ; entry 255 may get clobbered
+        add cl, 1
+        sbb cl, 0                           ; saturate to 255
         lea rax, [rip + 0]
+
+        mov edx, imm:<error-code shl 8>
+        mov dl, cl
+        bts rdx, 63
         jmp unwind
 ```
 
-This also means that creating a new error does not require individually clearing
-the old error code and throw ID. The `and edx, 0xff` operation clears the upper
-56 bits in one instruction while retaining the accumulated depth.

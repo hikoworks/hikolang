@@ -4,8 +4,9 @@ import std.primitive
 module std.string_low
 
 @public
-string = struct[encoding : string_representation] {
-    @class __alloc_alignment() -> __is {
+struct string[encoding : string_representation] {
+    @class
+    fn __alloc_alignment() -> __is {
         if (std.target.register_bits == 64) {
             return __is_8
         } else {
@@ -13,27 +14,29 @@ string = struct[encoding : string_representation] {
         }
     }
 
-    @class __alloc_size() -> __is {
+    @class
+    fn __alloc_size() -> __is {
         return __alloc_alignment() * __is_3
     }
 
-    @class _sso_capacity = fn() -> __is {
+    @class
+    fn _sso_capacity() -> __is {
         return __alloc_size() - __is_1
     }
 
-    _pointer_member = fn() -> __ptr {
+    fn _pointer_member() -> __ptr {
         return make_ref(self, __ptr, 0)
     }
 
-    _size_member = fn() -> __is {
+    fn _size_member() -> __is {
         return make_ref(self, __is, 1)
     }
 
-    _capacity_member = fn() -> __is {
+    fn _capacity_member() -> __is {
         return make_ref(self, __is, 2)
     }
 
-    _is_short_string = fn() -> bool {
+    fn _is_short_string() -> bool {
         if (std.target.endian == little) {
             return _capacity_member() < __is_0
         } else {
@@ -41,7 +44,11 @@ string = struct[encoding : string_representation] {
         }
     }
 
-    _capacity = fn() -> __is {
+    fn _is_long_string() -> bool {
+        return not _is_short_string();
+    }
+
+    fn _capacity() -> __is {
         if (_is_short_string()) {
             return _sso_capacity()
 
@@ -53,7 +60,7 @@ string = struct[encoding : string_representation] {
         }
     }
 
-    _size = fn() -> __is {
+    fn _size() -> __is {
         if (not _is_short_string()) {
             return _size_member();
 
@@ -71,7 +78,7 @@ string = struct[encoding : string_representation] {
 
     /** The pointer to where the characters of the string are located.
      */
-    _pointer = fn() -> __ptr
+    fn _pointer() -> __ptr
     {
         if (_is_short_string()) {
             return __make_ptr(self, 0)

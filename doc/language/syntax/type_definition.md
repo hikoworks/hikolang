@@ -12,7 +12,7 @@
 
 _type_definition_ :=\
       _meta_type_ __(__ `:` [_underlying_] __)?__ [_code-block_]\
-    __|__ _meta_type_ `(` [_argument_declaration_list_](argument_declaration_list.md) `)` __(__ `:` [_underlying_] __)?__ [_code-block_]
+    __|__ _meta_type_ `[` [_argument_declaration_list_](argument_declaration_list.md) `]` __(__ `:` [_underlying_] __)?__ [_code-block_]
 
 _meta_type_ := [_fqname_](fqname.md)
 
