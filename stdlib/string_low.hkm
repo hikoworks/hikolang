@@ -48,6 +48,10 @@ struct string[encoding : string_representation] {
         return &make_ref(self, __is, 2)
     }
 
+    fn _last_byte() {
+        return &make_ref(self, __i8, __alloc_size())
+    }
+
     fn _is_short_string() -> bool {
         if (std.target.endian == little) {
             return _capacity_member() < __is_0
