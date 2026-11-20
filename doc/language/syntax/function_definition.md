@@ -50,10 +50,19 @@ Inside a function, type or lambdas, the argument declarations are available as
 variables as:
  - by their name,
  - positional arguments: `$0`, `$1`, etc,
- - positional arguments: `$[` [_integer-literal_] `]`,
- - hidden context arguments: `$`[_id_]
- - the number of arguments: `$#`,
- - result value as: `$_`
+ - return value as: `$_`
+ - hidden context arguments: `$foo`
+
+Inside a method the follow are available
+ - instance variables and function by their name
+ - the instance itself (reference, movable, or value) through the `$self`
+   variable.
+ - hidden instance variables like `$allocator` by their name.
+ - hidden context arguments, when not shadowing hidden instance variables.
+
+Inside the constructors:
+ - instance variables and functions must be accessed through `$self`.
+ - hidden context arguments: `$foo`
 
 
 ### lambda

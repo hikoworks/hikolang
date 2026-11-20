@@ -15,7 +15,7 @@ _argument-declaration_ :=\
 
 ## Semantics
 
-Declares an argument for a function or lambda with a [_id_](name.md)
+Declares an argument for a function or lambda with a [_id_]
 which can be used as a variable inside the function's or lambda's code-block.
 
 The type declaration is optional. If not specified, the type is inferred from
