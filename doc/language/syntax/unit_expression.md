@@ -1,7 +1,7 @@
 # unit-expression
 
 [_enum_]: enum.md
-[_identifier_]: identifier.md
+[_id_]: id.md
 [Units and Tags]: ../unit_and_tags.md
 
 
@@ -9,20 +9,20 @@
 
 _unit-expression_ :=\
       `(` _complex-unit-expression_ `)`\
-    __|__ [_identifier_]\
+    __|__ [_id_]\
     __|__ _unit-expression_ `^` [_integer_literal_]\
     __|__ _unit-expression_ `**` [_integer_literal_]
 
 _complex-unit-expression_ :=\
       `(` _complex-unit-expression_ `)`\
-    __|__ [_identifier_]\
+    __|__ [_id_]\
     __|__ _complex-unit-expression_ `^` [_integer_literal_]\
     __|__ _complex-unit-expression_ `**` [_integer_literal_]\
     __|__ _complex-unit-expression_ `/` _complex-unit-expression_\
     __|__ _complex-unit-expression_ `*` _complex-unit-expression_\
     __|__ _complex-unit-expression_ _complex-unit-expression_
 
-[_identifier_]: identifier.md
+[_id_]: id.md
 [_integer-literal_]: integer_literal.md
 
 
@@ -31,7 +31,7 @@ _complex-unit-expression_ :=\
 For an explenation of the concetps see [Units and Tags].
 
 In the example below you see how a _unit-expression_ can be used together with
-values. The [_identifier_]s in a _unit-expression_ are from the built-in
+values. The [_id_]s in a _unit-expression_ are from the built-in
 `std.unit` [_enum_].
 
 The operators `#` and `#-` can be used on values, to add dimensions.

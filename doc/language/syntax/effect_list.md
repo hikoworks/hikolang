@@ -1,12 +1,12 @@
 # effect-list
 
-[_identifier_]: identifier.md
+[_id_]: id.md
 
 ## Syntax
 
 _effect-list_ := _effect_ __(__ `,` _effect_ __)*__
 
-_effect := __(__ `+` __|__ `-`  __|__ `!` __|__ `=` __)__ [_identifier_]
+_effect := __(__ `+` __|__ `-`  __|__ `!` __|__ `=` __)__ [_id_]
 
 
 ## Semantics

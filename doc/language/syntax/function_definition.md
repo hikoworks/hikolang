@@ -1,6 +1,6 @@
 # function-definition
 
-[_annotation_]: annotation.md
+[_attribute_]: attribute.md
 [_argument-declaration-list_]: argument_declaration_list.md
 [_attribute_]: attribute.md
 [_build-guard-expression_]: build_guard_expression.md
@@ -11,7 +11,7 @@
 [_effect-list_]: effect_list.md
 [_function-return-type_]: function_return_type.md
 [_fqname_]: fqname.md
-[_identifier_]: identifier.md
+[_integer-literal_]: integer_literal.md
 [_expression_]: expression.md
 [_qualifier_]: qualifier.md
 [_string-literal_]: string_literal.md
@@ -21,7 +21,7 @@
 ## Syntax
 
 _function-definition_ :=\
-    `fn` [_identifier_]__?__ __(__ `(` [_argument-declaration-list_]__?__ `)` __)?__
+    `fn` [_fqname_]__?__ __(__ `(` [_argument-declaration-list_]__?__ `)` __)?__
       [_function-return-type_]__?__\
     *constraint*__*__\
     _specifier_
@@ -29,11 +29,11 @@ _function-definition_ :=\
 _constraint_ :=\
       `expect` `(` [_expression_] `)` \
     __|__ `build_guard` `(` [_build-guard-expression_] `)`\
-    __|__ [_annotation_]__*__ `pre` `(` [_expression_] `)`\
-    __|__ [_annotation_]__*__ `post` `(` [_expression_] `)`
+    __|__ [_attribute_]__*__ `pre` `(` [_expression_] `)`\
+    __|__ [_attribute_]__*__ `post` `(` [_expression_] `)`
 
 _specifier_ :=\
-      [_annotation_]__*__ [_code-block_]\
+      [_attribute_]__*__ [_code-block_]\
     __|__ `=` `default` `;`\
     __|__ `=` `delete` `;`\
     __|__ `=` `extern` `;`\
@@ -50,7 +50,8 @@ Inside a function, type or lambdas, the argument declarations are available as
 variables as:
  - by their name,
  - positional arguments: `$0`, `$1`, etc,
- - positional arguments: `$[` integer `]`,
+ - positional arguments: `$[` [_integer-literal_] `]`,
+ - hidden context arguments: `$`[_id_]
  - the number of arguments: `$#`,
  - result value as: `$_`
 
@@ -89,6 +90,8 @@ available:
   * The arguments by index using the `$` [_integer_literal_]
   * The return variable using `$?`.
 
+When the post-condition is evaluated as `false` at run-time it will throw
+the `std.error_code.post_condition_failure` error or abort if uncaught.
 
 ### pre(expression)
 
@@ -98,3 +101,18 @@ available:
   * The arguments by name from the argument list
   * The arguments by index using the `$` [_integer_literal_]
 
+When the pre-condition is evaluated as `false` at run-time it will throw
+the `std.error_code.pre_condition_failure` error or abort if uncaught.
+
+> [!note]
+> If the compiler can proof the pre-condition then it may report and error or
+> remove the check from run-time.
+
+> [!note]
+> The `@effect()` attribute on the `pre()` and `@post` clause will be evaluated
+> if the condition cannot be proven to be `true`.
+
+> [!note]
+> The `@optional` attribute on the `pre()` and `post()` clause will be cause
+> the check to be removed from the run-time for a *release* build. An error
+> is reported if the condition is proven to be `false` at compile time.

@@ -1,12 +1,11 @@
 # import
 
-[_annotation_]: annotation.md
 [_build-guard_]: build_guard.md
 [_expression_]: expression.md
 
 ## Syntax
 
-_import-eval_ := [_annotation_]__*__ `import` `eval` [_expression_] `;`
+_import-eval_ := `import` `eval` [_expression_] `;`
 
 
 ## Semantics
@@ -23,14 +22,9 @@ The returned string must be a full module's text, including a prologue with a
 basic `module` declaration and optional `import` statements.
 
 A generated module cannot:
- - import repositories, or
- - set the module's version number.
+ - import repositories
 
 > [!NOTE]
 > It is the generator function's responsibility to cache results of an expensive
 > generation.
-
-If the module is located in a different repository, then that repository must be
-imported using a `import git` or `import zip`, by at least one file in the
-current repository.
 

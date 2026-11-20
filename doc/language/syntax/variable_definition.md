@@ -5,7 +5,7 @@
 [_body_]: body.md
 [_file_]: file.md
 [_fqname_]: fqname.md
-[_identifier_]: identifier.md
+[_id_]: id.md
 [_init-expression_]: init_expression.md
 [_code-block_]: code-block.md
 [_condition-expression_]: condition_expression.md

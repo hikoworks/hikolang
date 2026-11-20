@@ -4,14 +4,13 @@
 [_argument-declaration-list_]: argument_declaration_list.md
 [_code-block_]: code_block.md
 [_fqname_]: fqname.md
-[_identifier_]: identifier.md
 [_underlying_]: underlying.md
 [_function-definition_]: function_definition.md
 
 ## Syntax
 
 _type_definition_ :=\
-      _meta_type_ [_identifier_]__?__ __(__ `:` [_underlying_] __)?__ [_code-block_]\
+      _meta_type_ [_fqname_]__?__ __(__ `:` [_underlying_] __)?__ [_code-block_]\
     __|__ _meta_type_ `[` [_argument_declaration_list_](argument_declaration_list.md) `]` __(__ `:` [_underlying_] __)?__ [_code-block_]
 
 _meta_type_ := [_fqname_](fqname.md)

@@ -1,48 +1,49 @@
 # call-operator
 
-[_argument-chain_]: argument_chain.md
+[_argument-list_]: argument_list.md
+[_code-block_]: code_block.md
 [_expression_]: expression.md
-[_identifier_]: identifier.md
+[_id_]: id.md
 
 ## Syntax
 
-_call-operator_ :=
-      [_expression_] `(` [_argument-chain_] `)`\
-    __|__ [_expression_] `.` [_identifier_] `(` [_argument-chain_] `)`
+_call-operator_ :=\
+      [_expression_] `(` [_argument-list_] `)` [_code-block_]__?__\
+    __|__ [_expression_] `.` [_id_] `(` [_argument-list_] `)` [_code-block_]__?__
 
-_index-operator_ :=
-      [_expression_] `[` [_argument-chain_] `]`\
-    __|__ [_expression_] `.` [_identifier_] `[` [_argument-chain_] `]`
+_index-operator_ :=\
+      [_expression_] `[` [_argument-list_] `]` [_code-block_]__?__\
+    __|__ [_expression_] `.` [_id_] `[` [_argument-list_] `]` [_code-block_]__?__
 
 
 
 ## Semantics
 
 The `()` operator is used to:
- * call a function
- * call a method
- * call a functor:
+ * Call a function.
+ * Call a method.
+ * Call a functor:
    - An object with the `__call__()` method
-   - An type with the `__call__()` type-method
- * call a lambda
- * instantiate a type-template
- * instantiate a type
+   - An type with the `@type` `__call__()` type-method
+ * Call a lambda.
+ * Instantiate a type.
 
 The `[]` operator is used to:
- * Index into an array
- * Index a functor
+ * Index into an array.
+ * Index a functor:
    - An object with the `__index__()` method
-   - An type with the `__index__()` type-method
- 
-If the [_argument-chain_] contain semicolons `;` it is a separator for
-chained calls. For example:
+   - An type with the `@type` `__index__()` type-method
+ * Instantiate a type-template.
+
+The optional [_code-block_] after the argument list is syntactic sugar for
+passing the code-block as a simplified lambda with variable number of arguments
+as the last argument in the call.
 
 ```
-// 0...10 range of the integer which creates a specific int type.
-// Follows by instantiating int(0...10) with a constructor passing in 5.
-a = int(0...10; 5)
+a = foo(1, 2, 3) {
+  $0 + $1
+}
 
-// Desugars into
-a = int(0...10)(5)
+// Desugared as:
+a = foo(1, 2, 3, fn { $0 + $1 }) 
 ```
-

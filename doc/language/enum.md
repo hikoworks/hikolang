@@ -1,9 +1,8 @@
 # Enum
 
-[_annotation_]: syntax/annotation.md
 [_expression_]: syntax/expression.md
 [_fqname_]: syntax/fqname.md
-[_identifier_]: syntax/identifier.md
+[_id_]: syntax/id.md
 [_unit-expression_]: syntax/unit_expression.md
 [_string-literal_]: syntax/string_literal.md
 

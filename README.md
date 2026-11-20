@@ -104,7 +104,7 @@ The `int` template type infers based on interval arithmatic to fit
 the full result of an operation: 
 
 ```
-foo = fn(x : int[10...20], y : int[2...4]) {
+fn foo(x : int[10...20], y : int[2...4]) {
     // return type is infered as int[20...80]
     return x * y
 }
@@ -137,7 +137,7 @@ speed = 100.0 #(km/h)
 distance = speed * duration
 distance_in_km = distance #-km
 
-convert = fn(length : real #m, ppi : real #(px/in)) -> real #px
+fn convert(length : real #m, ppi : real #(px/in)) -> real #px
 {
     return length * ppi
 }
@@ -149,22 +149,56 @@ convert = fn(length : real #m, ppi : real #(px/in)) -> real #px
 Context arguments reduces the need for global variables in many uses. It makes
 it easy to inject context in unit-tests as well.
 
-```
-foo = fn(x) {
+```rust
+fn foo(x) {
     // $y is used, which makes foo() require $y to be passed in.
     return x + $y
 }
 
-bar = fn(x) {
+fn bar(x) {
     // $y is required by foo(), so bar requiress $y passed in.
     // $y is automatically and invisibly passed into foo()
     return foo(x)
 }
 
-qux = fn(x, y) {
+fn qux(x, y) {
     // qux() does not allow $y to be passed in.
     // Pass in $y explicitly into bar.
     return bar(x, $y=y)
+}
+```
+
+## Hidden context members
+
+```rust
+struct my_type {
+  $allocator <- std.default_allocator
+  x <- ""
+
+  fn __init__() {
+    // Copy the $allocator hidden context argument to the instance variable.
+    // Since $allocator is used directly, __init__ requires the $allocator
+    // argument.
+    $self.$allocator = $allocator
+  }
+
+  fn set(a : string) {
+    // The $allocator hidden context argument requires by x.__assign__()
+    // is found in the instance, set() will therefore not require the $allocator
+    // argument.
+    x <- a
+  }
+}
+
+fn foo(s : string) {
+  // std.stack_allocator uses $allocator passed to foo() as fallback allocator.
+  a = std.stack_allocator(4096)
+
+  // Explicitly use the new allocator.
+  b = my_type($allocator = a)
+  
+  // This will copy the string passed in into the stack_allocator.
+  b.set(s)
 }
 ```
 
@@ -190,8 +224,8 @@ Enums members have zero or more associated values, like the following
 optional type, which is a template. Template arguments use the bracketed
 argument syntax.
 
-```
-.std.optional = enum(T : type) {
+```rust
+enum optional(T : type) {
     none
     some(:T)
 }
@@ -208,11 +242,11 @@ optional reference.
 Sometimes you want to limit the effects that functions can make,
 for example you may not want to do any: allocations, IO or block.
 
-```
+```rust
 // This function's implementation and any callers are marked to have the
 // effects +io or +block depending if the arguments are constant at compile
 // time.
-read = fn(fd, size) -> string {
+fn read(fd, size) -> string {
   if (size == 0) {
     ...
   } else if (size <= 4096) @effect(+io) {
@@ -222,7 +256,7 @@ read = fn(fd, size) -> string {
   }
 }
 
-foo = fn(fd, n) {
+fn foo(fd, n) {
   @effect(!block) {
     t = read(fd, 4096); // OK
     u = read(fd, 6000); // ERROR: read() has effect 'block'
@@ -250,8 +284,8 @@ Translation may also perform **compile-time evaluation**, including constant
 folding. An explicit `@fold` annotation requires an expression to be evaluated
 during compilation:
 
-```text
-foo = fn(x) {
+```rust
+fn foo(x) {
     y = @fold read_from_file()
     return y + x
 }
@@ -327,14 +361,14 @@ where unused and fit the interval of the underlying `int` type.
 
 A function marked with `metatype` becomes a keyword that returns a type.
 
-```
+```rust
 @metatype
-class = fn(definition, underlying) {
+fn class(definition, underlying) {
   ...
   return new_type
 }
 
-T = class[template_argument: type] {
+class my_type[T: type] : int[0...10] {
   ...
 }
 ```

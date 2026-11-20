@@ -1,28 +1,22 @@
 # argument-declaration
 
-[_type-specifier_]: type_specifier.md
 [_expression_]: expression.md
-[_literal_]: literal.md
-[_name_]: name.md
+[_id_]: id.md
+[_type-specifier_]: type_specifier.md
 
 
 ## Syntax
 
 _argument-declaration_ :=\
-      [_name_]__?__ [_type-specifier_]__?__ __(__ `=` [_expression_] __)?__\
-    __|__ [_name_] `...` [_type-specifier_]__?__
-    __|__ [_literal_] [_type-specifier_]__?__\
-    __|__ `(` [_expression_] `)` [_type-specifier_]__?__\
+      [_id_] [_type-specifier_]__?__ __(__ `=` [_expression_] __)?__\
+    __|__ [_id_] `...` [_type-specifier_]__?__\
+    __|__ `(` [_expression_] `)` [_type-specifier_]__?__
 
 
 ## Semantics
 
-Declares an argument for a function or lambda with a [_name_](name.md)
+Declares an argument for a function or lambda with a [_id_](name.md)
 which can be used as a variable inside the function's or lambda's code-block.
-
-If the argument is a [_literal_](literal.md) or an [_expression_](expression.md)
-between `(` and `)`, then the argument is a constant. This allows functions
-to be specialized when a specific argument is passed.
 
 The type declaration is optional. If not specified, the type is inferred from
 the types passed in the [_function-call_](function_call.md). If the type is

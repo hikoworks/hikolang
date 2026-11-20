@@ -13,10 +13,10 @@ module std.error_code
  *                    turned into `@auto_rethrow`.
  */
 @public
-error_code = enum : u32 {
+enum error_code : __i32 {
     /** No error: value-less return from a function.
      */
-    empty = 0
+    empty = __i32_0
 
     /** No error: An operation produced a non-value result.
      */
@@ -37,19 +37,22 @@ error_code = enum : u32 {
     error
 }
 
-error_code = enum @isa(result) {
+@merge
+enum error_code @isa(result) {
     /** No message is available to receive from the requested message source.
      */
     no_message
 }
 
-error_code = enum @isa(cancel) {
+@merge
+enum error_code @isa(cancel) {
     /** The operation was canceled before it could complete.
      */
     operation_canceled
 }
 
-error_code = enum @isa(transient) {
+@merge
+enum error_code @isa(transient) {
     /** The operation was interrupted before it could complete.
      * potentially by an external event or signal. The operation can be
      * restarted/continued.
@@ -66,7 +69,8 @@ error_code = enum @isa(transient) {
     timed_out
 }
 
-error_code = enum @isa(error) {
+@merge
+enum error_code @isa(error) {
     /** The error was caused by a programming mistake.
      *
      * This usually indicates a violated caller contract. The error is
@@ -132,7 +136,8 @@ error_code = enum @isa(error) {
     operation_error
 }
 
-error_code = enum @isa(contract_violation) {
+@merge
+enum error_code @isa(contract_violation) {
     /** An assert statement failed.
      */
     assertion_failed
@@ -155,7 +160,8 @@ error_code = enum @isa(contract_violation) {
     pre_condition_failure
 }
 
-error_code = enum @isa(bad_input) {
+@merge
+enum error_code @isa(bad_input) {
     /** The requested argument list exceeds the maximum supported size.
      */
     @isa(programming_error)
@@ -193,7 +199,8 @@ error_code = enum @isa(bad_input) {
     message_size
 }
 
-error_code = enum @isa(bad_output) {
+@merge
+enum error_code @isa(bad_output) {
     /** The operation produced a result outside the range of representable or valid
      * values.
      */
@@ -204,7 +211,8 @@ error_code = enum @isa(bad_output) {
     value_too_large
 }
 
-error_code = enum @isa(io_error) {
+@merge
+enum error_code @isa(io_error) {
     /** An error caused by the network system
      */
     network_error
@@ -254,7 +262,8 @@ error_code = enum @isa(io_error) {
 
 }
 
-error_code = enum @isa(network_error) {
+@merge
+enum error_code @isa(network_error) {
     /** The requested address family is not supported by the operation.
      */
     @isa(programming_error)
@@ -341,7 +350,8 @@ error_code = enum @isa(network_error) {
 }
 
 
-error_code = enum @isa(filesystem_error) {
+@merge
+enum error_code @isa(filesystem_error) {
     /** The operation requires the source and destination to reside on the same
      * filesystem or resource domain, but they do not.
      */
@@ -408,7 +418,8 @@ error_code = enum @isa(filesystem_error) {
     too_many_symbolic_link_levels
 }
 
-error_code = enum @isa(resource_error) {
+@merge
+enum error_code @isa(resource_error) {
     /** The requested resource is busy and cannot currently be used for the operation.
      */
     @isa(system_resource_error)
@@ -441,7 +452,8 @@ error_code = enum @isa(resource_error) {
     state_not_recoverable
 }
 
-error_code = enum @isa(process_error) {
+@merge
+enum error_code @isa(process_error) {
     /** The requested executable or program file has an invalid or unsupported format.
      */
     executable_format_error
@@ -455,7 +467,8 @@ error_code = enum @isa(process_error) {
     no_such_process
 }
 
-error_code = enum @isa(operation_error) {
+@merge
+enum error_code @isa(operation_error) {
     /** The requested functionality has not been implemented.
      */
     @isa(programming_error)
@@ -500,7 +513,8 @@ error_code = enum @isa(operation_error) {
     operation_would_block
 }
 
-error_code = enum @isa(limit_error) {
+@merge
+enum error_code enum @isa(limit_error) {
     /** The file or resource exceeds the maximum size supported by the operation.
      */
     @isa(system_resource_error)

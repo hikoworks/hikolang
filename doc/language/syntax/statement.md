@@ -1,23 +1,25 @@
 # Statement
 
-[_return_statement_]: return_statement.md
-[_yield_statement_]: yield_statement.md
-[_break_statement_]: break_statement.md
-[_continue_statement_]: continue_statement.md
-[_goto_statement_]: goto_statement.md
-[_throw_statement_]: throw_statement.md
+[_return-statement_]: return_statement.md
+[_yield-statement_]: yield_statement.md
+[_break-statement_]: break_statement.md
+[_continue-statement_]: continue_statement.md
+[_goto-statement_]: goto_statement.md
+[_namespace-statement_]: namespace_statement.md
+[_throw-statement_]: throw_statement.md
 
 
 ## Syntax
 
 _statement_ :=\
       [_expression_](expression.md) `;`\
-    __|__ [_return_statement_]\
-    __|__ [_yield_statement_]\
-    __|__ [_break_statement_] \
-    __|__ [_continue_statement_]\
-    __|__ [_goto_statement_]\
-    __|__ [_throw_statement_]
+    __|__ [_return-statement_]\
+    __|__ [_yield-statement_]\
+    __|__ [_break-statement_] \
+    __|__ [_continue-statement_]\
+    __|__ [_goto-statement_]\
+    __|__ [_namespace-statement_]\
+    __|__ [_throw-statement_]
 
 
 ## Semantics

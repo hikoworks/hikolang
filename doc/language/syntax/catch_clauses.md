@@ -1,5 +1,7 @@
 # catch-clauses
 
+[_attribute_]: attribute.md
+[_code-block_]: code-block.md
 [_error-list_]: error_list.md
 [_statement-list]: statement_list.md
 
@@ -7,8 +9,8 @@
 ## Syntax
 
 _catch-clauses_ :=\
-    __(__ `catch` `(` [_error-list_] `)` [_annotation_]__*__ [_code_block_] __)*__\
-    __(__ `catch` [_annotation_]__*__ [_code_block_] __)?__
+    __(__ `catch` `(` [_error-list_] `)` [_attribute_]__*__ [_code-block_] __)*__\
+    __(__ `catch` [_attribute_]__*__ [_code-block_] __)?__
 
 ## Semantics
 

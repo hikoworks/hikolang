@@ -1,13 +1,13 @@
-# identifier
+# id
 
 ## Syntax
 
-Identifiers follow the Unicode UAX #31 (Unicode Identifier and Syntax)
-rules for identifiers. Identifiers are case-sensitive. The following characters are added
-as part of ID_Start:
+Identifiers follow the Unicode UAX #31 (Unicode Identifier and Syntax) rules for
+identifiers. Identifiers are case-sensitive. The following characters are added
+as part of ID_Start and ID_Continue character classes:
+ - `$` (DOLLAR SIGN)
  - `_` (UNDERSCORE)
  - `°` (DEGREE SIGN) This is used for units.
-
 
 ## Semantics
 
@@ -18,6 +18,13 @@ Internally identifiers are stored and compared in NFC (Normalization Form C).
 
 Identifier that include a double underscore `__` are reserved for the language
 implementation.
+
+Identifiers starting with `$` followed directly by decimal digits are used for
+positional arguments.
+
+Other identifiers starting with `$` are names of hidden variables:
+ - Hidden Context Variables
+ - Hidden Member Variables
 
 
 ## Security

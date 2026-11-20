@@ -4,7 +4,7 @@ module std.string_representation
 /**
  */
 @public
-enum string_representation {
+enum string_representation : __i8 {
     /** String literal
      *
      * String literals are unencoded and may be implicitly converted to:

@@ -1,7 +1,7 @@
 # iterator-for-control-expression
 
 [_alternate-clauses_]: alternate_clauses.md
-[_annotation_]: annotation.md
+[_attribute_]: attribute.md
 [_if-control-expression_]: if_control_expression.md
 [_code-block_]: code_block.md
 [_condition_expression_]: condition_expression.md
@@ -14,7 +14,7 @@
 _iterator-for-loop-control-expression_ :=\
     [_do-clause_]__?__\
     `for` `(` [_variable_definition_]__?__ `;`  [_condition_expression_]__?__ `;` [_expression_]__?__ `)`\
-        __(__ [_annotation_]__*__ [_code-block_] __)?__\
+        __(__ [_attribute_]__*__ [_code-block_] __)?__\
     [_alternate-clauses_]
 
 

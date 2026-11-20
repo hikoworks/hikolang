@@ -1,13 +1,13 @@
-# module-declaration
+# program-declaration
 
-[_annotation_]: annotation.md
+[_build-guard_]: build_guard.md
+[_string-literal_]: string_literal.md
+[_version-literal_]: version_literal.md
 
 ## Syntax
 
-[_annotation_]__*?*__
-`program` [_string_literal_](string_literal.md)
-    [_version_literal_](version_literal.md)__?__
-    [_build-guard_](build_guard.md)__?__ `;`
+_program-declaration_:= `program` [_string-literal_]
+    [_version-literal_]__?__ [_build-guard_]__?__ `;`
 
 
 ## Semantics

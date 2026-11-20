@@ -1,8 +1,11 @@
 # fqname
 
+[_id_]: id.md
+
+
 ## Syntax
 
-_fqname_ := `.`__*__ [_identifier_](identifier.md) __(__ `.` [_identifier_](identifier.md) __)*__
+_fqname_ := `.`__*__ [_id_] __(__ `.` [_id_] __)*__
 
 
 ## Semantics

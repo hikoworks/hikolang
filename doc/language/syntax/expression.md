@@ -1,10 +1,10 @@
 # Expression
 
-[_annotation_]: annotation.md
+[_attribute_]: attribute.md
 [_binding-operator_]: binding_operator.md
 [_code-block_]: code_block.md
 [_context-argument_]: context_argument.md
-[_identifier_]: identifier.md
+[_id_]: id.md
 [_float-literal_]: float_literal.md
 [_integer-literal_]: integer_literal.md
 [_string-literal_]: string_literal.md
@@ -27,6 +27,7 @@
 [_index-operator_]: index_operator.md
 [_member-access_]: member_access.md
 [_namespace-traversal-operator_]: namespace_traversal_operator.md
+[_positional-argument_]: positional_argument.md
 [_type-operator_]: type_operator.md
 [_shortcut-operator_]: shortcut_operator.md
 [_try-operator_]: try_operator.md
@@ -36,21 +37,20 @@
 
 ## Primary Expression
 
-   Expression                             | Description
-  :-------------------------------------- |:-------------------------
-   `(` _expression_ `)`                   | Sub expression
-   [_code-block_]                         | Code block
-   [_integer-literal_]                    | Integer literal
-   [_float-literal_]                      | Floating point literal
-   [_string-literal_]                     | String literal
-   [_tuple-literal_]                      |
-   [_identifier_]                         | Variable name
-   [_context-argument_]                   |
-   [_if-control-expression_]              |
-   [_iterative-for-control-expression_]   |
-   [_ranged-for-control-expression_]      |
-   [_while-control-expression_]           |
-   [_switch-control-expression_]          |
+ | Example                   | Description
+ |------------------         |:---------------------
+ | `(a + b)`                 | Sub expression
+ | `{ ++a; a + b }`          | [_code-block_]
+ | `1`                       | [_integer-literal_]
+ | `1.1`                     | [_float-literal_]
+ | `"foo"`                   | [_string-literal_]
+ | `(a, b)`, `(a,)`, `(,)`   | [_tuple-literal_]
+ | `foo`, `$self`, `$1`      | Variable name [_id_].
+ | `if (a < b) {a} else {b}` | [_if-control-expression_]
+ |                           | [_iterative-for-control-expression_]
+ |                           | [_ranged-for-control-expression_]
+ |                           | [_while-control-expression_]
+ |                           | [_switch-control-expression_]
 
 
 ## Standard Operators
@@ -61,7 +61,8 @@
  * `T`: [_type-expression_]
  * `E`: [_error-list_]
  * `U`: [_unit-expression_]
- * `A`: [_annotation_]
+ * `@A`: [_attribute_]
+ * `{B}`: [_code-block_]
 
 
   Operator       | Precedence | Function                       | Description
@@ -70,11 +71,12 @@
   `a++`          |  1000 L    | `__post_increment__(a)`        |
   `a--`          |  1000 L    | `__post_decrement__(a)`        |
   `a(...)`       |  1000 L    |                                | [_call-operator_]
+  `a(...){B}`    |  1000 L    |                                | [_call-operator_] with lambda
   `a[...]`       |  1000 L    |                                | [_index-operator_]
+  `a[...]{B}`    |  1000 L    |                                | [_index-operator_] with lambda
   `a.<name>`     |  1000 L    |                                | [_member-access_]
   `a::<name>`    |  1000 L    |                                | [_type-member-access_]
-  `@A b`         |  2000 R    |                                | [_annotation_]
-  `[[A]] b`      |  2000 R    |                                | [_annotation_]
+  `@A b`         |  2000 R    |                                | [_attribute_]
   `++b`          |  2000 R    | `__increment__(a)`             |
   `--b`          |  2000 R    | `__decrement__(a)`             |
   `+b`           |  2000 R    | `__pos__(a)`                   |
@@ -88,7 +90,6 @@
   `*b`           |  2000 R    |                                | [_binding-operator_]
   `const r`      |  2000 R    |                                | [_binding-operator_]
   `move  r`      |  2000 R    |                                | [_binding-operator_]
-  `?b`           |  2000 R    |                                | [_make-optional-operator_]
   `a #U`         |  3000 L    |                                | [_unit-expression_]
   `T #U`         |  3000 L    |                                | [_unit-expression_]
   `a #-U`        |  3000 L    |                                | [_unit-expression_]
@@ -148,8 +149,8 @@
 > [!note]
 >  * `a = b` and `a <- b`: are assignment operators or variable definitions
 >    depending on the context.
->  * `[[A]] b` and `@A b`: annotations are parsed as-if they are prefix
->    operators, the annotations are later moved to the proper sub-expression.
+>  * `@A b`: attributes are parsed as-if they are prefix operators, the
+>    annotations are later moved to the proper sub-expression.
 >  * `.<name>`: The namespace traversal operator searches the name in a
 >    different namespace depending on the number of prefix dots.
 

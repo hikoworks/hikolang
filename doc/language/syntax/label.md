@@ -2,7 +2,7 @@
 
 ## Syntax
 
-_label_ := [_identifier_]
+_label_ := [_id_]
 
 
 ## Semantics

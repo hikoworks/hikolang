@@ -5,7 +5,7 @@ module std.string_low
 
 @public
 struct string[encoding : string_representation] {
-    @class
+    @type
     fn __alloc_alignment() -> __is {
         if (std.target.register_bits == 64) {
             return __is_8
@@ -14,12 +14,12 @@ struct string[encoding : string_representation] {
         }
     }
 
-    @class
+    @type
     fn __alloc_size() -> __is {
         return __alloc_alignment() * __is_3
     }
 
-    @class
+    @type
     fn _sso_capacity() -> __is {
         return __alloc_size() - __is_1
     }

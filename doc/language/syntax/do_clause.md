@@ -1,11 +1,12 @@
 # do-clause
 
+[_attribute_]: attribute.md
 [_code-block_]: code_block.md
 
 
 ## Syntax
 
-_do-clause_ := `do` [_annotation_]__*__ [_code_block_]
+_do-clause_ := `do` [_attribute_]__*__ [_code-block_]
 
 
 ## Semantics

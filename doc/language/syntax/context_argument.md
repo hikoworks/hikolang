@@ -1,11 +1,11 @@
 # context-argument
 
-[_identifier_]: identifier.md
+[_id_]: id.md
 
 
 ## Syntax
 
-_context_argument_ := `$` [_identifier_]
+_context_argument_ := `$` [_id_]
 
 
 ## Semantics

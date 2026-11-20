@@ -11,72 +11,57 @@
 
 ## Syntax
 
-annotation :=\
-      [_documentation_]\
-    __|__ _attribute_\
-    __|__ _modifier_
-
-
-_attribute_ := `[[` [_fqname_] __(__ `(` [_argument-list_] `)` __)?__ `]]`
-
-_modifier_ := `@` [_fqname_] __(__ `(` [_argument-list_] `)` __)?__
+_attribute_ := `@` [_fqname_] __(__ `(` [_argument-list_] `)` __)?__
 
 
 
 ## Semantics
 
-Annotations are divided into **attributes** and **modifiers**, distinguished
-by their syntax:
-
- * **Attributes** use double square brackets, such as `[[fast]]` and
-   `[[lean]]`. They provide hints or guidance to the compiler, such as
-   how to optimize a particular code construct. Attributes may affect code
-   generation and performance, but must not change the program's defined
-   behavior.
- * **Modifiers** use an `@` prefix, such as `@datastack(size)` and `@fold`.
-   They change the semantics of a declaration or code construct, affecting
-   how it is interpreted, compiled, or executed.
-
-In general, attributes allow the programmer to influence compiler decisions
-without changing what the program means, while modifiers explicitly change
-the program's meaning or execution rules. The semantics and permitted placement
-of each annotation are defined individually.
 
 
-## Annotations
+## Attributes
 
-| Annotation                 | Purpose                                           | Applies to
-|----------------------------|---------------------------------------------------|-----------------
-| `@abi(x)`                  | The ABI used.                                     | Function, Type
-| `@alignas(size)`           | Alignment of data.                                | Variable, Type
-| `@auto_rethrow`            | Synthesize catch/rethrow for std.error_code.      | Enum
-| `[[call]]`                 | Emit call instruction, disabling inlining.        | Call
-| `@datastack(size)`         | Enable data-stack.                                | Function
-| `[[deprecated(msg)]]`      | Mark as deprecated                                | Function, Variable, Type
-| `[[discard]]`              | The returned value may be ignored                 | Function
-| `@domain(domain, idx)`     | Add primary unit to a domain for std.unit         | Enum
-| `@effect(effect, ...)`     | Add, remove or check effect                       | Function, Block
-| `@export(abi)`             | Export into library / executable                  | Function, Variable
-| `[[fast]]`                 | The code that has priority                        | Block
-| `@fold`                    | Execute expression at compile time                | Expression
-| `@implies(effect, ...)`    | Imply another effect for std.effect               | Enum
-| `@keyword`                 | Add enum name as literal keyword                  | Enum
-| `[[lean]]`                 | Reduce code size and register presure             | Code  
-| `@metatype`                | 
-| `@left(prio [, op])`       |
-| `[[no_return]]`            |
-| `@prefix(prio, op)`        |
-| `@public`                  |
-| `@right(prio, op)`         |
-| `@shared(allocator)`       |
-| `@section(link-name)`      |
-| `@static`                  |
-| `@suffix(prio, op)`        |
-| `@tag`                     |
-| `@thread_local`            |
-| `@unique(allocator)`       |
-| `@unit(unit-expr)`         |
-| `@weak`                    |
+ * F - Function
+ * T - Type
+ * V - Variable
+ * E - Expression
+ * M - Member
+ * B - Code Block
+
+| Attribute                  | On      | Purpose                                           
+|----------------------------|-------  |---------------------------------------------------
+| `@abi(x)`                  | F T     | The ABI used.
+| `@alignas(size)`           | T V     | Alignment of data.
+| `@auto_rethrow`            | M       | Synthesize catch/rethrow for `std.error_code`.
+| `@call`                    | E       | Emit call instruction, disabling inlining.
+| `@datastack(size)`         | F       | Enable data-stack.
+| `@deprecated(msg)`         | F M T V | Mark as deprecated.
+| `@discard`                 | F       | The returned value may be ignored.
+| `@domain(domain, idx)`     | M       | Add primary unit to a domain for `std.unit`.
+| `@effect(effect, ...)`     | B F     | Add, remove or check effect.
+| `@export(abi)`             | F V     | Export into library / executable.
+| `@fast`                    | B       | The code that has priority.
+| `@fold`                    | E       | Execute expression at compile time.
+| `@implies(effect, ...)`    | M       | Imply another effect for `std.effect`.
+| `@keyword`                 | M       | Add enum name as literal keyword.
+| `@lean`                    | B       | Reduce code size and register presure.
+| `@merge`                   | T       | Merge type definition together.
+| `@metatype`                | F       | A function, that turns a definition into a type.
+| `@left(prio [, op])`       | M       | Add left associate operator in `std.operator`.
+| `@no_return`               | F       | This function does not return.
+| `@optional`                | F       | Disable pre/post/assert condition checks at run-time.
+| `@prefix(prio, op)`        | M       | Add prefix operator in `std.operator`.
+| `@public`                  | F M T V | The name of the object is available outside of the package.
+| `@right(prio, op)`         | M       | Add right associate operator in `std.operator`.
+| `@shared(allocator)`       | V       | A variable whose storage in a reference counted heap allocation.
+| `@section(link-name)`      | V F     | The object is located in a specific link-section.
+| `@suffix(prio, op)`        | M       | Add suffix operator in `std.operator`.
+| `@tag`                     | M       | Add a tag for `std.unit`.
+| `@thread_local`            | V       | A variable that is located in thread-local storage.
+| `@type`                    | M       | The member is part of the type, not its instance.
+| `@unique(allocator)`       | V       | A variable whose storage is allocated on the heap.
+| `@unit(unit-expr)`         | M       | Add a unit for `std.unit`.
+| `@weak`                    | V       | A variable which is an optional reference to `@shared(...)` storage.
 
 
 ### @abi(x)
@@ -105,7 +90,7 @@ The compiler will synthesize a catch-rethrow for any
 flow-control-expression that does not explicitly catch this error.
 
 
-### [[call]]
+### @call
 
 On: [_calloperator_]
 
@@ -142,7 +127,7 @@ on the workload and is difficult to quantify:
    and memory locality, depending on allocation patterns and workload.
 
 
-### [[deprecated(message)]]
+### @deprecated(message)
 
 On: [_variable-definition_], [_function-definition_], [_type-definition_]
 
@@ -150,7 +135,7 @@ This variable/function is deprecated. The compiler will emit a warning message
 where the variable is used, including the `message` passed in the attribute.
 
 
-### [[discard]]
+### @discard
 
 On: [_function_definition_]
 
@@ -179,10 +164,14 @@ Add, remove or assert the existance or non-existance of effects.
  `!foo` | Assert `foo` is NOT IN effect.
 
 Functions that call a function that has an effect, inherits that effect.
-An effect like this can be removed using the `-` [_identifier_] syntax.
+An effect like this can be removed using the `-` [_id_] syntax.
 
 The default set of effects can be found here [_enum-definition_]. You
 can also modify the `.std.effect` enum to add more effects.
+
+If a pre-condition with `@effect(+foo)` can not be proven to be `true` during
+compile time, then the effect `foo` is attached to the function. This is used
+most often with `unsafe`.
 
 
 ### @export(abi)
@@ -198,12 +187,12 @@ specified.
   `"c++"`  | Use the C++ ABI.
 
 
-### [[fast]]
+### @fast
 
 On: [_code-block_]
 
 Used on a [_code-block_] of a flow-control clause, indicating how this branch
-is optimized. When using `[[fast]]` you are asking the compiler to make this
+is optimized. When using `@fast`    you are asking the compiler to make this
 branch fast, even if other branches would be impacted negatively.
 
 This will:
@@ -211,8 +200,8 @@ This will:
  * Inline code as much as possible. (This is the default.)
 
 > [!note]
-> In most cases `[[fast]]` will have very little impact on performance.
-> Instead look for `[[lean]]` for a much larger impact.
+> In most cases `@fast`    will have very little impact on performance.
+> Instead look for `@lean`    for a much larger impact.
 
 
 ### @fold
@@ -259,12 +248,12 @@ The enum name is added as a keyword in the language, becoming a literal for
 value of that enum-type.
 
 
-### [[lean]]
+### @lean
 
 On: [_code-block_]
 
 Used on a [_code-block_] of a flow-control clause, indicating how this branch
-is optimized. When using `[[lean]]` you are asking the compiler to produce
+is optimized. When using `@lean`    you are asking the compiler to produce
 code that impact the other branches positively.
 
 This will:
@@ -301,7 +290,7 @@ Left associative
  - operator: The name or syntax-pattern of the operator.
 
 
-### [[no_return]]
+### @no_return
 
 On: [_function_definition_]
 

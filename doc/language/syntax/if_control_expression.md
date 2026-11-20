@@ -1,7 +1,7 @@
 # if-control-expression
 
 [_alternate-clauses_]: alternate_clauses.md
-[_annotation_]: annotation.md
+[_attribute_]: annotation.md
 [_code-block_]: code_black.md
 [_condition-expression_]: condition_expression.md
 [_do-clause_]: do_clause.md
@@ -12,7 +12,7 @@
 
 _if-control-expression_ :=\
     [_do-clause_]__?__\
-    `if` `(` [_init_expression_]__?__ [_condition-expression_] `)` [_annotation_]__*__ [_code-block_]\
+    `if` `(` [_init_expression_]__?__ [_condition-expression_] `)` [_attribute_]__*__ [_code-block_]\
     [_alternate-clauses_]
 
 

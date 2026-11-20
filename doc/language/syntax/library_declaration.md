@@ -1,13 +1,12 @@
 # library-declaration
 
-[_annotation_]: annotation.md
 [_build-guard_]: build_guard.md
 [_string-literal_]: string_literal.md
 [_version-literal_]: version_literal.md
 
 ## Syntax
 
-_library-declaration_ := [_annotation_]__*__ `library` [_string-literal_] [_version-literal_]
+_library-declaration_ := `library` [_string-literal_] [_version-literal_]
     [_build-guard_]__?__ `;`
 
 

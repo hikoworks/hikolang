@@ -1,7 +1,7 @@
 # break statement
 
 [_expression_]: expression.md
-[_identifier_]: identifier.md
+[_id_]: id.md
 [_label_]: label.md
 
 
@@ -10,7 +10,7 @@
 _break_statement_ :=\
       `break` [_label_]**?** `;`\
     __|__ `break` [_label_]**?**  `with` [_expression_]__?__ `;`\
-    __|__ `break` [_label_]**?**  `throw` `fatal`__?__ [_identifier_] `;`
+    __|__ `break` [_label_]**?**  `throw` `fatal`__?__ [_id_] `;`
 
 
 ## Semantics

@@ -1,18 +1,22 @@
 # alternate-clauses
 
+[_attribute_]: attribute.md
+[_catch-clauses_]: catch_clauses.md
+[_code-block_]: code_block.md
+
 ## Syntax
 
 _alternate-clauses_ := _alternate-clauses-1_ __|__ _alternate-clauses-2_
 
 _alternate-clauses-1_ :=\
     [_catch-clauses_]\
-    __(__ `elif` `(` [_condition-expression_] `)` [_annotation_]__*__ [_code_block_] [_catch-clauses_] __)*__\
-    __(__ `else` [_annotation_]__*__ [_code_block_] __)?__\
-    __(__ `empty` [_annotation_]__*__ [_code_block_] __)?__
+    __(__ `elif` `(` [_condition-expression_] `)` [_attribute_]__*__ [_code-block_] [_catch-clauses_] __)*__\
+    __(__ `else` [_attribute_]__*__ [_code-block_] __)?__\
+    __(__ `empty` [_attribute_]__*__ [_code-block_] __)?__
 
 _alternate-clauses-2_ :=\
-    __(__ `else` [_annotation_]__*__ [_code_block_] __)?__\
-    __(__ `empty` [_annotation_]__*__ [_code_block_] __)?__\
+    __(__ `else` [_attribute_]__*__ [_code-block_] __)?__\
+    __(__ `empty` [_attribute_]__*__ [_code-block_] __)?__\
     [_catch-clauses_]
 
 [_condition-expression_]: condition_expression.md

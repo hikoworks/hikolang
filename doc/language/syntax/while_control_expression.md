@@ -2,7 +2,7 @@
 
 
 [_alternate-clauses_]: alternate_clauses.md
-[_annotation_]: annotation.md
+[_attribute_]: attribute.md
 [_code-block_]: code_block.md
 [_condition-expression_]: condition_expression.md
 [_do-clause_]: do_clause.md
@@ -14,7 +14,7 @@
 _while-control-expression_ :=\
     [_do-clause_]__?__\
     `while` `(` [_init-expression_]__?__ [_condition-expression_] `)`\
-        __(__ [_annotation_]__*__ [_code-block_] __)?__\
+        __(__ [_attribute_]__*__ [_code-block_] __)?__\
     [_alternate-clauses_]
 
 
