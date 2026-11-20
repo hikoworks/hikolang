@@ -24,16 +24,28 @@ struct string[encoding : string_representation] {
         return __alloc_size() - __is_1
     }
 
-    fn _pointer_member() -> __ptr {
-        return make_ref(self, __ptr, 0)
+    @public
+    fn __init__() {
+        _int_pointer_member() = __is_0
+        _size_member() = __is_0
+        _capacity_member() = __is_0
+
     }
 
-    fn _size_member() -> __is {
-        return make_ref(self, __is, 1)
+    fn _pointer_member() {
+        return &make_ref(self, __ptr, 0)
     }
 
-    fn _capacity_member() -> __is {
-        return make_ref(self, __is, 2)
+    fn _int_pointer_member() {
+        return &make_ref(self, __is, 0)
+    }
+
+    fn _size_member() {
+        return &make_ref(self, __is, 1)
+    }
+
+    fn _capacity_member() {
+        return &make_ref(self, __is, 2)
     }
 
     fn _is_short_string() -> bool {

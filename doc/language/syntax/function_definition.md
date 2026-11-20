@@ -11,6 +11,7 @@
 [_effect-list_]: effect_list.md
 [_function-return-type_]: function_return_type.md
 [_fqname_]: fqname.md
+[_identifier_]: identifier.md
 [_expression_]: expression.md
 [_qualifier_]: qualifier.md
 [_string-literal_]: string_literal.md
@@ -20,7 +21,7 @@
 ## Syntax
 
 _function-definition_ :=\
-    `fn` __(__ `(` [_argument-declaration-list_]__?__ `)` __)?__
+    `fn` [_identifier_]__?__ __(__ `(` [_argument-declaration-list_]__?__ `)` __)?__
       [_function-return-type_]__?__\
     *constraint*__*__\
     _specifier_
