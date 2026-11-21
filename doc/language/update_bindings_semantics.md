@@ -12,15 +12,15 @@ The `<-` and `=` operators determine which operation is called:
 * `<-` calls `__assign__()`.
 * `=` calls `__merge__()`.
 
-```text
+```rust
 a <- 1.0
 a <- 2.0       // Calls a.__assign__(2.0).
 
 b = 1.0        // Creates a const-restricted binding.
 // b = 2.0     // Error: f64 does not support __merge__().
 
-f = fn(a : *int) {}     // Creates an overload-set.
-f = fn(a : *string) {}  // Merges the overload-sets, std.overload_set supports __merge__().
+fn f(a : *int) {}     // Creates an overload-set.
+fn f(a : *string) {}  // Merges the overload-sets, std.overload_set supports __merge__().
 ```
 
 Although both operators introduce or update bindings, their update semantics
@@ -29,9 +29,9 @@ according to the type's semantics.
 
 The operations use binding qualifiers that reflect their permitted access:
 
-```text
-__assign__ = fn(@self self : &, other : &const)
-__merge__  = fn(@self self : &const, other : &const)
+```rust
+fn __assign__(@self self : &, other : &const)
+fn __merge__(@self self : &const, other : &const)
 ```
 
 Consequently, `<-` cannot update a const-restricted binding through
@@ -66,7 +66,7 @@ rule takes precedence over the normal `<-` /` =` update dispatch. Otherwise:
  * `<-` calls `__assign__()` on the referenced object, and
  * `=` calls `__merge__()` on the referenced object.
 
-```text
+```rust
 a <- 1.0
 b <- 2.0
 
@@ -81,7 +81,7 @@ Reseating does not copy or move either referenced object's value, nor does it
 change the reference binding's qualification. The new reference must be
 implicitly convertible to the existing binding's reference qualification.
 
-```text
+```rust
 cr = &a
 cr <- &b             // Reseats cr; it remains const-restricted.
 
@@ -94,7 +94,7 @@ A move-capable reference grants permission to consume its referenced object's
 value but does not itself perform a move. Consumption occurs only when a
 subsequent variable-binding conversion moves from the referenced object.
 
-```text
+```rust
 a <- "Hello World"
 r <- &move a         // Creates a reference; `a` remains unchanged.
 c : * <- &move r     // Moves the value from `a` into `c`.

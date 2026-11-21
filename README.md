@@ -54,7 +54,7 @@ Features:
  * Hidden context arguments
  * Universal call syntax
  * Variant with associated values
- * with_effect / without_effect constrain
+ * Effects
  * Contracts and invariants
  * Elaboration phase
  * Compile time reflection
@@ -72,7 +72,7 @@ There are three different outcomes from a function:
 An error must be handled by the caller. The `if` statement include
 `catch` and `empty` clauses to make it easier.
 
-```
+```rust
 if (x = foo()) {
     print("foo() returned a value {:1}", x)
 } empty {
@@ -103,7 +103,7 @@ Errors that may be thrown by certain operations:
 The `int` template type infers based on interval arithmatic to fit
 the full result of an operation: 
 
-```
+```rust
 fn foo(x : int[10...20], y : int[2...4]) {
     // return type is infered as int[20...80]
     return x * y
@@ -131,7 +131,7 @@ The `#` operator converts a scalar-value to a unit-value by multiplying
 by the unit. The `#-` operator converts a unit-value back to a
 scalar-value by dividing by the unit.
 
-```
+```rust
 duration = 15.0 #min
 speed = 100.0 #(km/h)
 distance = speed * duration
@@ -168,6 +168,7 @@ fn qux(x, y) {
 }
 ```
 
+
 ## Hidden context members
 
 ```rust
@@ -202,6 +203,7 @@ fn foo(s : string) {
 }
 ```
 
+
 ## Separate data-stack
 
 Local variables are allocated on a separate data-stack, this data-stack can
@@ -217,6 +219,7 @@ Functions and member functions may be called in two different ways:
 
 Functions and members are handled together in a single overload resolution
 algorithm.
+
 
 ## Enum with associated values
 

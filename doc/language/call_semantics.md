@@ -30,12 +30,12 @@ A free-function call will look for `<name>` in the following order:
 
 A free function is specified as follows:
 
-```
-foo = struct {
+```rust
+struct foo {
     z <- 10
 }
 
-bar = fn(@self a : foo, b, c) {
+fn bar(@self a : foo, b, c) {
     return a + b + z
 }
 ```
@@ -52,12 +52,17 @@ may appear on each argument.
 ## Member Function Rewrite
 
 A member functions like `bar` here:
-```
-foo = struct {
+
+```rust
+struct foo {
     z <- 10.0
 
-    bar = fn(self, x, y) {
-        return x + y + self.z
+    fn bar(x, y) {
+        return x + y + z
+    }
+
+    fn baz(x, y) {
+        return x + y + $self.z
     }
 };
 
@@ -67,13 +72,13 @@ b = a.bar(1.0, 2.0)  // b = 13.0
 
 Is rewritten as a free function:
 
-```
-foo = struct {
+```rust
+struct foo {
     z <- 10.0
 }
 
 // @self was implied as a member function.
-bar = fn(@self self : foo, x, y) {
+fn bar(@self self : foo, x, y) {
     return x + y + self.z
 }
 
@@ -84,12 +89,15 @@ b = bar(a, 1.0, 2.0)  // b = 13.0
 ## Dynamic Dispatch
 
 Dynamic member functions like `bar` here:
-```
-foo = struct {
+```rust
+
+@dynamic
+struct foo {
     z <- 10.0
 
-    @dynamic bar = fn(self, x, y) {
-        return x + y + self.z
+    @dynamic
+    fn bar(x, y) {
+        return x + y + z
     }
 };
 
@@ -100,17 +108,18 @@ b = a.bar(1.0, 2.0)  // b = 13.0
 Is rewritten as a free function that dispatches to the actual function through
 the vtable of the object:
 
-```
-foo = struct {
+```rust
+@dynamic
+struct foo {
     z <- 10.0
 }
 
-foo__bar = fn(@self self : foo, x, y) {
+fn foo__bar(@self self : foo, x, y) {
     return x + y + self.z
 }
 
 // The `:` is used as a forwarding reference.
-bar = fn(@self self : foo, x :, y :) {
+fn bar(@self self : foo, x :, y :) {
     // `&&` forwards the arguments. 
     return self.__vtable[foo__bar__index](&&foo, &&x, &&y)
 }
@@ -128,14 +137,14 @@ objects or function pointers.
 
 For example:
 
-```
-qux = struct {
-    __call__ = fn(x, y) {
+```rust
+struct qux {
+    fn __call__(x, y) {
         return x + y + 42.0
     }
 }
 
-foo = struct {
+struct foo {
     z <- 10.0
     bar <- qux()
 };

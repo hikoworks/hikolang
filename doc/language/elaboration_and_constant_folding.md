@@ -99,13 +99,13 @@ request compile-time evaluation.
 
 For example:
 
-```text
+```rust
 @effect(+phase_variant)
-read_value_from_file = fn(path) {
+fn read_value_from_file(path) {
     ...
 }
 
-main = fn() {
+fn main() {
     x = read_value_from_file("file.txt")
 }
 ```
@@ -115,8 +115,8 @@ during constant-folding.
 
 An explicitly folded call can instead request compile-time evaluation:
 
-```text
-main = fn() {
+```rust
+fn main() {
     x = @fold read_value_from_file("file.txt")
 }
 ```
@@ -171,8 +171,8 @@ compilation has no special significance to the runtime.
 
 For example:
 
-```text
-make_string = fn() {
+```rust
+fn make_string() {
     return "hello"
 }
 
@@ -185,7 +185,7 @@ receiving `value` observes an ordinary runtime value.
 
 Likewise, a compile-time computation may construct a larger data structure:
 
-```text
+```rust
 table = build_table()
 ```
 
@@ -248,19 +248,19 @@ This includes properties such as:
 For example, consider an operation that exposes the individual bytes of an
 integer:
 
-```text
+```rust
 @fold bytes_of(0x12345678)
 ```
 
 On a little-endian target, this might produce:
 
-```text
+```rust
 [0x78, 0x56, 0x34, 0x12]
 ```
 
 whereas on a big-endian target it would produce:
 
-```text
+```rust
 [0x12, 0x34, 0x56, 0x78]
 ```
 

@@ -3,7 +3,6 @@
 [_attribute_]: attribute.md
 [_documentation_]: documentation.md
 [_import-module_]: import_module.md
-[_import-eval_]: import_eval.md
 [_import-git_]: import_git.md
 [_import-lib_]: import_lib.md
 [_import-zip_]: import_zip.md
@@ -21,7 +20,6 @@ _prologue-directive_ :=\
       [_documentation_]\
     __|__ [_attribute_]\
     __|__ [_import-module_]\
-    __|__ [_import-eval_]\
     __|__ [_import-git_]\
     __|__ [_import-lib_]\
     __|__ [_import-zip_]

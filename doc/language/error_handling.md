@@ -27,8 +27,8 @@ Features:
 
 ## Adding error codes
 
-```
-.std.error_code = enum {
+```rust
+enum error_code {
     out_of_bounds
     @auto_rethrow out_of_memory
 }
@@ -40,7 +40,7 @@ The `throw` statements is used to throw an *error*. The argument of the `throw`
 statement is the error-name, and optionally a string literal with a message.
 A thrown *error* must be directly caught by the calling function.
 
-```
+```rust
 if (a < 0) {
     throw out_of_bounds, "a should be larger or equal to 0"
 }
@@ -124,7 +124,7 @@ from the `if` condition-expression.
 
 A `catch` clause has a list of error-names to catch.
 
-```
+```rust
 if (a = foo()) {
     return a
 } empty {
@@ -149,7 +149,7 @@ optimization.
 Errors can also be handled within an expression. The `try` prefix
 operators is used to directly rethrow the *error*.
 
-```
+```rust
 a = try foo() // Any error is rethrown.
 ```
 
@@ -157,7 +157,7 @@ The short-circuiting binary-operator `catch` evaluates the left operand and when
 it throws an *error*, it will evaluate and return the right operand. The `catch`
 operator can be used to catch an error and return a default value.
 
-```
+```rust
 b = foo() catch 5 // Any error, including empty causes the results to be 5.
 c = foo() catch(out_of_bounds) 42
 d = foo() empty 69

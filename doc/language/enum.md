@@ -36,8 +36,8 @@ it declares that member again. If it specifies a value, that value
 must equal the existing member's value. Its annotations are merged with
 those of the existing member.
 
-```
-foo = enum {   // int[0...6]
+```rust
+enum foo {   // int[0...6]
     a          // 0
     b = 5      // 5
     "c"        // 6
@@ -48,15 +48,15 @@ New members can be added at any time, before and after the enum is frozen,
 as long as the value of members is inside the range of the underlying integer
 type, and the value has not been used yet.
 
-```
+```rust
 // The underlying was not specified so the range can grow.
-foo = enum {   // int[0...7]
+enum foo {   // int[0...7]
     d          // 7
 }
 
 freeze foo
 
-foo = enum {
+enum foo {
      e = 1      // 1 was not yet used, so can be added.
 }
 ```
@@ -65,8 +65,8 @@ A member declaration whose name matches an existing member extends that
 member. Its annotations are merged with the existing member's annotations.
 If it specifies a value, that value must equal the existing member's value.
 
-```
-bar = enum {
+```rust
+enum bar {
     a = 1
     // b = 1   ERROR: values must be unique
 }
@@ -93,8 +93,8 @@ The following enum types are part of the language itself:
 
 ### void
 
-```
-.void = enum {
+```rust
+enum .void {
     empty
 }
 ```
@@ -102,8 +102,8 @@ The following enum types are part of the language itself:
 
 ### bool
 
-```
-.bool = enum {
+```rust
+enum .bool {
     @keyword false
     @keyword true
 }
@@ -114,15 +114,16 @@ The following enum types are part of the language itself:
 
 Error codes that can be thrown and caught from functions.
 
-```
+```rust
 // Simplified definition is the standard library
-.std.error_code = enum u32 {
-    empty = 0
+enum error_code : __i32 {
+    empty = __i32_0
     @auto_rethrow bad_alloc
 }
 
 // Adding a new error-code
-.std.error_code = enum {
+@merge
+enum error_code {
     io_error
 }
 ```
@@ -134,8 +135,8 @@ Error codes that can be thrown and caught from functions.
 
 Effects that a function has on the system
 
-```
-.std.effect = enum u32 {
+```rust
+enum effect : __i32 {
     /** This code behaves differently between elaboration and runtime. */
     phase_variant
 
@@ -165,8 +166,8 @@ runtime with the following exceptions:
 
 Units can be attached to types like a tag to do domain analysis on those types.
 
-```
-.std.unit = enum u32 {
+```rust
+enum unit __i32 {
     SI
     @domain(SI, 0) s
     @domain(SI, 1) m
@@ -182,12 +183,14 @@ Units can be attached to types like a tag to do domain analysis on those types.
     @unit(kg m s⁻²) N 
 }
 
-.std.unit = enum {
+@merge
+enum unit {
     screen
     @domain(screen, 0) px
 }
 
-.std.unit = enum {
+@merge
+enum unit {
     @tag my_tag
 }
 ```
@@ -196,8 +199,8 @@ Units can be attached to types like a tag to do domain analysis on those types.
 
 ### std.operator
 
-```
-.std.operator = enum u32 {
+```rust
+enum operator : __i32 {
     @suffix(2000, ++)       __post_increment__
     @prefix(3000, ++)       __increment__
     @prefix(3000, +)        __pos__

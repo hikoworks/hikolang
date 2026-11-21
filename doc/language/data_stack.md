@@ -44,7 +44,7 @@ from the signal handler.
 
 ## x86-64
 
-```asm
+```x86
 foo:
         push rbp
         lea rbp, [rbp + <frame_size>]
@@ -59,7 +59,7 @@ foo:
 When the function uses dynamic allocation the fixed frame should be loaded in a
 separate register.
 
-```asm
+```x86
 foo:
         push rbp
         lea rbp, [rbp + <frame_size>]

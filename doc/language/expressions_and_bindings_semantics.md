@@ -448,20 +448,20 @@ This rule does not relocate objects that already exist independently in the
 callee's code-block. Returning a reference to such an object is invalid if the
 object does not outlive the returned reference.
 
-```
+```rust
 // Materialization of make_value() is done in the caller's block:
-foo = fn() -> & {
+fn foo() -> & {
   return make_value()
 }
 
 // Materialization of make_value() is done in the caller's block:
-bar = fn() -> & {
+fn bar() -> & {
   return &make_value()
 }
 
 // Materialization of make_value() happens inside the function's body
 // returning a reference to an object that is local to a function is invalid.
-qux = fn() -> & {
+fn qux() -> & {
   a <- make_value()
   return &a
 }
@@ -474,7 +474,7 @@ The `const` qualifier restricts the operations permitted through a particular
 binding or reference. It provides read-only access through that path without
 making the object's value intrinsically immutable.
 
-```text
+```rust
 a <- "Hello World"
 r : &const <- a    // Reading through r is permitted.
                    // Modifying or moving through r is not permitted.
@@ -529,7 +529,7 @@ no-binding operator rule prevents implicit consumption. A move-capable
 expression therefore loses its move capability unless an explicit binding
 operator preserves it.
 
-```text
+```rust
 a <- "Hello World"
 b <- a                 // Copies the value from `a`; `a` remains unchanged.
 
@@ -560,7 +560,7 @@ A move-capable reference grants permission to consume its referenced object's
 value but does not itself perform a move. Moving occurs when a value-binding
 conversion consumes the referenced object's value.
 
-```text
+```rust
 a <- "Hello World"
 
 b <- a                   // Copies; `a` remains unchanged.
@@ -604,11 +604,11 @@ reference are valid.
 For example, a method receiving a const-restricted reference can explicitly
 remove the restriction from its access path to modify the underlying object:
 
-```text
-my_type = struct {
+```rust
+struct my_type {
     counter <- 0.0
 
-    foo = fn(@self self : &const my_type) {
+    fn foo(@self self : &const my_type) {
         self_nc <- &&std.make_unqualified_ref(self)
         self_nc.counter += 1.0
     }

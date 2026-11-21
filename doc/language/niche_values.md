@@ -18,16 +18,16 @@ Here is an example of an enum with three names, one of them holds the type which
 has two niche values. For best optimization the last enum-name should be the
 one that holds the type.
 
-```
+```rust
 enum my_enum {
-    one,                  // niche: 0.
-    two                   // niche: 1.
-    three(int[0...253]),  // niche: 2, the one beyond the niche is a normal value.
+    one,                   // niche: 0.
+    two                    // niche: 1.
+    three(:int[0...253]),  // non-niche: the one beyond the niche is a normal value.
 };
 
 enum my_enum_less_optimized {
     one,                // nice: 0.
-    two(int[0...253]),  // nice: 2, the one beyond the niche is a normal value.
+    two(int[0...253]),  // non-nice: the one beyond the niche is a normal value.
     three               // nice: 1.
 };
 ```
@@ -72,7 +72,7 @@ If one object is smaller, then the extra padding bits are treated as `1` in the
 niche-mask, even if that object's types does not expose an explicit niche-mask
 itself.
 
-```
+```rust
 enum {
     a(int[0...127])
     b(int[0...127])

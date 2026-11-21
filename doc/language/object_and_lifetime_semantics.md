@@ -24,7 +24,7 @@ The materialized temporary remains alive until that scope exits. A reference to
 it is valid only while the temporary's object remains alive; binding a
 reference does not extend the temporary's lifetime.
 
-```text
+```rust
 r <- &make_value()    // Materializes the result in the current scope.
 use(r)                // Valid while that scope remains active.
 ```

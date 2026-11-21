@@ -2,15 +2,14 @@
 
 ## Special type members
 
- Member            | Description
- :---------------- |:----------------------------------------------------
-  `::frozen`       | If the object is frozen
-  `::size()`       | The number of bytes for holding a value of the type.
-  `::alignment()`  | Alignment of the member to allocate this type.
-  `::stride()`     | The distance between elements in memory.
+ Member                   | Description
+ :------------------------ |:----------------------------------------------------
+  `::frozen`               | If the object is frozen
+  `::__alloc_size()`       | The number of bytes for holding a value of the type.
+  `::__alloc_alignment()`  | Alignment of the member to allocate this type.
 
 
-### ::size(), ::alignment(), ::stride()
+### ::__alloc_size(), ::__alloc_alignment()
 
 Every type has these function so that the langauge can reserve the space for
 values of this type.
