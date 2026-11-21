@@ -27,10 +27,10 @@ _function-definition_ :=\
     _specifier_
 
 _constraint_ :=\
-      `expect` `(` [_expression_] `)` \
-    __|__ `build_guard` `(` [_build-guard-expression_] `)`\
-    __|__ [_attribute_]__*__ `pre` `(` [_expression_] `)`\
-    __|__ [_attribute_]__*__ `post` `(` [_expression_] `)`
+      [_attribute_]\
+    __|__ `expect` `(` [_expression_] `)`\
+    __|__ `pre` `(` [_expression_] `)`\
+    __|__ `post` `(` [_expression_] `)`
 
 _specifier_ :=\
       [_attribute_]__*__ [_code-block_]\

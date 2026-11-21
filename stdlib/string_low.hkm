@@ -1,35 +1,72 @@
 import std.primitive
 import std.string_representation
 import std.primitive
+import std.allocator
 module std.string_low
 
 @public
 struct string[encoding : string_representation] {
-    @type
-    fn __alloc_alignment() -> __is {
-        if (std.target.register_bits == 64) {
-            return __is_8
-        } else {
-            return __is_4
-        }
-    }
-
-    @type
-    fn __alloc_size() -> __is {
-        return __alloc_alignment() * __is_3
-    }
+    @tagged $allocator <- &std.default_allocator
+    _ptr <- __ptr_0
+    _capacity <- __is_0
+    _size <- __is_0
 
     @type
     fn _sso_capacity() -> __is {
-        return __alloc_size() - __is_1
+        return __sizeof(self) &- __sizeof(__ptr) &- __is_1
+    }
+
+    fn _last_byte() {
+        return &make_ref(self, __i8, __sizeof(self) &- __is_1)
+    }
+
+    fn _set_size(size : __is) {
+        if (size <= _sso_capacity()) {
+            __set_tag($allocator, __i1_0)
+            _last_byte() = _sso_capacity() &- size
+        } else {
+            __set_tag($allocator, __i1_1)
+            _size = size
+        }
     }
 
     @public
     fn __init__() {
-        _int_pointer_member() = __is_0
-        _size_member() = __is_0
-        _capacity_member() = __is_0
+        $self.$allocator <- &$allocator
+        _set_size(__is_0)
+    }
 
+    @public
+    fn __init__(other : &const string) {
+        $self.$allocator <- &$allocator
+
+        new_size = other.size()
+        _set_size(new_size)
+        if (new_size <= _sso_capacity()) {
+            // small string.
+            __memcpy(make_ptr(_ptr), make_ptr(other._ptr), _sso_capacity())
+        } else {
+            (_ptr, _capacity) = $self.$allocator.allocate(new_size &+ __is_1)
+            __memcpy(_ptr, other._ptr, new_size &+ __is_1)
+        }
+    }
+
+    fn __deinit__() {
+        if (_is_long()) {
+            $allocator.dealloc(_ptr, _capacity)
+        }
+    }
+
+    @public
+    fn clear() {
+        if (_is_long()) {
+            $allocator.dealloc(_ptr, _capacity)
+        }
+        _ptr <- __ptr_0
+        _capacity <- __is_0
+        _size <- __is_0
+        std.set_tag($allocator, 0)
+        _short_size() = _sso_capacity()
     }
 
     fn _pointer_member() {

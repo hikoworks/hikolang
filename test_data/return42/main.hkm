@@ -3,5 +3,5 @@ program "return42"
 
 fn main() -> __i32
 {
-    return 42
+    return __i32_42
 }
